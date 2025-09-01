@@ -8,3 +8,5 @@ def divide(a, b):
         return a / b
     else:
         return "Division by zero error"
+
+def substract(a, b): return a - b

@@ -6,12 +6,10 @@ def calculate(operation, a, b):
             return operations.add(a, b)
 
         case "-":
-            # return operations.subtract(a, b)
-            pass
+            return operations.subtract(a, b)
 
         case "*":
             return operations.multiply(a, b)
-            pass
 
         case "/":
             return operations.divide(a, b)

@@ -1,10 +1,10 @@
-# from src import operations
+from src import operations
 
 def calculate(operation, a, b):
     match operation:
         case "+":
-            # return operations.add(a, b)
-            pass
+            return operations.add(a, b)
+            #pass
 
         case "-":
             # return operations.subtract(a, b)

@@ -4,7 +4,6 @@ def calculate(operation, a, b):
     match operation:
         case "+":
             return operations.add(a, b)
-            #pass
 
         case "-":
             # return operations.subtract(a, b)
@@ -15,8 +14,7 @@ def calculate(operation, a, b):
             pass
 
         case "/":
-            # return operations.divide(a, b)
-            pass
+            return operations.divide(a, b)
 
         case _:
             return "Invalid operation"

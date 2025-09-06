@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    {% block head %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Aca deberiamos agregar los CSS -- En la explicacion practica usaron algo asi <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"> -->
+    <title>{% block title %}Grupo 03{% endblock %}</title>
+    {% endblock %}
+</head>
+<body>
+    <header>
+        {% block header %} <h1>Administración - Grupo 03</h1> {% endblock %}
+    </header>
+    <nav>
+        {% block navbar %} <!-- Navbar aquí --> {% endblock %}
+    </nav>
+    <main>
+        {% block content %} <!-- Contenido principal aquí --> {% endblock %}
+    </main>
+    <footer>
+        {% block footer %}
+        <p>&copy; 2025 Grupo 03. Proyecto de Software.</p>
+        {% endblock %}
+    </footer>
+</body>
+</html>
+

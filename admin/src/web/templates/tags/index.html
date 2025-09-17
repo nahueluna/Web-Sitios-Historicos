@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+
+{% block head %}
+{% block title %}Tags{% endblock %}
+{{ super() }}
+{% endblock %}
+
+{% block content %}
+<h2>Aquí se muestran todos los tags</h2>
+    <a href="{{ url_for('tags.add_tag') }}" class="add-btn">Agregar tag</a>
+{% endblock %}
+
+{% block footer %}
+{{ super() }}
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+
+{% block head %}
+{% block title %}Agregar tag{% endblock %}
+{{ super() }}
+{% endblock %}
+
+{% block content %}
+<h2>Agregar nuevo tag</h2>
+<form method="POST" action="{{ url_for('tags.add_tag') }}">
+    <label for="name">Nombre del tag:</label>
+    <input type="text" id="name" name="name" required>
+    <button type="submit">Agregar Tag</button>
+</form>
+{% endblock %}
+
+{% block footer %}
+{{ super() }}
+{% endblock %}

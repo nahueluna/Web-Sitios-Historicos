@@ -1,0 +1,68 @@
+{% extends "layout.html" %}
+{% block title %}Usuarios{% endblock %}
+
+{% block content %}
+<h2>Lista de usuarios</h2>
+
+<div style="display: flex; gap: 2rem;">
+    <!-- Tabla de usuarios -->
+    <div>
+        <table border="1" cellpadding="5" id="user-table">
+            <tr>
+                <th>Email</th><th>Nombre</th><th>Apellido</th><th>Rol</th>
+            </tr>
+            {% for u in users %}
+            <tr data-id="{{ u.id }}">
+                <td>{{ u.email }}</td>
+                <td>{{ u.nombre }}</td>
+                <td>{{ u.apellido }}</td>
+                <td>{{ u.rol }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <!-- Botones de acción -->
+    <div style="display: flex; flex-direction: column; gap: 1rem;">
+        <button id="btn-new" onclick="location.href='{{ url_for('user.new_user') }}'">Nuevo</button>
+        <button id="btn-update" disabled>Actualizar</button>
+        <button id="btn-delete" disabled>Eliminar</button>
+    </div>
+</div>
+
+<script>
+    let selectedRow = null;
+    let selectedUserId = null;
+
+    document.querySelectorAll("#user-table tr[data-id]").forEach(row => {
+        row.addEventListener("click", () => {
+            // Remove highlight from previous
+            if (selectedRow) {
+                selectedRow.style.background = "";
+            }
+            // Highlight new row
+            selectedRow = row;
+            selectedRow.style.background = "#d0eaff";
+
+            // Save user id
+            selectedUserId = row.dataset.id;
+
+            // Enable buttons
+            document.getElementById("btn-update").disabled = false;
+            document.getElementById("btn-delete").disabled = false;
+        });
+    });
+
+    document.getElementById("btn-update").addEventListener("click", () => {
+        if (selectedUserId) {
+            location.href = `/usuarios/actualizar/${selectedUserId}`;
+        }
+    });
+
+    document.getElementById("btn-delete").addEventListener("click", () => {
+        if (selectedUserId) {
+            location.href = `/usuarios/eliminar/${selectedUserId}`;
+        }
+    });
+</script>
+{% endblock %}

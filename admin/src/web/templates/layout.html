@@ -15,7 +15,11 @@
         {% block header %} <h1>Administración - Grupo 03</h1> {% endblock %}
     </header>
     <nav>
-        {% block navbar %} <!-- Navbar aquí --> {% endblock %}
+        {% block navbar %}
+        <ul>
+            <li><a href="{{ url_for('user.list_users') }}">Manejo de Usuarios</a></li>
+        </ul>
+        {% endblock %}
     </nav>
     <main>
         {% block content %} <!-- Contenido principal aquí --> {% endblock %}

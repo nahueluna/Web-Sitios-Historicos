@@ -1,0 +1,11 @@
+{% extends "layout.html" %}
+{% block title %}Eliminar Usuario{% endblock %}
+
+{% block content %}
+<h2>Eliminar Usuario</h2>
+<p>¿Seguro que deseas eliminar a <b>{{ user.nombre }} {{ user.apellido }}</b>?</p>
+<form method="POST">
+    <button type="submit">Sí, eliminar</button>
+    <a href="{{ url_for('user.list_users') }}">Cancelar</a>
+</form>
+{% endblock %}

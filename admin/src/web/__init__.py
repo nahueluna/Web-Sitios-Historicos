@@ -1,9 +1,12 @@
 from flask import Flask
 from flask import render_template
 from src.web.handlers import error
+from src.web.controllers.user_controller import bp_user
 
 def create_app(env='development', static_folder='../../static'):
     app = Flask(__name__, static_folder=static_folder)
+
+    app.register_blueprint(bp_user)
 
     @app.route('/')
     def home():

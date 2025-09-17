@@ -4,4 +4,30 @@
 
 {% block content %}
     <h2>Listado de Sitios Historicos</h2>
+
+    <div>
+        <a href="{{ url_for('historic_sites.add_historic_site') }}">
+        <button>Crear Nuevo Sitio Histórico</button>
+        </a>
+    </div>
+        
+    {% if list %}
+        <div class="historic-sites-list">
+            {% for hs in list %}
+                <div class="historic-site-block" style="border:1px solid #ccc; padding:16px; margin-bottom:16px;">
+                    <h3>{{ hs["site-name"] }}</h3>
+                    <p><strong>Descripción corta:</strong> {{ hs["short-description"] }}</p>
+                    <p><strong>Ciudad:</strong> {{ hs["city"] }}, <strong>Provincia:</strong> {{ hs["province"] }}</p>
+                    <p><strong>Estado de conservación:</strong> {{ hs["conservation-status"] }}</p>
+                    <p><strong>Año de inauguración:</strong> {{ hs["inauguration-year"] }}</p>
+                    <a href="{{ url_for('historic_sites.view_historic_site', id=hs['id']) }}">
+                        <button>Ver Detalle</button>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No hay sitios históricos registrados.</p>
+    {% endif %}
+
 {% endblock %}

@@ -1,7 +1,30 @@
 {% extends "layout.html" %}
 
-{% block title %}Sitios Historicos{% endblock %}
+{% block title %}Detalle Sitio Histórico{% endblock %}
 
 {% block content %}
-    <h2>Detalle de un Sitio Historico</h2>
+    <h2>{{ historic_site["site-name"] }}</h2>
+    <div style="align-content: center;">
+        <p><strong>Descripción corta:</strong> {{ historic_site["short-description"] }}</p>
+        <p><strong>Descripción larga:</strong> {{ historic_site["long-description"] }}</p>
+        <p><strong>Ciudad:</strong> {{ historic_site["city"] }}</p>
+        <p><strong>Provincia:</strong> {{ historic_site["province"] }}</p>
+        <p><strong>Ubicación geográfica:</strong> Latitud {{ historic_site["geographic-location"]["latitude"] }}, Longitud {{ historic_site["geographic-location"]["longitude"] }}</p>
+        <p><strong>Estado de conservación:</strong> {{ historic_site["conservation-status"] }}</p>
+        <p><strong>Año de inauguración:</strong> {{ historic_site["inauguration-year"] }}</p>
+        <p><strong>Categoría:</strong> {{ historic_site["category"] }}</p>
+        <p><strong>Fecha de registro:</strong> {{ historic_site["registration-date"] }}</p>
+        <p><strong>Visible:</strong> {{ "Sí" if historic_site["visible"] else "No" }}</p>
+    </div>
+
+    <div>
+        <a href="">
+        <button>Exportar sitio a CSV</button>
+        </a>
+    </div>
+
+    <a href="{{ url_for('historic_sites.list_historic_sites')}}">
+        <button>Volvel al listado</button>
+    </a>
+    
 {% endblock %}

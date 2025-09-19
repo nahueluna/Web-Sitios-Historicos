@@ -12,6 +12,26 @@ def create_app(env='development', static_folder='../../static'):
     def home():
         return render_template('home.html')
 
+    @app.route('/admin')
+    def admin():
+        return render_template('layout.html')
+
+    @app.route('/admin/gestion-sitios')
+    def gestion_sitios():
+        return render_template('gestion_sitios.html')
+
+    @app.route('/admin/validacion-propuestas')
+    def validacion_propuestas():
+        return render_template('validacion_propuestas.html')
+
+    @app.route('/admin/moderacion')
+    def moderacion():
+        return render_template('moderacion.html')
+
+    @app.route('/admin/gestion-usuarios')
+    def gestion_usuarios():
+        return render_template('gestion_usuarios.html')
+
     app.register_error_handler(404, error.not_found)
     app.register_error_handler(401, error.unauthorized)
     app.register_error_handler(500, error.internal_server_error)

@@ -3,13 +3,10 @@ from flask import Blueprint, render_template, request
 
 historic_sites_bp = Blueprint('historic_sites', __name__, url_prefix='/sitios-historicos')
 
-
+# -- USUAIROS -- #
 
 @historic_sites_bp.route('/', methods=['GET']) # Retorna todos los sitios historicos de la BD
 def list_historic_sites(): return render_template('/historic_sites/index.html', list=__hs__)
-
-@historic_sites_bp.route('/agregar', methods=['GET']) # Renderiza un formulario para agregar un nuevo sitio histórico
-def add_historic_site(): return render_template('historic_sites/add_historic_site.html', states=__hs_states__)
 
 @historic_sites_bp.route('/detalle/<int:id>', methods=['GET', 'POST'])
 def view_historic_site(id):
@@ -24,8 +21,8 @@ def view_historic_site(id):
             "city": json.get("city"),
             "province": json.get("province"),
             "geographic-location": {
-                "latitude": json.get("geographic-location", {}).get("latitude"),
-                "longitude": json.get("geographic-location", {}).get("longitude")
+                "latitude": json.get("latitude"),
+                "longitude": json.get("longitude")
             },
             "conservation-status": json.get("conservation-status"),
             "inauguration-year": json.get("inauguration-year"),
@@ -33,6 +30,7 @@ def view_historic_site(id):
             "registration-date": json.get("registration-date"),
             "visible": json.get("visible")
         }
+        print(hs)
 
         # INSTANCIAR CLASE DE SQLACHEMY Y LLAMAR A MÉTODO PARA GUARDAR EN BD
         hs["id"] = len(__hs__) + 1  # Simulando la asignación de un ID
@@ -44,13 +42,31 @@ def view_historic_site(id):
         
         # LLAMAR A MÉTODO PARA OBTENER EL SITIO HISTÓRICO DE LA
         # LLAMAR AL METODO DE LA CLASE DE SQLACHEMY PARA QUE DEVUELTA EL HS
-        hs = __hs__[id-1]  # Simulando la obtención del sitio histórico por ID
+        hs = __hs__[id-1] # Simulando la obtención del sitio histórico por ID
 
         return render_template('historic_sites/historic_site_detail.html', historic_site=hs)
     else:
         #return "Method Not Allowed", 404
         abort(404)
 
+# -- USUAIROS -- #
+
+# -- ADMIN -- #
+
+@historic_sites_bp.route('/admin', methods=['GET']) # Agregar sitios historicos, agregar Categorias
+def admin_historic_sites(): return render_template('/historic_sites/gestion_sitios.html', list=__hs__)
+
+@historic_sites_bp.route('/admin/agregar-categoria', methods=['GET']) # Renderiza un formulario para agregar una nueva categoria
+def add_categorie(): return render_template('historic_sites/add_categorie.html')
+
+@historic_sites_bp.route('/admin/agregar-sitio', methods=['GET']) # Renderiza un formulario para agregar un nuevo sitio histórico
+def add_historic_site(): return render_template('historic_sites/add_historic_site.html', states=__hs_states__)
+
+@historic_sites_bp.route('/admin/editar-sitio/<int:id>', methods=['GET']) # Renderiza un formulario para editar un sitio histórico
+def edit_historic_site(id): 
+    return render_template('/historic_sites/edit_historic_site.html', historic_site=__hs__[id-1], states=__hs_states__)
+
+# -- ADMIN -- #
 
 __hs__ = [
     {   
@@ -98,3 +114,5 @@ __hs__ = [
 ]
 
 __hs_states__ = ["Bueno", "Regular", "Malo"]
+
+__hs_labels__ = ["Etiqueta 1", "Etiqueta 2", "Etiqueta 3"]

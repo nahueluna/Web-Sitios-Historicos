@@ -18,13 +18,20 @@
     </div>
 
     <div>
-        <a href="">
-        <button>Exportar sitio a CSV</button>
+        <a href="" style="padding: 10px 15px;">
+            <button>
+                Exportar Sitio a CSV</button>
+        </a>
+        
+        <a href="{{ url_for('historic_sites.list_historic_sites')}}" style="padding: 10px 15px;">
+            <button>
+                Volvel al Listado</button>
+        </a>
+
+        <a href="{{ url_for('historic_sites.edit_historic_site' , id=historic_site['id']) }}" style="padding: 10px 15px;"">
+            <button>
+                Editar</button>
         </a>
     </div>
 
-    <a href="{{ url_for('historic_sites.list_historic_sites')}}">
-        <button>Volvel al listado</button>
-    </a>
-    
 {% endblock %}

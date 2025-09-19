@@ -1,0 +1,42 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h2>Gestion sitios</h2>
+<br><br>
+
+<div>
+    <h4>Sistios Historicos</h4>
+    <br>
+    <a href="{{ url_for('historic_sites.list_historic_sites') }}">
+        <button>Ver Sitios Históricos</button>
+    </a>
+    <a href="{{ url_for('historic_sites.add_historic_site') }}" style="padding: 30px ;">
+        <button>Crear Nuevo Sitio Histórico</button>
+    </a>
+</div> <br><br>
+
+<div>
+    <h4>Categorias de Sitios Historicos</h4>
+    <br>
+    <a href="" >
+        <button>Ver Categoiras de Sitios Históricos</button>
+    </a>
+
+    <a href="" style="padding: 30px ;">
+        <button>Crear Nueva Categoira de Sitio Histórico</button>
+    </a>
+</div> <br><br>
+
+<div>
+    <h4>Etiquetas de Sitios Historicos</h4>
+    <br>
+    <a href="" >
+        <button>Ver Etiquetas de Sitios Históricos</button>
+    </a>
+
+    <a href="" style="padding: 30px ;">
+        <button>Crear Nueva Etiqueta para Sitios Históricos</button>
+    </a>
+</div>
+
+{% endblock %}

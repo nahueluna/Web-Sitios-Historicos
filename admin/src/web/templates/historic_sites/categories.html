@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h2>Gestion sitios</h2>
+
+<div>
+    <a href="{{ url_for('historic_sites.add_historic_site') }}">
+    <button>Crear Nuevo Sitio Histórico</button>
+    </a>
+</div>
+
+<div>
+    <a href="">
+        <button>Crear Nueva Categoira de Sitio Histórico</button>
+    </a>
+</div>
+{% endblock %}

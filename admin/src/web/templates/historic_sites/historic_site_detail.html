@@ -3,17 +3,17 @@
 {% block title %}Detalle Sitio Histórico{% endblock %}
 
 {% block content %}
-    <h2>{{ historic_site["site-name"] }}</h2>
+    <h2>{{ historic_site["site_name"] }}</h2>
     <div style="align-content: center;">
-        <p><strong>Descripción corta:</strong> {{ historic_site["short-description"] }}</p>
-        <p><strong>Descripción larga:</strong> {{ historic_site["long-description"] }}</p>
+        <p><strong>Descripción corta:</strong> {{ historic_site["short_description"] }}</p>
+        <p><strong>Descripción larga:</strong> {{ historic_site["long_description"] }}</p>
         <p><strong>Ciudad:</strong> {{ historic_site["city"] }}</p>
         <p><strong>Provincia:</strong> {{ historic_site["province"] }}</p>
-        <p><strong>Ubicación geográfica:</strong> Latitud {{ historic_site["geographic-location"]["latitude"] }}, Longitud {{ historic_site["geographic-location"]["longitude"] }}</p>
-        <p><strong>Estado de conservación:</strong> {{ historic_site["conservation-status"] }}</p>
-        <p><strong>Año de inauguración:</strong> {{ historic_site["inauguration-year"] }}</p>
+        <p><strong>Ubicación geográfica:</strong> Latitud {{ historic_site["latitude"] }}, Longitud {{ historic_site["longitude"] }}</p>
+        <p><strong>Estado de conservación:</strong> {{ historic_site["conservation_status"] }}</p>
+        <p><strong>Año de inauguración:</strong> {{ historic_site["inauguration_year"] }}</p>
         <p><strong>Categoría:</strong> {{ historic_site["category"] }}</p>
-        <p><strong>Fecha de registro:</strong> {{ historic_site["registration-date"] }}</p>
+        <p><strong>Fecha de registro:</strong> {{ historic_site["registration_date"] }}</p>
         <p><strong>Visible:</strong> {{ "Sí" if historic_site["visible"] else "No" }}</p>
     </div>
 

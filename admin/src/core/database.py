@@ -8,8 +8,8 @@ def init_app(app):
     return db
 
 def reset_db():
-    from src.core.models import test  # noqa: F401 
     print("Resetting database...")
+    from src.core.models.auth.user import Usuario
     Base.metadata.drop_all(bind=db.engine)
     Base.metadata.create_all(bind=db.engine)
     print("Database reset complete.")

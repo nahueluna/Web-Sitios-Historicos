@@ -56,3 +56,56 @@ footer {
   background-color: #222;
   min-height: 50px;
 }
+
+.add-btn {
+  display: inline-block;
+  padding: 10px 24px;
+  background-color: #4a69bd;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: background 0.2s;
+  margin-right: 10px;
+}
+
+.add-btn:hover {
+  background-color: #3867d6;
+  color: #fff;
+}
+
+.back-btn {
+  display: inline-block;
+  padding: 10px 24px;
+  background-color: #f1f2f6;
+  color: #222;
+  border: 1px solid #b3b9d8;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: background 0.2s, color 0.2s;
+}
+
+.back-btn:hover {
+  background-color: #b3b9d8;
+  color: #fff;
+}
+
+.submit-btn {
+  display: inline-block;
+  padding: 10px 24px;
+      background-color: #38ada9;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.submit-btn:hover {
+  background-color: #218c8d;
+  color: #fff;
+}

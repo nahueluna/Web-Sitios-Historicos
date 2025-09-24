@@ -1,17 +1,28 @@
 {% extends "layout.html" %}
 
-{% block head %}
 {% block title %}Agregar tag{% endblock %}
-{{ super() }}
-{% endblock %}
 
 {% block content %}
 <h2>Agregar nuevo tag</h2>
-<form method="POST" action="{{ url_for('tags.add_tag') }}">
-    <label for="name">Nombre del tag:</label>
-    <input type="text" id="name" name="name" required>
-    <button type="submit">Agregar Tag</button>
+<form method="POST" action="{{ url_for('tags.add_tag') }}" autocomplete="off">
+    <fieldset>
+        <div>
+            <label for="name">Nombre del tag:</label>
+            <input type="text" id="name" name="name" required minlength="3" maxlength="50" pattern=".{3,50}" autofocus aria-describedby="name-error">
+        </div>
+        <div>
+            <button class="submit-btn" type="submit">Agregar Tag</button>
+        </div>
+    </fieldset>
 </form>
+
+{% if integrity_error %}
+    <p class="error" id="name-error">Error: El tag ya existe.</p>
+{% elif bad_request %}
+    <p class="error" id="name-error">Error: El nombre del tag es obligatorio y debe contener entre 3 y 50 caracteres.</p>
+{% endif %}
+
+<a href="{{ url_for('tags.view_tags') }}" class="back-btn">Volver a la lista de tags</a>
 {% endblock %}
 
 {% block footer %}

@@ -1,12 +1,23 @@
 {% extends "layout.html" %}
 
-{% block head %}
 {% block title %}Tags{% endblock %}
-{{ super() }}
-{% endblock %}
 
 {% block content %}
-<h2>Aquí se muestran todos los tags</h2>
+    <h2>Lista de tags</h2>
+    <div style="display: flex; gap: 2rem;">
+        <div>
+            <table id="tags-table">
+                <tr>
+                    <th>Nombre</th>
+                </tr>
+                {% for t in tags %}
+                <tr data-id="{{ t.id }}">
+                    <td>{{ t.name }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
     <a href="{{ url_for('tags.add_tag') }}" class="add-btn">Agregar tag</a>
 {% endblock %}
 

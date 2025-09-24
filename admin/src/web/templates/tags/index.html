@@ -1,24 +1,26 @@
 {% extends "layout.html" %}
 
-{% block title %}Tags{% endblock %}
+{% block title %}Etiquetas{% endblock %}
 
 {% block content %}
-    <h2>Lista de tags</h2>
+    <h2>Lista de etiquetas</h2>
     <div style="display: flex; gap: 2rem;">
         <div>
             <table id="tags-table">
                 <tr>
-                    <th>Nombre</th>
+                    <th ><b>Nombre</b></th>
                 </tr>
                 {% for t in tags %}
                 <tr data-id="{{ t.id }}">
-                    <td>{{ t.name }}</td>
+                    <td>
+                        <a href="{{ url_for('tags.show_update_tag_form', tag_id=t.id) }}">{{ t.name }}</a>
+                    </td>
                 </tr>
                 {% endfor %}
             </table>
         </div>
     </div>
-    <a href="{{ url_for('tags.add_tag') }}" class="add-btn">Agregar tag</a>
+    <a href="{{ url_for('tags.add_tag') }}" class="add-btn">Agregar etiqueta</a>
 {% endblock %}
 
 {% block footer %}

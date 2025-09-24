@@ -1,23 +1,26 @@
 {% extends "layout.html" %}
 
-{% block title %}Agregar etiqueta{% endblock %}
+{% block title %}Editar etiqueta{% endblock %}
 
 {% block content %}
-<h2>Agregar nueva etiqueta</h2>
-<form method="POST" action="{{ url_for('tags.add_tag') }}" autocomplete="off">
+<h2>Editar etiqueta</h2>
+    {% if tag_name %}   <!-- Quitar a futuro -->
+        <strong>Nombre actual: {{ tag_name }}</strong>
+    {% endif %}
+<form method="POST" action="{{ url_for('tags.update_tag', tag_id=tag_id) }}" autocomplete="off">
     <fieldset>
         <div>
-            <label for="name">Nombre de la etiqueta:</label>
+            <label for="name">Nuevo nombre:</label>
             <input type="text" id="name" name="name" required minlength="3" maxlength="50" pattern=".{3,50}" autofocus aria-describedby="name-error">
         </div>
         <div>
-            <button class="submit-btn" type="submit">Agregar</button>
+            <button class="submit-btn" type="submit">Actualizar</button>
         </div>
     </fieldset>
 </form>
 
 {% if integrity_error %}
-    <p class="error" id="name-error">Error: La etiqueta ya existe.</p>
+    <p class="error" id="name-error">Error: El nombre ya se encuentra registrado para otra etiqueta.</p>
 {% elif bad_request %}
     <p class="error" id="name-error">Error: El nombre de la etiqueta es obligatorio y debe contener entre 3 y 50 caracteres.</p>
 {% endif %}

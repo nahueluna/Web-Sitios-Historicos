@@ -1,14 +1,14 @@
 from flask import Blueprint, render_template, request, Response, redirect
 from sqlalchemy.exc import IntegrityError
 
-from src.core.search import create_tag, list_tags_by_insertion_date
+from src.core.search import create_tag, list_tags_by_update_date, update_tag_name, get_tag_by_id
 from src.web.controllers.helpers.tags import verify_tag_and_generate_slug
 
 tags_bp = Blueprint('tags', __name__, url_prefix='/etiquetas')
 
 @tags_bp.get('/')
 def view_tags():
-    tags_list = list_tags_by_insertion_date()
+    tags_list = list_tags_by_update_date()
     return render_template('tags/index.html', tags=tags_list)
 
 
@@ -29,7 +29,7 @@ def add_tag():
     except IntegrityError as integrity_error:
         return render_template('tags/add_tag.html', integrity_error=integrity_error)
 
-    return redirect("/search/")
+    return redirect("/etiquetas/")
 
 @tags_bp.delete('/eliminar')
 def delete_tag(tag_id):
@@ -37,17 +37,27 @@ def delete_tag(tag_id):
     # AQUÍ SE DEBE ELIMINAR DE LA BASE DE DATOS
     return f"Etiqueta con ID {tag_id} eliminada exitosamente."
 
-@tags_bp.post('/actualizar')
-def update_tag():
-    tag_id = request.form.get('id')
+@tags_bp.get('/actualizar/<int:tag_id>')
+def show_update_tag_form(tag_id):
+    tag = get_tag_by_id(tag_id)
+
+    if tag is None:
+        return redirect("/etiquetas/")
+
+    return render_template('tags/edit_tag.html', tag_id=tag_id, tag_name=tag.name)
+
+@tags_bp.post('/actualizar/<int:tag_id>')
+def update_tag(tag_id):
     new_name = request.form.get('name')
 
-    if not tag_id or not new_name:
-        return Response("El ingreso de un nombre para el tag es obligatorio.", status=400)
-    if not (3 <= len(new_name) <= 50):
-        return Response("El nombre de la etiqueta debe tener entre 3 y 50 caracteres.", status=400)
+    slug_reponse = verify_tag_and_generate_slug(new_name)
 
-    new_slug = new_name.lower().replace(' ', '-')
-    # AQUÍ SE DEBE ACTUALIZAR EN LA BASE DE DATOS
+    if isinstance(slug_reponse, Response):
+        return render_template('tags/edit_tag.html', tag_id=tag_id, bad_request=slug_reponse)
 
-    return f"Etiqueta actualizada exitosamente a '{new_name}'."
+    try:
+        update_tag_name(tag_id, new_name, slug_reponse)
+    except IntegrityError as integrity_error:
+        return render_template('tags/edit_tag.html', tag_id=tag_id , integrity_error=integrity_error)
+
+    return redirect("/etiquetas/")

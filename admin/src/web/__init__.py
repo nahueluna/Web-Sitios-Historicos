@@ -42,6 +42,7 @@ def create_app(env='development', static_folder='../../static'):
 
     app.register_blueprint(advanced_search_bp)
     app.register_blueprint(tags_bp)
+
     @app.cli.command("reset-db")
     def reset_db():
         database.reset_db()

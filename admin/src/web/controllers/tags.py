@@ -1,11 +1,15 @@
-from flask import Blueprint, render_template, request, Response
+from flask import Blueprint, render_template, request, Response, redirect
+from sqlalchemy.exc import IntegrityError
 
-tags_bp = Blueprint('tags', __name__, url_prefix='/tags')
+from src.core.search import create_tag, list_tags_by_insertion_date
+from src.web.controllers.helpers.tags import verify_tag_and_generate_slug
+
+tags_bp = Blueprint('tags', __name__, url_prefix='/etiquetas')
 
 @tags_bp.get('/')
-def tags():
-    # SE VISUALIZAN A PARTIR DE CONSULTA A LA BD
-    return render_template('tags/index.html')
+def view_tags():
+    tags_list = list_tags_by_insertion_date()
+    return render_template('tags/index.html', tags=tags_list)
 
 
 @tags_bp.get('/agregar')
@@ -15,16 +19,17 @@ def show_add_tag_form():
 @tags_bp.post('/agregar')
 def add_tag():
     tag_name = request.form.get('name')
+    slug_reponse = verify_tag_and_generate_slug(tag_name)
 
-    if not tag_name:
-        return Response("El ingreso de un nombre para el tag es obligatorio.", status=400)
-    if not (3 <= len(tag_name) <= 50):
-        return Response("El nombre de la etiqueta debe tener entre 3 y 50 caracteres.", status=400)
+    if isinstance(slug_reponse, Response):
+        return render_template('tags/add_tag.html', bad_request=slug_reponse)
 
-    slug = tag_name.lower().replace(' ', '-')
-    # AQUÍ SE DEBE GUARDAR EN LA BASE DE DATOS
+    try:
+        create_tag(name=tag_name, slug=slug_reponse)
+    except IntegrityError as integrity_error:
+        return render_template('tags/add_tag.html', integrity_error=integrity_error)
 
-    return f"Etiqueta '{tag_name}' agregada exitosamente."
+    return redirect("/search/")
 
 @tags_bp.delete('/eliminar')
 def delete_tag(tag_id):

@@ -10,7 +10,7 @@ historic_sites_bp = Blueprint('historic_sites', __name__, url_prefix='/sitios-hi
 # -- USUAIROS -- #
 
 @historic_sites_bp.route('/', methods=['GET']) # Retorna todos los sitios historicos de la BD
-def list_historic_sites(): return render_template('/historic_sites/index.html', list= historic_sites.list_historic_sites())
+def list_historic_sites(): return render_template('/historic_sites/index.html', list= historic_sites.list_visible_historic_sites())
 
 @historic_sites_bp.route('/detalle/<int:id>', methods=['GET', 'POST'])
 def view_historic_site(id):
@@ -36,7 +36,7 @@ def view_historic_site(id):
     
     elif request.method == 'GET':
         
-        hs = historic_sites.get_historic_site_by_id(id)
+        hs = historic_sites.get_historic_site(id)
         return render_template('historic_sites/historic_site_detail.html', historic_site=hs)
     else:
         #return "Method Not Allowed", 404
@@ -64,7 +64,7 @@ def add_historic_site():
 def edit_historic_site(id): 
     return render_template(
         '/historic_sites/edit_historic_site.html', 
-        historic_site=historic_sites.get_historic_site_by_id(id), 
+        historic_site=historic_sites.get_historic_site(id), 
         states=historic_sites_state.list_historic_sites_states(), 
         categories=historic_sites_categorie.list_historic_sites_categorie()
         )

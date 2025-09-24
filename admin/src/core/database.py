@@ -9,7 +9,7 @@ def init_app(app):
 
 def reset_db():
     from src.core.models.historic_sites_state import generate_states
-    from src.core.models.historic_sites_categorie import generate_categories
+    from src.core.models.historic_sites_categorie import __generate_categories
 
     print("Resetting database...")
     Base.metadata.drop_all(bind=db.engine)
@@ -17,7 +17,7 @@ def reset_db():
     print("Database schema created...")
     generate_states()
     print("Historic sites states generated...")
-    generate_categories()
+    __generate_categories()
     print("Historic sites categories generated...")
     print("Database reset complete...")
 

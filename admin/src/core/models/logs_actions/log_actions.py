@@ -10,6 +10,8 @@ class LogActions(Base):
 
     action: Mapped[str] = mapped_column(nullable=False)
 
+    def __repr__(self): return f"{self.action}"
+
     def __init__(self, action: str):
         self.action = action
 

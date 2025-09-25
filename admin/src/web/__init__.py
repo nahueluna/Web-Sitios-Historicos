@@ -5,7 +5,7 @@ from src.web.handlers import error
 from src.web.config import config
 from src.core import database
 from src.web.controllers.historic_sites import historic_sites_bp
-from src.web.controllers.historic_sites import list_historic_sites
+from src.web.controllers.historic_sites import render_index
 
 def create_app(env='development', static_folder='../../static'):
     app = Flask(__name__, static_folder=static_folder)
@@ -16,7 +16,7 @@ def create_app(env='development', static_folder='../../static'):
     app.register_blueprint(historic_sites_bp) 
 
     @app.route('/')
-    def home(): return list_historic_sites()
+    def home(): return render_index()
         #return render_template('home.html')
 
     @app.route('/admin')

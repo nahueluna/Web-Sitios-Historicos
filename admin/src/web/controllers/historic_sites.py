@@ -1,19 +1,29 @@
 from os import abort
-from flask import Blueprint, render_template, request 
+from flask import Blueprint, render_template, request, jsonify
 from src.core.models import historic_sites, historic_sites_state, historic_sites_categorie
-
-from src.core.models.historic_sites_state import list_historic_sites_states
-from src.core.models.historic_sites_categorie import list_historic_sites_categorie
+import pickle
 
 historic_sites_bp = Blueprint('historic_sites', __name__, url_prefix='/sitios-historicos')
 
 # -- USUAIROS -- #
 
-@historic_sites_bp.route('/', methods=['GET']) # Retorna todos los sitios historicos de la BD
-def list_historic_sites(): return render_template('/historic_sites/index.html', list= historic_sites.list_visible_historic_sites())
+@historic_sites_bp.route('/') # Renderiza html
+def render_index(): return render_template('/historic_sites/index.html')
 
-@historic_sites_bp.route('/detalle/<int:id>', methods=['GET', 'POST'])
-def view_historic_site(id):
+@historic_sites_bp.route('/detalle/<int:id>')
+def render_detail(id): 
+    print(id)
+    return render_template('historic_sites/historic_site_detail.html', hs_id=id)
+
+
+@historic_sites_bp.route('/get-all', methods=['GET']) # Retorna todos los sitios historicos de la BD
+def get_all(): 
+    json = [x.json() for x in historic_sites.list_all_historic_sites()]
+    return jsonify(json), 201
+
+@historic_sites_bp.route('/get-site/<int:id>')
+def get_site(id):
+    print(id)
     if request.method == 'POST':
 
         json = request.form.to_dict()
@@ -34,13 +44,12 @@ def view_historic_site(id):
 
         return render_template('historic_sites/historic_site_detail.html', historic_site=hs)
     
-    elif request.method == 'GET':
-        
-        hs = historic_sites.get_historic_site(id)
-        return render_template('historic_sites/historic_site_detail.html', historic_site=hs)
-    else:
+    #elif request.method == 'GET':
+    hs = historic_sites.get_historic_site(id)
+    return render_template('historic_sites/historic_site_detail.html', historic_site=hs)
+   # else:
         #return "Method Not Allowed", 404
-        abort(404)
+        #abort(404)
 
 # -- USUAIROS -- #
 
@@ -56,7 +65,7 @@ def add_categorie(): return render_template('historic_sites/add_categorie.html')
 def add_historic_site(): 
     return render_template(
         'historic_sites/add_historic_site.html', 
-        states=historic_sites_state.list_historic_sites_states(), 
+        states=historic_sites_state.list_states(), 
         categories=historic_sites_categorie.list_historic_sites_categorie()
         )
 
@@ -65,7 +74,7 @@ def edit_historic_site(id):
     return render_template(
         '/historic_sites/edit_historic_site.html', 
         historic_site=historic_sites.get_historic_site(id), 
-        states=historic_sites_state.list_historic_sites_states(), 
+        states=historic_sites_state.list_states, 
         categories=historic_sites_categorie.list_historic_sites_categorie()
         )
 

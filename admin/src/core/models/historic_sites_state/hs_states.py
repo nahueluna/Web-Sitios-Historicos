@@ -11,5 +11,7 @@ class HistoricSitesStates(Base):
     # Relación inversa
     sites = relationship("HistoricSites", back_populates="status_rel")
 
+    def __repr__(self): return f"{self.state}"
+
     def __init__(self, state: str):
         self.state = state

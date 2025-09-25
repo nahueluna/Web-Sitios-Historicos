@@ -3,25 +3,49 @@
 {% block title %}Sitios Historicos{% endblock %}
 
 {% block content %}
-    <h2>Listado de Sitios Historicos</h2>
-        
-    {% if list %}
-        <div class="historic-sites-list">
-            {% for hs in list %}
-                <div class="historic-site-block" style="border:1px solid #ccc; padding:16px; margin-bottom:16px;">
-                    <h3>{{ hs["site-name"] }}</h3>
-                    <p><strong>Descripción corta:</strong> {{ hs["short-description"] }}</p>
-                    <p><strong>Ciudad:</strong> {{ hs["city"] }}, <strong>Provincia:</strong> {{ hs["province"] }}</p>
-                    <p><strong>Estado de conservación:</strong> {{ hs["conservation-status"] }}</p>
-                    <p><strong>Año de inauguración:</strong> {{ hs["inauguration-year"] }}</p>
-                    <a href="{{ url_for('historic_sites.view_historic_site', id=hs['id']) }}">
+<h2>Listado de Sitios Historicos</h2>
+
+<div id="historic-sites-list"></div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        fetch("/sitios-historicos/get-all")
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById("historic-sites-list");
+
+                if (data.length === 0) {
+                    container.innerHTML = "<p>No hay sitios históricos registrados.</p>";
+                    return;
+                }
+
+                data.forEach(hs => {
+                    const block = document.createElement("div");
+                    block.className = "historic-site-block";
+                    block.style.border = "1px solid #ccc";
+                    block.style.padding = "16px";
+                    block.style.marginBottom = "16px";
+
+                    block.innerHTML = `
+                    <h3>${hs.site_name}</h3>
+                    <p><strong>Descripción corta:</strong> ${hs.short_description}</p>
+                    <p><strong>Ciudad:</strong> ${hs.city}, <strong>Provincia:</strong> ${hs.province}</p>
+                    <p><strong>Estado de conservación:</strong> ${hs.status_id}</p>
+                    <p><strong>Año de inauguración:</strong> ${hs.inauguration_year}</p>
+                    <a href="/sitios-historicos/detalle/${hs.id}">
                         <button>Ver Detalle</button>
                     </a>
-                </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <p>No hay sitios históricos registrados.</p>
-    {% endif %}
-
+                `;
+                    container.appendChild(block);
+                });
+            })
+            .catch(err => {
+                console.error("Error al cargar los sitios históricos:", err);
+                document.getElementById("historic-sites-list").innerHTML =
+                    "<p>Error al cargar los datos.</p>";
+            });
+    })
+</script>
 {% endblock %}

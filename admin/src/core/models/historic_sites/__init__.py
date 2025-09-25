@@ -1,5 +1,8 @@
+from datetime import datetime
+from src.core.models.historic_sites_logs.hs_logs import HistoricSitesLogs
 from src.core.database import db
 from src.core.models.historic_sites.historic_sites import HistoricSites  
+
 from sqlalchemy.orm import joinedload
 
 # Consulta para todos los sitios con su categoría
@@ -49,8 +52,23 @@ def get_historic_site(hs_id: int):
     ).first()
 
 # Crear nuevo sitio histórico
-def add_historic_site(**keywords)-> HistoricSites: 
-    hs_model = HistoricSites(**keywords)
+def add_historic_site(
+        site_name: str, short_description: str, long_description: str, city: str, 
+        province: str, latitude: float, longitude: float, conservation_status: str, 
+        inauguration_year: datetime, category: str, visible: bool = True
+    )-> HistoricSites: 
+    hs_model = HistoricSites(
+        site_name=site_name, 
+        short_description=short_description, 
+        long_description=long_description, 
+        city= city, 
+        province=province, 
+        latitude=latitude, 
+        longitude=longitude, 
+        status_id=1, ## CAMBIAR
+        inauguration_year=inauguration_year, 
+        category_id=1, ## CAMBIAR
+        visible=visible)
     db.session.add(hs_model)
     db.session.commit()
     return hs_model

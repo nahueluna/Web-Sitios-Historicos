@@ -190,17 +190,19 @@ footer {
   padding: 0.75rem 1rem;
 }
 
-.sidebar-desktop .nav-link:hover {
-  background-color: #e9ecef;
-  color: #007bff;
-}
-
 .sidebar-mobile .nav-link {
   color: #333;
   padding: 0.75rem 1rem;
 }
 
-.sidebar-mobile .nav-link:hover {
-  background-color: #e9ecef;
-  color: #007bff;
+/* Personalizar color de clase active en nav-pills */
+.nav-pills .nav-link.active {
+  background-color: #ced4da !important;
+  border-color: #ced4da !important;
+  color: #212529 !important;
+}
+
+.nav-pills .nav-link.active:hover {
+  background-color: #adb5bd !important;
+  border-color: #adb5bd !important;
 }

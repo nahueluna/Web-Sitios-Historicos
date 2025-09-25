@@ -41,22 +41,26 @@
                 <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
             </div>
             <div class="offcanvas-body p-0 m-0 bg-light">
-                <nav class="sidebar-mobile">
-                    <ul class="navbar-nav flex-column p-3">
+                <div class="sidebar-mobile">
+                    <ul class="nav nav-pills flex-column p-1 gap-1">
                         <li class="nav-item">
-                            <a class="nav-link" href="/admin/gestion-sitios">Gestion de sitios historicos</a>
+                            <a class="nav-link {{ 'active' if request.path == '/admin/gestion-sitios' }}"
+                                href="/admin/gestion-sitios">Gestion de sitios historicos</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/admin/validacion-propuestas">Validacion de propuestas</a>
+                            <a class="nav-link {{ 'active' if request.path == '/admin/validacion-propuestas' }}"
+                                href="/admin/validacion-propuestas">Validacion de propuestas</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/admin/moderacion">Moderacion de reseñas</a>
+                            <a class="nav-link {{ 'active' if request.path == '/admin/moderacion' }}"
+                                href="/admin/moderacion">Moderacion de reseñas</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/admin/gestion-usuarios">Gestion de usuarios</a>
+                            <a class="nav-link {{ 'active' if request.path == '/admin/gestion-usuarios' }}"
+                                href="/admin/gestion-usuarios">Gestion de usuarios</a>
                         </li>
                     </ul>
-                </nav>
+                </div>
             </div>
         </div>
         <img class="logo d-none d-md-block" src="{{ url_for('static', filename='logo.png') }}">
@@ -73,23 +77,27 @@
     </header>
     <main>
         <!-- Sidebar para pantallas grandes -->
-        <nav class="bg-light d-none d-lg-block sidebar-desktop">
-            <ul class="navbar-nav flex-column p-3" style="height: 100%;">
+        <div class="bg-light d-none d-lg-block sidebar-desktop" style="width: 300px">
+            <ul class="nav nav-pills flex-column p-1 gap-1" style="height: 100%;">
                 <li class="nav-item">
-                    <a class="nav-link" href="/admin/gestion-sitios">Gestion de sitios historicos</a>
+                    <a class="nav-link {{ 'active' if request.path == '/admin/gestion-sitios' }}"
+                        href="/admin/gestion-sitios">Gestion de sitios historicos</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/admin/validacion-propuestas">Validacion de propuestas</a>
+                    <a class="nav-link {{ 'active' if request.path == '/admin/validacion-propuestas' }}"
+                        href="/admin/validacion-propuestas">Validacion de propuestas</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/admin/moderacion">Moderacion de reseñas</a>
+                    <a class="nav-link {{ 'active' if request.path == '/admin/moderacion' }}"
+                        href="/admin/moderacion">Moderacion de reseñas</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/admin/gestion-usuarios">Gestion de usuarios</a>
+                    <a class="nav-link {{ 'active' if request.path == '/admin/gestion-usuarios' }}"
+                        href="/admin/gestion-usuarios">Gestion de usuarios</a>
                 </li>
             </ul>
+        </div>
 
-        </nav>
         <div class="vr" style="background-color: rgb(0, 0, 0);"></div>
 
         <div class="p-3">

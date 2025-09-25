@@ -14,6 +14,7 @@ class Role(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+    description: Mapped[str] = mapped_column(String(255), nullable=True)
 
     # Relaciones
     # Un rol puede tener múltiples asignaciones de permisos (One-to-Many con RolePermission)

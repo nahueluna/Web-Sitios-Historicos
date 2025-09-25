@@ -11,16 +11,16 @@ def init_app(app):
     return db
 
 def reset_db():
-    from src.core.models import test  # noqa: F401 
+    from src.core.models.auth import user, role_permission  # noqa: F401 
     print("Resetting database...")
     Base.metadata.drop_all(bind=db.engine)
     Base.metadata.create_all(bind=db.engine)
     print("Database reset complete.")
 
 
-def seed_db():
-    from src.core.board.seeds import run_seeds
-    print("🌱 Seeding database with initial data...")
+def seed_db_user():
+    from src.core.models.seeds_user import run_seeds
+    print("🌱 Seeding database with user data...")
     run_seeds()
-    print("✅ Database seeding complete.")
+    print("✅ User database seeding complete.")
 

@@ -43,8 +43,8 @@ def create_app(env='development', static_folder='../../static'):
     def reset_db(): 
         database.reset_db()
 
-    @app.cli.command("seed-db")
-    def seed_db():
-        database.seed_db()
+    @app.cli.command("seed-db-user")
+    def seed_db_user():
+        database.seed_db_user()
 
     return app

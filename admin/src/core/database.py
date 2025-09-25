@@ -3,6 +3,9 @@ from sqlalchemy.orm import DeclarativeBase
 
 db = SQLAlchemy()
 
+class Base(DeclarativeBase):
+    pass
+
 def init_app(app):
     db.init_app(app)
     return db
@@ -14,5 +17,10 @@ def reset_db():
     Base.metadata.create_all(bind=db.engine)
     print("Database reset complete.")
 
-class Base(DeclarativeBase):
-    pass
+
+def seed_db():
+    from src.core.board.seeds import run_seeds
+    print("🌱 Seeding database with initial data...")
+    run_seeds()
+    print("✅ Database seeding complete.")
+

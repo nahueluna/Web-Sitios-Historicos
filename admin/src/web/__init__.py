@@ -5,6 +5,7 @@ from src.web.handlers import error
 from src.web.config import config
 from src.core import database
 
+
 def create_app(env='development', static_folder='../../static'):
     app = Flask(__name__, static_folder=static_folder)
     app.config.from_object(config[env])
@@ -40,7 +41,11 @@ def create_app(env='development', static_folder='../../static'):
     app.register_error_handler(500, error.internal_server_error)
 
     @app.cli.command("reset-db")
-    def reset_db(): 
+    def reset_db():
         database.reset_db()
 
+    @app.cli.command("seed-db-user")
+    def seed_db_user():
+        database.seed_db_user()
+        
     return app

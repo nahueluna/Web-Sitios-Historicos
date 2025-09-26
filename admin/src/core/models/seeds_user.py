@@ -5,9 +5,9 @@ from src.core.database import db
 
 def run_seeds():
     print("Creación de roles")
-    role_user = Role(name="user", description="Usuario público")
-    role_editor = Role(name="editor", description="Editor de contenido")
-    role_admin = Role(name="admin", description="Administrador del sistema")
+    role_user = Role(name="user")
+    role_editor = Role(name="editor")
+    role_admin = Role(name="admin")
     
     db.session.add(role_user)
     db.session.add(role_editor)

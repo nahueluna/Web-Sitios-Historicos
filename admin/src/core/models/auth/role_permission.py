@@ -1,20 +1,16 @@
-from src.core.database import Base
+from src.core.database import Base, db
 from typing import TYPE_CHECKING
 from sqlalchemy import String, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 if TYPE_CHECKING:
-    from .user import User
-
-
-
+    from src.core.models.auth.user import User
+    
 class Role(Base):
     __tablename__ = 'roles'
-    __table_args__ = {'extend_existing': True}
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
-    description: Mapped[str] = mapped_column(String(255), nullable=True)
 
     # Relaciones
     # Un rol puede tener múltiples asignaciones de permisos (One-to-Many con RolePermission)
@@ -28,10 +24,43 @@ class Role(Base):
 
     def __repr__(self):
         return f'<Role - Name: {self.name}>'
+
+    def get_permissions(self) -> list[str]:
+        """
+        Retorna una lista con los nombres de los permisos asignados a este rol.
+        """
+        return [rp.permission.name for rp in self.role_permissions]
     
+    def assign_permission(self, permission_name: str) -> bool:
+        """
+        Asigna un permiso específico a este rol.
+        Returns:
+            bool: True si la asignación fue exitosa, False en caso contrario
+        """
+        # Buscar el permiso por nombre
+        permission = db.session.query(Permission).filter_by(name=permission_name).first()
+        if not permission:
+            print(f"Permiso '{permission_name}' no encontrado")
+            return False
+        
+        # Asignar el nuevo permiso
+        role_permission = RolePermission(role_id=self.id, permission_id=permission.id)
+        db.session.add(role_permission)
+        db.session.commit()
+        print(f"Permiso '{permission_name}' asignado al rol '{self.name}'")
+        return True
+    
+    def has_permission(self, permission_name: str) -> bool:
+        """
+        Verifica si este rol tiene un permiso específico asignado.
+        Returns:
+            bool: True si el rol tiene el permiso, False en caso contrario
+        """
+        return any(rp.permission.name == permission_name for rp in self.role_permissions)
+    
+
 class Permission(Base):
     __tablename__ = 'permissions'
-    __table_args__ = {'extend_existing': True}
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
@@ -48,7 +77,6 @@ class Permission(Base):
 
 class RolePermission(Base):
     __tablename__ = 'role_permissions'
-    __table_args__ = {'extend_existing': True}
     
     role_id: Mapped[int] = mapped_column(
         ForeignKey('roles.id'),
@@ -74,3 +102,4 @@ class RolePermission(Base):
 
     def __repr__(self):
         return f'<RolePermission - Role ID: {self.role_id} - Permission ID: {self.permission_id}>'
+    

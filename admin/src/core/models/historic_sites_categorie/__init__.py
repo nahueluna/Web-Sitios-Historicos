@@ -1,28 +1,14 @@
-from typing import List
 from src.core.database import db
 from src.core.models.historic_sites_categorie.hs_categories import HistoricSitesCategories  
-from sqlalchemy.orm import joinedload
 
 # Traer todas las categorías
-def list_historic_sites_categorie()-> List[HistoricSitesCategories]: 
+def list_historic_sites_categorie(): 
     return db.session.query(
         HistoricSitesCategories
     ).all()
 
-# Traer una categoría con sus sitios históricos relacionados
-def get_categorie_with_hs(categoria_id: int)-> HistoricSitesCategories:
-    return db.session.query(
-        HistoricSitesCategories
-    ).options(
-        joinedload(
-            HistoricSitesCategories.sites
-        )
-    ).filter(
-        HistoricSitesCategories.id == categoria_id
-    ).first()
-
 # Agregar una categoría
-def add_category(category_name: str)-> HistoricSitesCategories: 
+def add_category(category_name: str): 
     category_model = db.session.query(
         HistoricSitesCategories
     ).filter(

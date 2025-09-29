@@ -23,7 +23,8 @@
 
 {% block content %}
 <h2>Formulario para Agregar un Sitio Histórico</h2>
-<form id="historic-site-form" action="{{ url_for('historic_sites.view_historic_site', id=0) }}" method="post">
+
+<form id="historic-site-form">
     <label for="site-name">Nombre del sitio:</label>
     <input type="text" id="site-name" name="site-name" required><br><br>
 
@@ -39,12 +40,12 @@
     <label for="province">Provincia:</label>
     <input type="text" id="province" name="province" required><br><br>
 
+    <!-- mapa -->
     <div class="map-container">
         <div id="map"></div>
-
         <div style="margin-top: 8px;">
-            <span>Latitud seleccionada: <span id="latitude-display"></span></span> &nbsp;
-            <span>Longitud seleccionada: <span id="longitude-display"></span></span>
+            <span>Latitud: <span id="latitude-display"></span></span> &nbsp;
+            <span>Longitud: <span id="longitude-display"></span></span>
             <button type="button" id="reset-btn">Restablecer ubicación</button>
         </div>
     </div>
@@ -52,21 +53,13 @@
     <input type="hidden" id="longitude" name="longitude" required>
 
     <label for="conservation-status">Estado de conservación:</label>
-    <select id="conservation-status" name="conservation-status" required>
-        {% for state in states %}
-        <option value="{{ state }}">{{ state }}</option>
-        {% endfor %}
-    </select><br><br>
+    <select id="conservation-status" name="conservation-status" required></select><br><br>
 
     <label for="inauguration-year">Año de inauguración:</label>
     <input type="date" id="inauguration-year" name="inauguration-year" required><br><br>
 
     <label for="category">Categoría:</label>
-    <select type="text" id="category" name="category" required>
-        {% for category in categories %}
-        <option value="{{ category }}">{{ category }}</option>
-        {% endfor %}
-    </select><br><br>
+    <select id="category" name="category" required></select><br><br>
 
     <label for="visible">Visible:</label>
     <select id="visible" name="visible">
@@ -77,13 +70,84 @@
     <button type="submit">Agregar Sitio Histórico</button>
 </form>
 
-<a href="{{ url_for('historic_sites.list_historic_sites') }}">
+<!--PREGUNTAR POR SESION PARA SABER SI MUESTOR ESTO O NO-->
+<a href="{{ url_for('historic_sites.render_admin_sites') }}">
     <button>Volver</button>
 </a>
 {% endblock %}
 {% block scripts %}
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 <script>
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const form = document.getElementById("historic-site-form");
+
+        // Llenar select de estados desde la API
+        fetch("/sitios-historicos/state/get-all")
+            .then(res => res.json())
+            .then(data => {
+                const select = document.getElementById("conservation-status");
+                data.forEach(state => {
+                    const opt = document.createElement("option");
+                    opt.value = state.id; 
+                    opt.textContent = state.state;
+                    select.appendChild(opt);
+                });
+            });
+
+        // Llenar select de categorías desde la API
+        fetch("/sitios-historicos/category/get-all")
+            .then(res => res.json())
+            .then(data => {
+                const select = document.getElementById("category");
+                data.forEach(category => {
+                    const opt = document.createElement("option");
+                    opt.value = category.id;
+                    opt.textContent = category.category;
+                    select.appendChild(opt);
+                });
+            });
+
+        // Interceptar el submit
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const body = {
+                site_name: document.getElementById("site-name").value,
+                short_description: document.getElementById("short-description").value,
+                long_description: document.getElementById("long-description").value,
+                city: document.getElementById("city").value,
+                province: document.getElementById("province").value,
+                latitude: parseFloat(document.getElementById("latitude").value),
+                longitude: parseFloat(document.getElementById("longitude").value),
+                conservation_status: document.getElementById("conservation-status").value,
+                inauguration_year: document.getElementById("inauguration-year").value,
+                category: document.getElementById("category").value,
+                visible: document.getElementById("visible").value === "True"
+            };
+
+            try {
+                const res = await fetch("/sitios-historicos/admin/add-site", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(body)
+                });
+
+                if (!res.ok) throw new Error("Error en la creación");
+                const data = await res.json();
+                alert("Sitio agregado con éxito");
+                console.log("Nuevo sitio:", data);
+
+                //  redirigir
+                window.location.href = "{{ url_for('historic_sites.render_admin_sites') }}";
+            } catch (err) {
+                alert("No se pudo agregar el sitio: " + err.message);
+            }
+        });
+    });
+
+
+
     // Coordenadas iniciales
     const initialLat = -34.903698;
     const initialLng = -57.937710;
@@ -127,6 +191,8 @@
         map.setView([initialLat, initialLng], 6);
         setCoordinates(initialLat, initialLng);
     };
+
+
 
 </script>
 {% endblock %}

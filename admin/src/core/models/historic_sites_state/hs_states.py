@@ -9,9 +9,15 @@ class HistoricSitesStates(Base):
     state: Mapped[str] = mapped_column(nullable=False)
 
     # Relación inversa
-    sites = relationship("HistoricSites", back_populates="status_rel")
+    #sites = relationship("HistoricSites", back_populates="status_rel")
 
     def __repr__(self): return f"{self.state}"
+
+    def json(self): 
+        return {
+            "id": self.id,
+            "state": self.state
+        }
 
     def __init__(self, state: str):
         self.state = state

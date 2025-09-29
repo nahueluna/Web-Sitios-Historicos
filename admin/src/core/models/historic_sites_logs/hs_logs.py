@@ -16,7 +16,7 @@ class HistoricSitesLogs(Base):
     action_type: Mapped[str] = mapped_column(ForeignKey("log_actions.id"), nullable=False)
 
     # Relaciones
-    historic_site: Mapped["HistoricSites"] = relationship("HistoricSites", back_populates="logs")
+    #historic_site: Mapped["HistoricSites"] = relationship("HistoricSites", back_populates="logs")
     #user: Mapped["User"] = relationship("User", back_populates="site_logs")
 
     def __init__(self, historic_site_id: int, action_type_id: int):

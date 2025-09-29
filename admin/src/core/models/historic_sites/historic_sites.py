@@ -31,30 +31,6 @@ class HistoricSites(Base):
 
     category_id: Mapped[int] = mapped_column(ForeignKey("historic_sites_categories.id"), nullable=False)    
 
-    # Relaciones
-    # Nombre atributo de la clase
-    logs: Mapped["HistoricSitesLogs"] = relationship("HistoricSitesLogs", back_populates="historic_site")
-    category_rel: Mapped["HistoricSitesCategories"] = relationship("HistoricSitesCategories", back_populates="sites")
-    status_rel: Mapped["HistoricSitesStates"] = relationship("HistoricSitesStates", back_populates="sites")
-
-
-    #def init__(
-    #        self, site_name: str, short_description: str, long_description: str, city: str, 
-    #        province: str, latitude: float, longitude: float, status_id: str, 
-    #        inauguration_year: datetime, category: str, visible: bool = True
-    #    ):
-    #    self.site_name = site_name
-    #    self.short_description = short_description
-    #    self.long_description = long_description
-    #    self.city = city
-    #    self.province = province
-    #    self.latitude = latitude
-    #    self.longitude = longitude
-    #    self.status_id = status_id
-    #    self.inauguration_year = inauguration_year
-    #    self.category_id = category
-    #    self.visible = visible
-
     def json(self):
         return {
             "id": self.id,
@@ -65,8 +41,6 @@ class HistoricSites(Base):
             "province": self.province,
             "latitude": self.latitude,
             "longitude": self.longitude,
-            "status": self.status_rel.state,
-            "inauguration_year": self.inauguration_year.year,
-            "category": self.category_rel.category,
+            "inauguration_year": self.inauguration_year,
             "visible": self.visible,
         }

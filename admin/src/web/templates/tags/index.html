@@ -13,7 +13,7 @@
                 {% for t in tags %}
                 <tr data-id="{{ t.id }}">
                     <td>
-                        <a href="{{ url_for('tags.show_update_tag_form', tag_id=t.id) }}">{{ t.name }}</a>
+                        <a href="{{ url_for('tags.view_specific_tag', tag_id=t.id) }}">{{ t.name }}</a>
                     </td>
                 </tr>
                 {% endfor %}

@@ -1,7 +1,7 @@
-from flask import Blueprint, render_template, request, Response, redirect
+from flask import Blueprint, render_template, request, Response, redirect, flash
 from sqlalchemy.exc import IntegrityError
 
-from src.core.search import create_tag, list_tags_by_update_date, update_tag_name, get_tag_by_id
+from src.core.search import create_tag, list_tags_by_update_date, update_tag_name, get_tag_by_id, remove_tag
 from src.web.controllers.helpers.tags import verify_tag_and_generate_slug
 
 tags_bp = Blueprint('tags', __name__, url_prefix='/etiquetas')
@@ -11,6 +11,14 @@ def view_tags():
     tags_list = list_tags_by_update_date()
     return render_template('tags/index.html', tags=tags_list)
 
+@tags_bp.get('/<int:tag_id>')
+def view_specific_tag(tag_id):
+    tag = get_tag_by_id(tag_id)
+
+    if tag is None:
+        return redirect("/etiquetas/")
+
+    return render_template('tags/view_tag.html', tag=tag)
 
 @tags_bp.get('/agregar')
 def show_add_tag_form():
@@ -31,11 +39,14 @@ def add_tag():
 
     return redirect("/etiquetas/")
 
-@tags_bp.delete('/eliminar')
+@tags_bp.post('/eliminar/<int:tag_id>')
 def delete_tag(tag_id):
-    tag_id = request.args.get('id')
-    # AQUÍ SE DEBE ELIMINAR DE LA BASE DE DATOS
-    return f"Etiqueta con ID {tag_id} eliminada exitosamente."
+    if remove_tag(tag_id):
+        flash("Etiqueta eliminada exitosamente.", "success")
+    else:
+        flash("Ocurrió un error al intentar eliminar la etiqueta.", "error")
+
+    return redirect("/etiquetas/")
 
 @tags_bp.get('/actualizar/<int:tag_id>')
 def show_update_tag_form(tag_id):

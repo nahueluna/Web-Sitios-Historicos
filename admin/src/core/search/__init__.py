@@ -21,3 +21,13 @@ def update_tag_name(tag_id, new_name, new_slug):
         tag.slug = new_slug
         db.session.commit()
     return tag
+
+def remove_tag(tag_id):
+    tag = db.session.query(Tag).filter(Tag.id == tag_id).first()
+
+    if tag:
+        db.session.delete(tag)
+        db.session.commit()
+        return True
+
+    return False

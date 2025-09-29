@@ -103,7 +103,6 @@ def edit_site():
         visible=json['visible'],
         conservation_status=json['conservation_status'],       
         category=json['category'],
-        registration_date=json['registration_date']
     )
     return jsonify({}), 201
 

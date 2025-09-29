@@ -57,7 +57,7 @@ def edit_historic_site(
         hs_id: int, site_name: str, short_description: str, long_description: str, 
         city: str, province: str, latitude: float, longitude: float, 
         conservation_status: str, inauguration_year: datetime, category: str, 
-        registration_date: datetime, visible: bool = True
+        visible: bool = True
     ) -> HistoricSites:
     hs_model = db.session.query(HistoricSites).filter(HistoricSites.id == hs_id).first()
     if not hs_model:
@@ -72,7 +72,6 @@ def edit_historic_site(
     hs_model.status_id = conservation_status
     hs_model.inauguration_year = inauguration_year
     hs_model.category_id = category
-    hs_model.registration_date = registration_date
     hs_model.visible = visible
 
     db.session.commit()

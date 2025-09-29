@@ -55,7 +55,6 @@
 
     <label for="conservation-status">Estado de conservación:</label>
     <select id="conservation-status" name="conservation-status" required>
-        <option value="">Cargando estados...</option>
     </select><br><br>
 
     <label for="inauguration-year">Año de inauguración:</label>
@@ -63,11 +62,7 @@
 
     <label for="category">Categoría:</label>
     <select id="category" name="category" required>
-        <option value="">Cargando categorías...</option>
     </select><br><br>
-
-    <label for="registration-date">Fecha de registro:</label>
-    <input type="date" id="registration-date" name="registration-date" required><br><br>
 
     <label for="visible">Visible:</label>
     <select id="visible" name="visible">
@@ -150,7 +145,8 @@
             };
         }
 
-        
+        let category; 
+        let state;
 
         console.log("Site ID:", siteId);
         // Cargar datos del sitio histórico
@@ -166,25 +162,31 @@
                 loadingMessage.style.display = 'none';
                 form.style.display = 'block';
 
+                console.log("HS:", historicSiteData)
+
                 // Establecer valores iniciales para el mapa
                 initialLat = parseFloat(historicSiteData['historic_site']['latitude']) || 0;
                 initialLng = parseFloat(historicSiteData['historic_site']['longitude']) || 0;
+                setCoordinates(initialLat, initialLng);
 
                 // Inicializar el mapa con las coordenadas del sitio
                 initMap();
 
                 // Llenar el formulario con los datos del sitio
-                document.getElementById('site-name').value = historicSiteData['historic_site']['site_name'] || '';
-                document.getElementById('short-description').value = historicSiteData['historic_site']['short_description'] || '';
-                document.getElementById('long-description').value = historicSiteData['historic_site']['long_description'] || '';
-                document.getElementById('city').value = historicSiteData['historic_site']['city'] || '';
-                document.getElementById('province').value = historicSiteData['historic_site']['province'] || '';
-                document.getElementById('inauguration-year').value = historicSiteData['historic_site']['inauguration_year'] || '';
-                document.getElementById('registration-date').value = historicSiteData['historic_site']['registration_date'] || '';
+                document.getElementById('site-name').value = historicSiteData['historic_site']['site_name']
+                document.getElementById('short-description').value = historicSiteData['historic_site']['short_description']
+                document.getElementById('long-description').value = historicSiteData['historic_site']['long_description']
+                document.getElementById('city').value = historicSiteData['historic_site']['city']
+                document.getElementById('province').value = historicSiteData['historic_site']['province']
+                document.getElementById('inauguration-year').value = historicSiteData['historic_site']['inauguration_year'].split(' ')[0];
                 document.getElementById('visible').value = historicSiteData['historic_site']['visible'] ? 'true' : 'false';
 
                 // Configurar el enlace de cancelación
                 document.getElementById('cancel-link').href = `/sitios-historicos/detalle/${siteId}`;
+
+
+                category = historicSiteData['historic_site']['category'];
+                state = historicSiteData['historic_site']['status'];
 
                 // Cargar estados y categorías
                 return Promise.all([
@@ -195,7 +197,6 @@
             .then(([states, categories]) => {
                 // Llenar select de estados
                 const stateSelect = document.getElementById("conservation-status");
-                stateSelect.innerHTML = '<option value="">Seleccione un estado</option>';
                 states.forEach(state => {
                     const opt = document.createElement("option");
                     opt.value = state.id;
@@ -205,10 +206,10 @@
 
                 // Seleccionar el estado actual si está disponible
                 // Necesitarías tener esta información en los datos del sitio histórico
+                stateSelect.value = state;
 
                 // Llenar select de categorías
                 const categorySelect = document.getElementById("category");
-                categorySelect.innerHTML = '<option value="">Seleccione una categoría</option>';
                 categories.forEach(category => {
                     const opt = document.createElement("option");
                     opt.value = category.id;
@@ -218,6 +219,7 @@
 
                 // Seleccionar la categoría actual si está disponible
                 // Necesitarías tener esta información en los datos del sitio histórico
+                categorySelect.value = category;
             })
             .catch(error => {
                 console.error('Error al cargar datos:', error);
@@ -241,7 +243,6 @@
                 'conservation_status': document.getElementById('conservation-status').value,
                 'inauguration_year': document.getElementById('inauguration-year').value,
                 'category': document.getElementById('category').value,
-                'registration_date': document.getElementById('registration-date').value,
                 'visible': document.getElementById('visible').value === 'true'
             };
 

@@ -1,10 +1,8 @@
-from typing import List
 from src.core.models.historic_sites_logs.hs_logs import HistoricSitesLogs
 from src.core.database import db
-from sqlalchemy.orm import joinedload
 
 # Obtiene todos los logs de un sitio histórico específico
-def get_logs_per_hs(hs_id: int)-> List[HistoricSitesLogs]:
+def get_logs_per_hs(hs_id: int):
     return db.session.query(
         HistoricSitesLogs
     ).filter(
@@ -13,11 +11,11 @@ def get_logs_per_hs(hs_id: int)-> List[HistoricSitesLogs]:
         HistoricSitesLogs.log_date.desc()
     ).all()
 
-def add_log(hs_id: int, action_type_id: int)-> HistoricSitesLogs:
+def add_log(hs_id: int, action_type: str)-> HistoricSitesLogs:
     log_model = HistoricSitesLogs(
         historic_site_id = hs_id,
-        action_type_id = action_type_id
+        action_type = action_type
     )
     db.session.add(log_model)
-    db.commit()
+    db.session.commit()
     return log_model

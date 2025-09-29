@@ -18,11 +18,11 @@
 <div>
     <h4>Categorias de Sitios Historicos</h4>
     <br>
-    <a href="" >
+    <a href="{{ url_for('historic_sites.render_admin_categories') }}" >
         <button>Ver Categoiras de Sitios Históricos</button>
     </a>
 
-    <a href="" style="padding: 30px ;">
+    <a href="{{ url_for('historic_sites.render_category_form') }}" style="padding: 30px ;">
         <button>Crear Nueva Categoira de Sitio Histórico</button>
     </a>
 </div>

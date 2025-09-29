@@ -1,8 +1,9 @@
 from os import abort
 from flask import Blueprint, render_template, request, jsonify
 from src.core.models.historic_sites import get_historic_site, list_all_historic_sites, list_visible_historic_sites, add_historic_site, edit_historic_site
-from src.core.models.historic_sites_categorie import list_historic_sites_categorie
+from src.core.models.historic_sites_categorie import list_historic_sites_categorie, add_category
 from src.core.models.historic_sites_state import list_states
+from src.core.models.historic_sites_logs import add_log, get_logs_per_hs
 import pickle
 
 historic_sites_bp = Blueprint('historic_sites', __name__, url_prefix='/sitios-historicos')
@@ -25,7 +26,6 @@ def get_all():
 
 @historic_sites_bp.route('/get-site/<int:id>', methods=['GET']) # Retorna un sitio historico específico por ID
 def get_site(id):
-    print("ID RECIBIDO:", id)
     hs = get_historic_site(int(id))
     response = {
         "historic_site": hs[0].json(),
@@ -59,18 +59,23 @@ def render_edite_site_form(id):
     # PREGUNTAR SI TIENE PERMISIOS
     return render_template('historic_sites/edit_historic_site.html')
 
-@historic_sites_bp.route('/admin/agregar-categoria') # 
-def add_categorie(): 
+@historic_sites_bp.route('/admin/categorias') # 
+def render_admin_categories(): 
     # PREGUNTAR SI TIENE PERMISIOS
-    return render_template('historic_sites/add_category.html')
+    return render_template('historic_sites/category/categories.html')
+
+@historic_sites_bp.route('/admin/categorias/agregar') # 
+def render_category_form(): 
+    # PREGUNTAR SI TIENE PERMISIOS
+    return render_template('historic_sites/category/add_category.html')
+
 # RENDERING
 
-
-@historic_sites_bp.route('/admin/add-site', methods=['POST']) # 
+@historic_sites_bp.route('/add-site', methods=['POST']) # 
 def add_site(): 
     json = request.get_json()
     
-    add_historic_site(
+    hs = add_historic_site(
         site_name=json['site_name'],
         short_description=json['short_description'],
         long_description=json['long_description'],
@@ -82,14 +87,15 @@ def add_site():
         visible=json['visible'],
         conservation_status=json['conservation_status'],       
         category=json['category'],
-
     )
+
+    add_log(hs_id=hs.id, action_type="Creación") # AGREGAR EL USUARIO INVOLUCRADO (ID)
+
     return jsonify({}), 201
 
-@historic_sites_bp.route('/admin/edit-site', methods=['PUT'])
+@historic_sites_bp.route('/edit-site', methods=['PUT'])
 def edit_site(): 
     json = request.get_json()
-    print("DATA RECIBIDA:", json)
     edit_historic_site(
         hs_id = int(json['id']),
         site_name=json['site_name'],
@@ -104,6 +110,9 @@ def edit_site():
         conservation_status=json['conservation_status'],       
         category=json['category'],
     )
+
+    add_log(hs_id=int(json['id']), action_type="Edición") # AGREGAR EL USUARIO INVOLUCRADO (ID)
+
     return jsonify({}), 201
 
 # -- ADMIN -- #
@@ -113,9 +122,20 @@ def edit_site():
 def get_all_cateorie():
     return jsonify([x.json() for x in list_historic_sites_categorie()]), 201 
 
+@historic_sites_bp.route('/category/add-category', methods=['POST'])
+def admin_add_category(): 
+    json = request.get_json()
+    add_category(category_name=json["category"])
+    return jsonify({}), 201
 
 @historic_sites_bp.route('/state/get-all', methods=['GET']) # Retorna todas los estados de sitios historicos de la BD
 def get_all_states():
     return jsonify([x.json() for x in list_states()]), 201 
+
+@historic_sites_bp.route('/logs/get-all/<int:id>', methods=['GET']) # Retorna todas los estados de sitios historicos de la BD
+def get_all_logs(id):
+    return jsonify([x.json() for x in get_logs_per_hs(hs_id=id)]), 201 
+
+# -- AUXILIARES -- #
 
 __hs_labels__ = ["Etiqueta 1", "Etiqueta 2", "Etiqueta 3"]

@@ -1,17 +1,52 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<h2>Gestion sitios</h2>
-
+<h2>Categorias de Sitios Historicos</h2>
+<br>
 <div>
-    <a href="{{ url_for('historic_sites.add_historic_site') }}">
-    <button>Crear Nuevo Sitio Histórico</button>
-    </a>
-</div>
-
-<div>
-    <a href="">
+    <a href="{{ url_for('historic_sites.render_category_form') }}" style="padding: 30px ;">
         <button>Crear Nueva Categoira de Sitio Histórico</button>
     </a>
 </div>
+<br>
+<div id="cateogire-list"></div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function (){
+        fetch("/sitios-historicos/category/get-all", {method: "GET"})
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById("cateogire-list");
+
+                if (data.length === 0) {
+                    container.innerHTML = "<p>No hay categorias para sitios históricos registrados.</p>";
+                    return;
+                }
+                console.log("categorias:", data)
+
+                data.forEach(category => {
+                    const block = document.createElement("div");
+                    block.className = "category-block";
+                    block.style.border = "1px solid #ccc";
+                    block.style.padding = "16px";
+                    block.style.marginBottom = "16px";
+
+                    block.innerHTML = `
+                    <h3>${category.category}</h3>
+                    <a href="/sitios-historicos/category/delete/${category.id}">
+                        <button>Eliminar</button>
+                    </a>
+                `;
+                    container.appendChild(block);
+                });
+            })
+            .catch(err => {
+                console.error("Error al cargar las categorias:", err);
+                document.getElementById("cateogire-list").innerHTML =
+                    "<p>Error al cargar los datos.</p>";
+            });
+    });
+</script>
 {% endblock %}

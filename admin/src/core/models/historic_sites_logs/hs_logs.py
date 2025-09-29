@@ -13,12 +13,21 @@ class HistoricSitesLogs(Base):
     
     historic_site_id: Mapped[int] = mapped_column(ForeignKey("historic_sites.id"), nullable=False)
     #user_id: Mapped[id] = mapped_column(ForeignKey("users.id"))
-    action_type: Mapped[str] = mapped_column(ForeignKey("log_actions.id"), nullable=False)
+    action_type: Mapped[str] = mapped_column(nullable=False)
 
     # Relaciones
     #historic_site: Mapped["HistoricSites"] = relationship("HistoricSites", back_populates="logs")
     #user: Mapped["User"] = relationship("User", back_populates="site_logs")
 
-    def __init__(self, historic_site_id: int, action_type_id: int):
+    def json(self):
+        return {
+            "log_id": self.id,
+            "log_date": self.log_date,
+            "historic_site_id": self.historic_site_id,
+            #"user_id": self.user_id,
+            "action_type": self.action_type
+        }
+
+    def __init__(self, historic_site_id: int, action_type: str):
         self.historic_site_id = historic_site_id
-        self.action_type = action_type_id
+        self.action_type = action_type

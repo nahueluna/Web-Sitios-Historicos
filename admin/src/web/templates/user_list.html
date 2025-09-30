@@ -27,8 +27,8 @@
     </div>
     <div class="col-auto">
         <select name="orden" class="form-select">
-            <option value="asc" {% if request.args.get('orden','asc')=='asc' %}selected{% endif %}>Fecha ↑</option>
-            <option value="desc" {% if request.args.get('orden')=='desc' %}selected{% endif %}>Fecha ↓</option>
+            <option value="asc" {% if request.args.get('orden')=='asc' %}selected{% endif %}>Fecha ↑</option>
+            <option value="desc" {% if request.args.get('orden','desc')=='desc' %}selected{% endif %}>Fecha ↓</option>
         </select>
     </div>
     <div class="col-auto">

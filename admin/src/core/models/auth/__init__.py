@@ -49,14 +49,28 @@ def crear_usuario(email: str, nombre: str, apellido: str, rol: RolUsuario) -> tu
 
     return usuario, password_plano
 
-def actualizar_usuario(usuario_id: int, rol: RolUsuario = None, activo: bool = None):
+def actualizar_usuario(
+    usuario_id: int,
+    email: str = None,
+    nombre: str = None,
+    apellido: str = None,
+    rol: RolUsuario = None,
+    activo: bool = None
+):
     usuario = get_usuario_by_id(usuario_id)
     if not usuario:
         return None
+    if email is not None:
+        usuario.email = email
+    if nombre is not None:
+        usuario.nombre = nombre
+    if apellido is not None:
+        usuario.apellido = apellido
     if rol is not None:
         usuario.rol = rol
     if activo is not None:
         usuario.activo = activo
+
     db.session.commit()
     return usuario
 

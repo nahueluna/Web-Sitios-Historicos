@@ -16,7 +16,7 @@ def list_users():
     email = request.args.get("email")
     activo = request.args.get("activo")
     rol = request.args.get("rol")
-    orden = request.args.get("orden", "asc")
+    orden = request.args.get("orden", "desc")
     pagina = int(request.args.get("pagina", 1))
 
     # Convertir activo a boolean si viene
@@ -50,7 +50,7 @@ def new_user():
         email = request.form["email"]
         nombre = request.form["nombre"]
         apellido = request.form["apellido"]
-        rol = RolUsuario(request.form["rol"])
+        rol = request.form["rol"]
 
         try:
             usuario, password_plano = crear_usuario(email, nombre, apellido, rol)
@@ -69,7 +69,10 @@ def update_user(usuario_id):
     if request.method == "POST":
         usuario = actualizar_usuario(
             usuario_id,
-            rol=RolUsuario(request.form["rol"]),
+            email=request.form["email"],
+            nombre=request.form["nombre"],
+            apellido=request.form["apellido"],
+            rol=request.form["rol"],
             activo="activo" in request.form
         )
         if not usuario:
@@ -79,7 +82,7 @@ def update_user(usuario_id):
     usuario = get_usuario_by_id(usuario_id)
     if not usuario:
         return "Usuario no encontrado", 404
-    return render_template("user_form.html", action="Actualizar", user=usuario)
+    return render_template("user_form.html", action="Actualizar", user=usuario, RolUsuario=RolUsuario)
 
 # Eliminar usuario
 @bp_user.route("/eliminar/<int:usuario_id>", methods=["GET", "POST"])

@@ -10,7 +10,7 @@ CANTIDAD_USUARIOS = 60
 def seed_usuarios():
     usuarios = []
     roles = [RolUsuario.PUBLICO, RolUsuario.EDITOR, RolUsuario.ADMIN]
-    hora_actual = datetime.utcnow()
+    hora_actual = datetime.now()
 
     for i in range(1, CANTIDAD_USUARIOS + 1):
         usuario = Usuario(
@@ -20,7 +20,7 @@ def seed_usuarios():
             password=generate_password_hash("password"),
             activo=bool(i % 10),
             rol=roles[i % len(roles)],
-            fecha_creacion=hora_actual + timedelta(seconds=i)
+            fecha_creacion=hora_actual - timedelta(seconds=i)
         )
         usuarios.append(usuario)
 

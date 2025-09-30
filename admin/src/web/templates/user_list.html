@@ -7,7 +7,7 @@
 <div style="display: flex; gap: 2rem;">
     <!-- Tabla de usuarios -->
     <div>
-        <table border="1" cellpadding="5" id="user-table">
+        <table border="1" cellpadding="5" id="user-table" class="table table-striped">
             <tr>
                 <th>Email</th><th>Nombre</th><th>Apellido</th><th>Rol</th>
             </tr>
@@ -24,9 +24,9 @@
 
     <!-- Botones de acción -->
     <div style="display: flex; flex-direction: column; gap: 1rem;">
-        <button id="btn-new" onclick="location.href='{{ url_for('user.new_user') }}'">Nuevo</button>
-        <button id="btn-update" disabled>Actualizar</button>
-        <button id="btn-delete" disabled>Eliminar</button>
+        <button class = "btn" id="btn-new" onclick="location.href='{{ url_for('user.new_user') }}'">Nuevo</button>
+        <button class = "btn" id="btn-update" disabled>Actualizar</button>
+        <button class = "btn" id="btn-delete" disabled>Eliminar</button>
     </div>
 </div>
 

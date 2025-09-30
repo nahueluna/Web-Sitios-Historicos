@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, flash
 from src.core.models.auth import (get_all_usuarios,
     crear_usuario,
     actualizar_usuario,
@@ -18,14 +18,17 @@ def list_users():
 @bp_user.route("/nuevo", methods=["GET", "POST"])
 def new_user():
     if request.method == "POST":
-        crear_usuario(
-            email=request.form["email"],
-            nombre=request.form["nombre"],
-            apellido=request.form["apellido"],
-            password="temp",
-            rol=RolUsuario(request.form["rol"])
-        )
+        email = request.form["email"]
+        nombre = request.form["nombre"]
+        apellido = request.form["apellido"]
+        rol = RolUsuario(request.form["rol"])
+
+        usuario, password_plano = crear_usuario(email, nombre, apellido, rol)
+
+        # mostramos la contraseña generada al usuario
+        flash(f"Usuario creado con éxito. La contraseña es: {password_plano}", "success")
         return redirect(url_for("user.list_users"))
+
     return render_template("user_form.html", action="Nuevo")
 
 # Actualizar usuario

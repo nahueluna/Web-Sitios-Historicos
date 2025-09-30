@@ -53,7 +53,7 @@
                             <a class="nav-link" href="/admin/moderacion">Moderacion de reseñas</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/admin/gestion-usuarios">Gestion de usuarios</a>
+                            <a class="nav-link" href="{{ url_for('user.list_users') }}">Gestion de usuarios</a>
                         </li>
                     </ul>
                 </nav>
@@ -71,13 +71,6 @@
         </div>
         {% endblock %}
     </header>
-    <nav>
-        {% block navbar %}
-        <ul>
-            <li><a href="{{ url_for('user.list_users') }}">Manejo de Usuarios</a></li>
-        </ul>
-        {% endblock %}
-    </nav>
     <main>
         <!-- Sidebar para pantallas grandes -->
         <nav class="bg-light d-none d-lg-block sidebar-desktop">
@@ -92,7 +85,7 @@
                     <a class="nav-link" href="/admin/moderacion">Moderacion de reseñas</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/admin/gestion-usuarios">Gestion de usuarios</a>
+                    <a class="nav-link" href="{{ url_for('user.list_users') }}">Gestion de usuarios</a>
                 </li>
             </ul>
 

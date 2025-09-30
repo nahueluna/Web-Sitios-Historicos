@@ -57,3 +57,23 @@ def eliminar_usuario(usuario_id: int):
     db.session.delete(usuario)
     db.session.commit()
     return usuario
+
+def buscar_usuarios(email=None, activo=None, rol=None, orden="asc", pagina=1, por_pagina=15):
+    query = db.session.query(Usuario)
+
+    if email:
+        query = query.filter(Usuario.email.ilike(f"%{email}%"))
+    if activo is not None:
+        query = query.filter(Usuario.activo == activo)
+    if rol:
+        query = query.filter(Usuario.rol == rol)
+
+    if orden == "desc":
+        query = query.order_by(Usuario.fecha_creacion.desc())
+    else:
+        query = query.order_by(Usuario.fecha_creacion.asc())
+
+    total = query.count()
+    usuarios = query.offset((pagina - 1) * por_pagina).limit(por_pagina).all()
+
+    return usuarios, total

@@ -2,21 +2,49 @@
 {% block title %}Usuarios{% endblock %}
 
 {% block content %}
-<h2>Lista de usuarios</h2>
+<h2>Usuarios</h2>
+
+<!-- Formulario de búsqueda -->
+<form method="get" action="{{ url_for('user.list_users') }}" style="margin-bottom: 1rem;">
+    <input type="text" name="email" placeholder="Buscar por email" value="{{ request.args.get('email','') }}">
+    <select name="activo">
+        <option value="">-- Activo --</option>
+        <option value="SI" {% if request.args.get('activo')=='SI' %}selected{% endif %}>SI</option>
+        <option value="NO" {% if request.args.get('activo')=='NO' %}selected{% endif %}>NO</option>
+    </select>
+    <select name="rol">
+        <option value="">-- Rol --</option>
+        <option value="PUBLICO" {% if request.args.get('rol')=='PUBLICO' %}selected{% endif %}>Usuario público</option>
+        <option value="EDITOR" {% if request.args.get('rol')=='EDITOR' %}selected{% endif %}>Editor</option>
+        <option value="ADMIN" {% if request.args.get('rol')=='ADMIN' %}selected{% endif %}>Administrador</option>
+    </select>
+    <select name="orden">
+        <option value="asc" {% if request.args.get('orden','asc')=='asc' %}selected{% endif %}>Fecha creación ↑</option>
+        <option value="desc" {% if request.args.get('orden')=='desc' %}selected{% endif %}>Fecha creación ↓</option>
+    </select>
+    <button type="submit">Buscar</button>
+</form>
 
 <div style="display: flex; gap: 2rem;">
     <!-- Tabla de usuarios -->
     <div>
         <table border="1" cellpadding="5" id="user-table" class="table table-striped">
             <tr>
-                <th>Email</th><th>Nombre</th><th>Apellido</th><th>Rol</th>
+                <th>Email</th>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Rol</th>
+                <th>Activo</th>
+                <th>Fecha creación</th>
             </tr>
-            {% for u in users %}
+            {% for u in usuarios %}
             <tr data-id="{{ u.id }}">
                 <td>{{ u.email }}</td>
                 <td>{{ u.nombre }}</td>
                 <td>{{ u.apellido }}</td>
-                <td>{{ u.rol }}</td>
+                <td>{{ u.rol.value }}</td>
+                <td>{{ "SI" if u.activo else "NO" }}</td>
+                <td>{{ u.fecha_creacion.strftime('%Y-%m-%d %H:%M:%S') }}</td>
             </tr>
             {% endfor %}
         </table>
@@ -24,30 +52,40 @@
 
     <!-- Botones de acción -->
     <div style="display: flex; flex-direction: column; gap: 1rem;">
-        <button class = "btn" id="btn-new" onclick="location.href='{{ url_for('user.new_user') }}'">Nuevo</button>
-        <button class = "btn" id="btn-update" disabled>Actualizar</button>
-        <button class = "btn" id="btn-delete" disabled>Eliminar</button>
+        <button class="btn" id="btn-new" onclick="location.href='{{ url_for('user.new_user') }}'">Nuevo</button>
+        <button class="btn" id="btn-update" disabled>Actualizar</button>
+        <button class="btn" id="btn-delete" disabled>Eliminar</button>
     </div>
 </div>
 
+<!-- Paginación -->
+<div style="margin-top: 1rem;">
+    {% if pagina > 1 %}
+        <a href="{{ url_for('user.list_users', pagina=pagina-1, email=request.args.get('email',''), activo=request.args.get('activo',''), rol=request.args.get('rol',''), orden=request.args.get('orden','asc')) }}">Anterior</a>
+    {% endif %}
+    Página {{ pagina }}
+    {% if total > pagina * por_pagina %}
+        <a href="{{ url_for('user.list_users', pagina=pagina+1, email=request.args.get('email',''), activo=request.args.get('activo',''), rol=request.args.get('rol',''), orden=request.args.get('orden','asc')) }}">Siguiente</a>
+    {% endif %}
+</div>
 <script>
     let selectedRow = null;
     let selectedUserId = null;
 
     document.querySelectorAll("#user-table tr[data-id]").forEach(row => {
         row.addEventListener("click", () => {
-            // Remove highlight from previous
+            // Quitar highlight previo
             if (selectedRow) {
                 selectedRow.style.background = "";
             }
-            // Highlight new row
+            // Resaltar fila nueva
             selectedRow = row;
             selectedRow.style.background = "#d0eaff";
 
-            // Save user id
+            // Guardar id de usuario
             selectedUserId = row.dataset.id;
 
-            // Enable buttons
+            // Habilitar botones
             document.getElementById("btn-update").disabled = false;
             document.getElementById("btn-delete").disabled = false;
         });

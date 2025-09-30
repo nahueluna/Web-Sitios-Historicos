@@ -4,15 +4,43 @@ from src.core.models.auth import (get_all_usuarios,
     actualizar_usuario,
     eliminar_usuario,
     get_usuario_by_id,
-    RolUsuario)
+    RolUsuario,
+    buscar_usuarios)
 
 bp_user = Blueprint("user", __name__, url_prefix="/usuarios")
 
 # Ruta raiz
 @bp_user.route("/")
 def list_users():
-    usuarios = get_all_usuarios()
-    return render_template("user_list.html", users=usuarios)
+    email = request.args.get("email")
+    activo = request.args.get("activo")
+    rol = request.args.get("rol")
+    orden = request.args.get("orden", "asc")
+    pagina = int(request.args.get("pagina", 1))
+
+    # Convertir activo a boolean si viene
+    if activo == "SI":
+        activo = True
+    elif activo == "NO":
+        activo = False
+    else:
+        activo = None
+
+    usuarios, total = buscar_usuarios(
+        email=email,
+        activo=activo,
+        rol=rol,
+        orden=orden,
+        pagina=pagina,
+    )
+
+    return render_template(
+        "user_list.html",
+        usuarios=usuarios,
+        total=total,
+        pagina=pagina,
+        por_pagina=15
+    )
 
 # Crear usuario
 @bp_user.route("/nuevo", methods=["GET", "POST"])

@@ -4,6 +4,8 @@ from flask import render_template
 from src.web.handlers import error
 from src.web.config import config
 from src.core import database
+from src.web.controllers.historic_sites import historic_sites_bp
+from src.web.controllers.historic_sites import render_index
 
 def create_app(env='development', static_folder='../../static'):
     app = Flask(__name__, static_folder=static_folder)
@@ -11,17 +13,15 @@ def create_app(env='development', static_folder='../../static'):
 
     database.init_app(app)  # Inicializar la base de datos
 
+    app.register_blueprint(historic_sites_bp) 
+
     @app.route('/')
-    def home():
+    def home(): #return render_index()
         return render_template('home.html')
 
     @app.route('/admin')
     def admin():
         return render_template('layout.html')
-
-    @app.route('/admin/gestion-sitios')
-    def gestion_sitios():
-        return render_template('gestion_sitios.html')
 
     @app.route('/admin/validacion-propuestas')
     def validacion_propuestas():

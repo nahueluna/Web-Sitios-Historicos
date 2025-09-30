@@ -2,24 +2,38 @@
 {% block title %}{{ action }} Usuario{% endblock %}
 
 {% block content %}
-<h2>{{ action }} Usuario</h2>
-<form method="POST">
+<h2 class="mb-4">{{ action }} Usuario</h2>
+
+<form method="POST" class="w-50">
     {% if action == "Nuevo" %}
-    <label>Email: <input type="email" name="email" required></label><br>
-    <label>Nombre: <input type="text" name="nombre" required></label><br>
-    <label>Apellido: <input type="text" name="apellido" required></label><br>
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input type="email" name="email" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Nombre</label>
+        <input type="text" name="nombre" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Apellido</label>
+        <input type="text" name="apellido" class="form-control" required>
+    </div>
     {% else %}
     <p><b>Email:</b> {{ user.email }}</p>
     <p><b>Nombre:</b> {{ user.nombre }}</p>
     <p><b>Apellido:</b> {{ user.apellido }}</p>
     {% endif %}
-    <label>Rol:
-        <select name="rol" required>
+
+    <div class="mb-3">
+        <label class="form-label">Rol</label>
+        <select name="rol" class="form-select" required>
             <option value="Usuario público" {% if user and user.rol=="Usuario público" %}selected{% endif %}>Usuario público</option>
             <option value="Editor" {% if user and user.rol=="Editor" %}selected{% endif %}>Editor</option>
             <option value="Administrador" {% if user and user.rol=="Administrador" %}selected{% endif %}>Administrador</option>
         </select>
-    </label><br>
-    <button type="submit">Guardar</button>
+    </div>
+
+    <button type="submit" class="btn btn-success">Guardar</button>
 </form>
 {% endblock %}
+

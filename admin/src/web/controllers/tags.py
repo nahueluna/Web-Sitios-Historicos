@@ -1,8 +1,9 @@
-from flask import Blueprint, render_template, request, Response, redirect, flash
-from sqlalchemy.exc import IntegrityError
+import logging
+from flask import Blueprint, render_template, request, Response, redirect, flash, abort
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
-from src.core.search import create_tag, list_tags_by_order, update_tag_name, get_tag_by_id, remove_tag
-from src.web.controllers.helpers.tags import verify_tag_and_generate_slug
+from src.core.models.search import create_tag, list_tags_by_order, update_tag_name, get_tag_by_id, remove_tag
+from src.web.controllers.helpers.tags import verify_tag_and_generate_slug, handle_db_error
 
 tags_bp = Blueprint('tags', __name__, url_prefix='/etiquetas')
 
@@ -10,12 +11,18 @@ tags_bp = Blueprint('tags', __name__, url_prefix='/etiquetas')
 def view_tags():
     order_by = request.args.get('order_by', 'inserted_at')
     order_dir = request.args.get('order_dir', 'asc')
+    query = request.args.get('q', '')
 
     try:
-        tags_list = list_tags_by_order(order_by, order_dir)
-    except ValueError:
-        tags_list = []
-        flash("Ocurrió un error al obtener las etiquetas.", "error")
+        tags_list = list_tags_by_order(order_by, order_dir, query)
+    except (ValueError, SQLAlchemyError) as e:
+        return handle_db_error(
+            e,
+            "Error getting tags",
+            "Ocurrió un error al obtener las etiquetas. Por favor, intente nuevamente.",
+            "tags/index.html",
+            tags=[]
+        )
 
     return render_template('tags/index.html', tags=tags_list)
 
@@ -43,9 +50,20 @@ def add_tag():
 
     try:
         create_tag(name=tag_name, slug=slug_reponse)
-    except IntegrityError:
-        flash("El nombre de la etiqueta ya existe. Por favor, elija otro.", "error")
-        return render_template('tags/add_tag.html')
+    except IntegrityError as e:
+        return handle_db_error(
+            e,
+            "Error creating tag",
+            "El nombre de la etiqueta ya existe. Por favor, elija otro.",
+            "tags/add_tag.html"
+        )
+    except SQLAlchemyError as e:
+        return handle_db_error(
+            e,
+            "Error creating tag",
+            "Ocurrió un error al crear la etiqueta. Por favor, intente nuevamente.",
+            "tags/add_tag.html"
+        )
 
     flash("Etiqueta creada exitosamente.", "success")
     return redirect("/etiquetas/")
@@ -53,12 +71,15 @@ def add_tag():
 # SOLO ELIMINAR SI NO ESTÁ ASOCIADA A NINGÚN SITIO
 @tags_bp.post('/eliminar/<int:tag_id>')
 def delete_tag(tag_id):
-    if remove_tag(tag_id):
-        flash("Etiqueta eliminada exitosamente.", "success")
-    else:
-        flash("Ocurrió un error al intentar eliminar la etiqueta.", "error")
+    if request.form.get('_method') == "DELETE":
+        if remove_tag(tag_id):
+            flash("Etiqueta eliminada exitosamente.", "success")
+        else:
+            flash("Ocurrió un error al intentar eliminar la etiqueta.", "error")
 
-    return redirect("/etiquetas/")
+        return redirect("/etiquetas/")
+    else:
+        abort(405)
 
 @tags_bp.get('/actualizar/<int:tag_id>')
 def show_update_tag_form(tag_id):
@@ -71,20 +92,38 @@ def show_update_tag_form(tag_id):
 
 @tags_bp.post('/actualizar/<int:tag_id>')
 def update_tag(tag_id):
-    new_name = request.form.get('name')
-    previous_name = request.form.get('original_name')
+    if request.form.get('_method') == "PUT":
+        new_name = request.form.get('name')
+        previous_name = request.form.get('original_name')
 
-    slug_reponse = verify_tag_and_generate_slug(new_name)
+        slug_reponse = verify_tag_and_generate_slug(new_name)
 
-    if isinstance(slug_reponse, Response) and (slug_reponse.status_code == 400):
-        flash("El nombre de la etiqueta es obligatorio y debe contener entre 3 y 50 caracteres.", "error")
-        return render_template('tags/edit_tag.html', tag_id=tag_id, tag_name=previous_name)
+        if isinstance(slug_reponse, Response) and (slug_reponse.status_code == 400):
+            flash("El nombre de la etiqueta es obligatorio y debe contener entre 3 y 50 caracteres.", "error")
+            return render_template('tags/edit_tag.html', tag_id=tag_id, tag_name=previous_name)
 
-    try:
-        update_tag_name(tag_id, new_name, slug_reponse)
-    except IntegrityError:
-        flash("El nombre de la etiqueta ya existe. Por favor, elija otro.", "error")
-        return render_template('tags/edit_tag.html', tag_id=tag_id, tag_name=previous_name)
+        try:
+            update_tag_name(tag_id, new_name, slug_reponse)
+        except IntegrityError as e:
+            return handle_db_error(
+                e,
+                "Error updating tag: ",
+                "El nombre de la etiqueta ya existe. Por favor, elija otro.",
+                "tags/edit_tag.html",
+                tag_id=tag_id,
+                tag_name=previous_name
+            )
+        except SQLAlchemyError as e:
+            return handle_db_error(
+                e,
+                "Error updating tag: ",
+                "Ocurrió un error al actualizar la etiqueta. Por favor, intente nuevamente.",
+                "tags/edit_tag.html",
+                tag_id=tag_id,
+                tag_name=previous_name
+            )
 
-    flash("Etiqueta actualizada exitosamente.", "success")
-    return redirect("/etiquetas/")
+        flash("Etiqueta actualizada exitosamente.", "success")
+        return redirect("/etiquetas/")
+    else:
+        abort(405)

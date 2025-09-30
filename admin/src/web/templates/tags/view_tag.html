@@ -7,6 +7,7 @@
 
     <a href="{{ url_for('tags.show_update_tag_form', tag_id=tag.id) }}" class="add-btn">Actualizar etiqueta</a>
     <form method="POST" action="{{ url_for('tags.delete_tag', tag_id=tag.id) }}"  style="display:inline;">
+        <input type="hidden" name="_method" value="DELETE">
         <button type="submit" class="dlt-btn">Eliminar etiqueta</button>
     </form>
     <a href="{{ url_for('tags.view_tags') }}" class="back-btn">Volver a la lista de etiquetas</a>

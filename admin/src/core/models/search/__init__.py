@@ -1,7 +1,7 @@
 from src.core.database import db
-from src.core.search.tags import  Tag
+from src.core.models.search.tags import Tag
 
-def list_tags_by_order(order_by, order_dir):
+def list_tags_by_order(order_by, order_dir, query):
     column = getattr(Tag, order_by)
     if not column:
         raise ValueError("Invalid order_by field")
@@ -9,7 +9,7 @@ def list_tags_by_order(order_by, order_dir):
         column = column.desc()
     else:
         column = column.asc()
-    query = db.session.query(Tag).order_by(column)
+    query = db.session.query(Tag).filter(Tag.name.ilike(f"%{query}%")).order_by(column).all()
     return query
 
 def get_tag_by_id(tag_id):

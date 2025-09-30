@@ -105,6 +105,14 @@
             {% endblock %}
         </div>
     </main>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
     <footer>
         {% block footer %}
         <span>&copy; 2025 Grupo 03. Proyecto de Software.</span>

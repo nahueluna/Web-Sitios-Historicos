@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+
+{% block title %}Etiquetas{% endblock %}
+
+{% block content %}
+    <h2>Lista de etiquetas</h2>
+    <form method="get" action="{{ url_for('tags.view_tags') }}">
+      <label for="order_by">Ordenar por:</label>
+      <select name="order_by" id="order_by" onchange="this.form.submit()">
+        <option value="name" {% if request.args.get('order_by', 'inserted_at') == 'name' %}selected{% endif %}>Nombre</option>
+        <option value="inserted_at" {% if request.args.get('order_by', 'inserted_at') == 'inserted_at' %}selected{% endif %}>Fecha de creación</option>
+      </select>
+      <label for="order_dir"></label>
+      <select name="order_dir" id="order_dir" onchange="this.form.submit()">
+        <option value="asc" {% if request.args.get('order_dir', 'asc') == 'asc' %}selected{% endif %}>Ascendente</option>
+        <option value="desc" {% if request.args.get('order_dir', 'asc') == 'desc' %}selected{% endif %}>Descendente</option>
+      </select>
+    </form>
+
+    <div style="display: flex; gap: 2rem;">
+        <div>
+            <table id="tags-table">
+                <tr>
+                    <th ><b>Nombre</b></th>
+                </tr>
+                {% for t in tags %}
+                <tr data-id="{{ t.id }}">
+                    <td>
+                        <a href="{{ url_for('tags.view_specific_tag', tag_id=t.id) }}">{{ t.name }}</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+    <a href="{{ url_for('tags.add_tag') }}" class="add-btn">Agregar etiqueta</a>
+{% endblock %}
+
+{% block footer %}
+{{ super() }}
+{% endblock %}

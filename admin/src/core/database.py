@@ -9,7 +9,9 @@ def init_app(app):
 
 def reset_db():
     print("Resetting database...")
-    from src.core.models.auth.user import Usuario
+    from src.core.search import tags # noqa: F401
+    from src.core.models.auth.user import Usuario # noqa: F401
+
     Base.metadata.drop_all(bind=db.engine)
     Base.metadata.create_all(bind=db.engine)
     print("Database reset complete.")

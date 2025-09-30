@@ -16,8 +16,8 @@ def create_app(env='development', static_folder='../../static'):
     app.register_blueprint(historic_sites_bp) 
 
     @app.route('/')
-    def home(): return render_index()
-        #return render_template('home.html')
+    def home(): #return render_index()
+        return render_template('home.html')
 
     @app.route('/admin')
     def admin():

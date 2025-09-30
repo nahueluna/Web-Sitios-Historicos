@@ -16,5 +16,11 @@ def reset_db():
     Base.metadata.create_all(bind=db.engine)
     print("Database reset complete.")
 
+def seed_db():
+    from src.core.models.auth.seeds import seed_usuarios
+    print("🌱 Seeding database with initial data...")
+    seed_usuarios()
+    print("✅ Database seeding complete.")
+
 class Base(DeclarativeBase):
     pass

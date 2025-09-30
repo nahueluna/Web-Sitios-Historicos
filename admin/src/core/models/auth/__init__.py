@@ -55,3 +55,5 @@ def assign_permission_to_role(role: Role, permission_name: str):
     print(f"Permiso '{permission_name}' asignado exitosamente al rol '{role.name}'")
     return role_permission
         
+def find_permission_by_name(permission_name: str) -> Permission | None:
+    return db.session.query(Permission).filter_by(name=permission_name).first()

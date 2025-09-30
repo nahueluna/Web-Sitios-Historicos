@@ -51,7 +51,8 @@ def run_seeds():
     
     # Permisos para ADMIN (todo lo del editor + gestión de usuarios)
     admin_permission_names = editor_permission_names + [
-        "user_index", "user_new", "user_update", "user_destroy", "user_show"
+        "user_index", "user_new", "user_update", "user_destroy", "user_show",
+        "role_assign", "role_index", "role_update"
     ]
     
     for perm_name in admin_permission_names:

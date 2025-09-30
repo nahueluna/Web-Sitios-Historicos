@@ -4,6 +4,9 @@ from flask import render_template
 from src.web.handlers import error
 from src.web.config import config
 from src.core import database
+from src.web.controllers.user_controller import user_bp
+from src.web.controllers.role_controller import role_bp
+from src.web.controllers.auth_controller import auth_bp
 
 
 def create_app(env='development', static_folder='../../static'):
@@ -39,6 +42,10 @@ def create_app(env='development', static_folder='../../static'):
     app.register_error_handler(404, error.not_found)
     app.register_error_handler(401, error.unauthorized)
     app.register_error_handler(500, error.internal_server_error)
+
+    app.register_blueprint(user_bp)
+    app.register_blueprint(role_bp)
+    app.register_blueprint(auth_bp)
 
     @app.cli.command("reset-db")
     def reset_db():

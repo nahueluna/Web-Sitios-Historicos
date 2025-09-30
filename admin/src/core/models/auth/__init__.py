@@ -1,8 +1,13 @@
 from src.core.database import db
 from src.core.models.auth.user import Usuario, RolUsuario
+from sqlalchemy.exc import IntegrityError
 import secrets
 import string
 import hashlib
+
+class EmailExistente(Exception):
+    """Se intento crear un usuario con un email ya registrado"""
+    pass
 
 def generar_password_aleatoria(longitud: int = 8) -> str:
     caracteres = string.ascii_letters + string.digits
@@ -35,7 +40,12 @@ def crear_usuario(email: str, nombre: str, apellido: str, rol: RolUsuario) -> tu
     )
 
     db.session.add(usuario)
-    db.session.commit()
+
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        raise EmailExistente
 
     return usuario, password_plano
 
@@ -58,7 +68,7 @@ def eliminar_usuario(usuario_id: int):
     db.session.commit()
     return usuario
 
-def buscar_usuarios(email=None, activo=None, rol=None, orden="asc", pagina=1, por_pagina=15):
+def buscar_usuarios(email=None, activo=None, rol=None, orden="asc", pagina=1, por_pagina=10):
     query = db.session.query(Usuario)
 
     if email:

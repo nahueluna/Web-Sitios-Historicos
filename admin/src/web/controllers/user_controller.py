@@ -5,7 +5,8 @@ from src.core.models.auth import (get_all_usuarios,
     eliminar_usuario,
     get_usuario_by_id,
     RolUsuario,
-    buscar_usuarios)
+    buscar_usuarios,
+    EmailExistente)
 
 bp_user = Blueprint("user", __name__, url_prefix="/usuarios")
 
@@ -39,7 +40,7 @@ def list_users():
         usuarios=usuarios,
         total=total,
         pagina=pagina,
-        por_pagina=15
+        por_pagina=10
     )
 
 # Crear usuario
@@ -51,11 +52,14 @@ def new_user():
         apellido = request.form["apellido"]
         rol = RolUsuario(request.form["rol"])
 
-        usuario, password_plano = crear_usuario(email, nombre, apellido, rol)
-
-        # mostramos la contraseña generada al usuario
-        flash(f"Usuario creado con éxito. La contraseña es: {password_plano}", "success")
-        return redirect(url_for("user.list_users"))
+        try:
+            usuario, password_plano = crear_usuario(email, nombre, apellido, rol)
+            # mostramos la contraseña generada al usuario
+            flash(f"Usuario creado con éxito. La contraseña es: {password_plano}", "success")
+            return redirect(url_for("user.list_users"))
+        except EmailExistente:
+            flash(f"El email {email} ya se encuentra registrado", "error")
+            return render_template("user_form.html", action="Nuevo")
 
     return render_template("user_form.html", action="Nuevo")
 

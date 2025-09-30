@@ -214,3 +214,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Pylsp
+setup.cfg
+
+# IDE
+*.idea

@@ -5,7 +5,7 @@ load_dotenv()
 
 class Config:
     TESTING = False
-    SECRET_KEY = "you_secret_key"
+    SECRET_KEY = environ.get("SECRET_KEY")
     SESSION_TYPE = "filesystem"
 
 class ProductionConfig(Config):
@@ -14,14 +14,12 @@ class ProductionConfig(Config):
 
 
 class DevelopmentConfig(Config):
-    SECRET_KEY = "you_development_secret_key"
-    
     DB_USER = environ.get("DB_USER")
     DB_PASSWORD = environ.get("DB_PASSWORD")
-    DB_HOST = "localhost"
-    DB_PORT = "5432"
-    DB_NAME = "grupo03"
-    DB_SCHEME = "postgresql+psycopg2"
+    DB_HOST = environ.get("DB_HOST", "localhost")
+    DB_PORT = environ.get("DB_PORT", "5432")
+    DB_NAME = environ.get("DB_NAME", "grupo03")
+    DB_SCHEME = environ.get("DB_SCHEME", "postgresql+psycopg2")
 
     SQLALCHEMY_ENGINES = {
         'default': f"{DB_SCHEME}://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
@@ -29,6 +27,7 @@ class DevelopmentConfig(Config):
 
 class TestingConfig(Config):
     TESTING = True
+
 
 config = {
     "production": ProductionConfig,

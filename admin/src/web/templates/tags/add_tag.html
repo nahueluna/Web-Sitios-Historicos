@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+
+{% block title %}Agregar etiqueta{% endblock %}
+
+{% block content %}
+<h2>Agregar nueva etiqueta</h2>
+<form method="POST" action="{{ url_for('tags.add_tag') }}" autocomplete="off">
+    <fieldset>
+        <div>
+            <label for="name">Nombre de la etiqueta:</label>
+            <input type="text" id="name" name="name" required minlength="3" maxlength="50" pattern=".{3,50}" autofocus aria-describedby="name-error">
+        </div>
+        <div>
+            <button class="submit-btn" type="submit">Agregar</button>
+        </div>
+    </fieldset>
+</form>
+
+<a href="{{ url_for('tags.view_tags') }}" class="back-btn">Volver a la lista de etiquetas</a>
+{% endblock %}
+
+{% block footer %}
+{{ super() }}
+{% endblock %}

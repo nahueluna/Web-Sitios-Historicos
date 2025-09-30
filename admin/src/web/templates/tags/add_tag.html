@@ -16,12 +16,6 @@
     </fieldset>
 </form>
 
-{% if integrity_error %}
-    <p class="error" id="name-error">Error: La etiqueta ya existe.</p>
-{% elif bad_request %}
-    <p class="error" id="name-error">Error: El nombre de la etiqueta es obligatorio y debe contener entre 3 y 50 caracteres.</p>
-{% endif %}
-
 <a href="{{ url_for('tags.view_tags') }}" class="back-btn">Volver a la lista de etiquetas</a>
 {% endblock %}
 

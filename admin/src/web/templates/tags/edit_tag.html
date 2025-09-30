@@ -4,14 +4,13 @@
 
 {% block content %}
 <h2>Editar etiqueta</h2>
-    {% if tag_name %}   <!-- Quitar a futuro -->
-        <strong>Nombre actual: {{ tag_name }}</strong>
-    {% endif %}
+<strong>Nombre actual: {{ tag_name }}</strong>
 <form method="POST" action="{{ url_for('tags.update_tag', tag_id=tag_id) }}" autocomplete="off">
     <fieldset>
         <div>
             <label for="name">Nuevo nombre:</label>
             <input type="text" id="name" name="name" required minlength="3" maxlength="50" pattern=".{3,50}" autofocus aria-describedby="name-error">
+            <input type="hidden" name="original_name" value="{{ tag_name }}">
         </div>
         <div>
             <button class="submit-btn" type="submit">Actualizar</button>
@@ -19,12 +18,7 @@
     </fieldset>
 </form>
 
-{% if integrity_error %}
-    <p class="error" id="name-error">Error: El nombre ya se encuentra registrado para otra etiqueta.</p>
-{% elif bad_request %}
-    <p class="error" id="name-error">Error: El nombre de la etiqueta es obligatorio y debe contener entre 3 y 50 caracteres.</p>
-{% endif %}
-
+<a href="{{ url_for('tags.view_specific_tag', tag_id=tag_id) }}" class="back-btn">Regresar</a>
 <a href="{{ url_for('tags.view_tags') }}" class="back-btn">Volver a la lista de etiquetas</a>
 {% endblock %}
 

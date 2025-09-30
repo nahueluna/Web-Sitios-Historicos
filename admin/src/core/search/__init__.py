@@ -1,8 +1,16 @@
 from src.core.database import db
 from src.core.search.tags import  Tag
 
-def list_tags_by_update_date():
-    return db.session.query(Tag).order_by(Tag.updated_at.desc()).all()
+def list_tags_by_order(order_by, order_dir):
+    column = getattr(Tag, order_by)
+    if not column:
+        raise ValueError("Invalid order_by field")
+    if order_dir == 'desc':
+        column = column.desc()
+    else:
+        column = column.asc()
+    query = db.session.query(Tag).order_by(column)
+    return query
 
 def get_tag_by_id(tag_id):
     return db.session.query(Tag).filter(Tag.id == tag_id).first()

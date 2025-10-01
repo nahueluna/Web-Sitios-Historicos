@@ -1,0 +1,19 @@
+#tags-container {
+    max-height: 38rem;
+    flex-direction: column;
+    column-count: 1;
+}
+
+.selectable-tag {
+    cursor: pointer;
+    transition: background 0.2s;
+    border-radius: 0.5rem;
+    padding: 0.2rem;
+}
+.selectable-tag:hover {
+    background-color: #e7f1ff;
+}
+.selectable-tag.table-primary,
+.selectable-tag.selected {
+    background-color: #cfe2ff !important;
+}

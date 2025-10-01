@@ -1,53 +1,157 @@
 {% extends "layout.html" %}
 
+{% block head %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='tags.css') }}">
+{% endblock %}
+
 {% block title %}Etiquetas{% endblock %}
 
 {% block content %}
-    <h2>Lista de etiquetas</h2>
-    <div style="display: flex; align-items: center; gap: 1rem;">
-        <form method="get" action="{{ url_for('tags.view_tags') }}" style="display: flex; align-items: center; gap: 1rem; margin: 0;">
-            <label for="tag-search" style="display: none;"></label>
-            <input type="search" id="tag-search" name="q" placeholder="Buscar etiqueta..." value="{{ request.args.get('q', '') }}">
-            <button type="submit">Buscar</button>
+    <h2 class="display-6 fw-bold text-primary">Etiquetas</h2>
 
-            <label for="order_by" style="margin-left: 1rem;">Ordenar por:</label>
-            <select name="order_by" id="order_by" onchange="this.form.submit()">
-                <option value="name" {% if request.args.get('order_by', 'inserted_at') == 'name' %}selected{% endif %}>Nombre</option>
-                <option value="inserted_at" {% if request.args.get('order_by', 'inserted_at') == 'inserted_at' %}selected{% endif %}>Fecha de creación</option>
-            </select>
-            <label for="order_dir" style="display: none;"></label>
-            <select name="order_dir" id="order_dir" onchange="this.form.submit()">
-                <option value="asc" {% if request.args.get('order_dir', 'asc') == 'asc' %}selected{% endif %}>Ascendente</option>
-                <option value="desc" {% if request.args.get('order_dir', 'asc') == 'desc' %}selected{% endif %}>Descendente</option>
-            </select>
+         <!-- Search bar and order selectors -->
+        <form method="get" action="{{ url_for('tags.view_tags') }}" class="row g-2 mb-4 align-items-center">
+            <div class="col-auto">
+                <label for="tag-search" class="visually-hidden"></label>
+                <input type="search" class="form-control" id="tag-search" name="q" placeholder="Buscar etiqueta..." value="{{ request.args.get('q', '') }}" autofocus>
+
+            </div>
+
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">Buscar</button>
+            </div>
+
+            <div class="col-auto">
+                <label for="order_by" class="visually-hidden">Ordenar por:</label>
+                <select name="order_by" class="form-select" id="order_by" onchange="this.form.submit()">
+                    <option value="name" {% if request.args.get('order_by', 'inserted_at') == 'name' %}selected{% endif %}>Nombre</option>
+                    <option value="inserted_at" {% if request.args.get('order_by', 'inserted_at') == 'inserted_at' %}selected{% endif %}>Fecha de creación</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <label for="order_dir" class="visually-hidden"></label>
+                <select name="order_dir" class="form-select" id="order_dir" onchange="this.form.submit()">
+                    <option value="asc" {% if request.args.get('order_dir', 'asc') == 'asc' %}selected{% endif %}>Ascendente</option>
+                    <option value="desc" {% if request.args.get('order_dir', 'asc') == 'desc' %}selected{% endif %}>Descendente</option>
+                </select>
+            </div>
         </form>
-    </div>
 
-    <div style="display: flex; gap: 2rem;">
-        <div>
-            <table id="tags-table">
-                {% if tags %}
-                <tr>
-                    <th ><b>Nombre</b></th>
-                </tr>
-                    {% for t in tags %}
-                    <tr data-id="{{ t.id }}">
-                        <td>
-                            <a href="{{ url_for('tags.view_specific_tag', tag_id=t.id) }}">{{ t.name }}</a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                {% else %}
-                    <tr>
-                        <td colspan="1" class="no-results">Sin resultados</td>
-                    </tr>
-                {% endif %}
-            </table>
-        </div>
-    </div>
-    <a href="{{ url_for('tags.add_tag') }}" class="add-btn">Agregar etiqueta</a>
-{% endblock %}
+   <!-- Tags table and action buttons -->
+   <div style="display: flex; gap: 2rem; align-items: flex-start;">
+       <div id="tags-container" style="display: flex; flex-wrap: wrap; gap: 0.5rem; min-width: 26.3vw;">
+           {% if tags %}
+               {% for t in tags %}
+               <div data-id="{{ t.id }}" class="selectable-tag">
+                   <p class="badge bg-info rounded-pill fs-6">{{ t.name }}</p>
+               </div>
+               {% endfor %}
+           {% else %}
+               <p class="h4 fw-bold text-secondary">Sin resultados</p>
+           {% endif %}
+       </div>
+       <div style="display: flex; flex-direction: column; gap: 1rem;">
+           <a class="btn btn-primary" id="btn-new" href="{{ url_for('tags.add_tag') }}" >Agregar</a>
+           <button class="btn btn-secondary" id="btn-update" disabled>Editar</button>
+           <button class="btn btn-danger" id="btn-delete" data-bs-toggle="modal" data-bs-target="#deleteModal" disabled>Eliminar</button>
+       </div>
+   </div>
 
-{% block footer %}
-{{ super() }}
+    <!-- Delete Tag Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="exampleModalLabel">Eliminar etiqueta</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        ¿Estás seguro de que deseas eliminar la etiqueta?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <form method="POST" id="delete-form">
+            <input type="hidden" name="_method" value="DELETE">
+            <button type="submit" class="btn btn-danger" id="modal-btn-delete">Eliminar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Pagination -->
+<nav aria-label="Paginación usuarios" class="mt-3">
+    <ul class="pagination">
+        {% if page > 1 %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('tags.view_tags', page=page-1, q=request.args.get('q'), order_by=request.args.get('order_by'), order_dir=request.args.get('order_dir')) }}">Anterior</a>
+        </li>
+        {% endif %}
+        <li class="page-item disabled"><span class="page-link">Página {{ page }}</span></li>
+        {% if total > page * per_page %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('tags.view_tags', page=page+1, q=request.args.get('q'), order_by=request.args.get('order_by'), order_dir=request.args.get('order_dir')) }}">Siguiente</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+
+    <script>
+        let selectedRow = null;
+        let selectedTagId = null;
+
+        document.getElementById("btn-update").disabled = true;
+        document.getElementById("btn-delete").disabled = true;
+
+
+        document.querySelectorAll("#tags-container div[data-id]").forEach(row => {
+            row.addEventListener("click", () => {
+                // Quitar highlight previo
+                if (selectedRow) {
+                    selectedRow.classList.remove("table-primary", "selected");
+                }
+                // Resaltar fila nueva
+                selectedRow = row;
+                selectedRow.classList.add("table-primary", "selected");
+
+                // Guardar id de la etiqueta
+                selectedTagId = row.dataset.id;
+
+                // Habilitar botones
+                document.getElementById("btn-update").disabled = false;
+                document.getElementById("btn-delete").disabled = false;
+
+                // Carga el controlador de eliminación
+                document.getElementById("delete-form").action = `/etiquetas/eliminar/${selectedTagId}`;
+            });
+        });
+
+        document.getElementById("btn-update").addEventListener("click", () => {
+            if (selectedTagId) {
+                location.href = `/etiquetas/actualizar/${selectedTagId}`;
+            }
+        });
+
+        document.getElementById("modal-btn-delete").addEventListener("click", () => {
+            if (selectedTagId) {
+                location.href = `/etiquetas/eliminar/${selectedTagId}`;
+            }
+        });
+
+        // Deseleccionar al hacer clic fuera de los tags
+        document.addEventListener("click", (e) => {
+            const tagsContainer = document.getElementById("tags-container");
+            if (
+                selectedRow &&
+                !tagsContainer.contains(e.target)
+            ) {
+                selectedRow.classList.remove("table-primary", "selected");
+                selectedRow = null;
+                selectedTagId = null;
+                document.getElementById("btn-update").disabled = true;
+                document.getElementById("btn-delete").disabled = true;
+            }
+        });
+    </script>
 {% endblock %}

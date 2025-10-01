@@ -3,22 +3,20 @@
 {% block title %}Agregar etiqueta{% endblock %}
 
 {% block content %}
-<h2>Agregar nueva etiqueta</h2>
-<form method="POST" action="{{ url_for('tags.add_tag') }}" autocomplete="off">
-    <fieldset>
-        <div>
-            <label for="name">Nombre de la etiqueta:</label>
-            <input type="text" id="name" name="name" required minlength="3" maxlength="50" pattern=".{3,50}" autofocus aria-describedby="name-error">
-        </div>
-        <div>
-            <button class="submit-btn" type="submit">Agregar</button>
-        </div>
-    </fieldset>
-</form>
+<h2 class="display-6 fw-bold text-primary">Agregar nueva etiqueta</h2>
+    <div class="col-auto">
+        <form method="POST" action="{{ url_for('tags.add_tag') }}" autocomplete="off" class="row g-2 mb-4 align-items-center">
+            <fieldset>
+                <div class="mb-4 mt-2">
+                    <label id="tag-name" for="name">Nombre de la etiqueta:</label>
+                    <input type="text" id="name" name="name" class="form-control" required minlength="3" maxlength="50" pattern=".{3,50}" autofocus aria-describedby="tag-name" style="max-width:70%;">
+                </div>
 
-<a href="{{ url_for('tags.view_tags') }}" class="back-btn">Volver a la lista de etiquetas</a>
-{% endblock %}
-
-{% block footer %}
-{{ super() }}
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary" type="submit">Agregar</button>
+                    <a href="{{ url_for('tags.view_tags') }}" class="btn btn-secondary">Volver a la lista de etiquetas</a>
+                </div>
+            </fieldset>
+        </form>
+    </div>
 {% endblock %}

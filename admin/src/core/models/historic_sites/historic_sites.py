@@ -2,9 +2,17 @@
 #from src.core.models.historic_sites_categorie.hs_categories import HistoricSitesCategories
 #from src.core.models.historic_sites_logs.hs_logs import HistoricSitesLogs
 from src.core.database import Base
+from src.core.models.search.tags import Tag
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import DateTime, ForeignKey
+from sqlalchemy import DateTime, ForeignKey, Table, Column
 from datetime import datetime, timezone
+
+historic_sites_tags = Table(
+    'historic_sites_tags',
+    Base.metadata,
+    Column('historic_site_id', ForeignKey('historic_sites.id'), primary_key=True),
+    Column('tag_id', ForeignKey('tags.id'), primary_key=True)
+)
 
 class HistoricSites(Base):
     __tablename__ = "historic_sites"
@@ -29,7 +37,9 @@ class HistoricSites(Base):
 
     status_id: Mapped[int] = mapped_column(ForeignKey("historic_sites_states.id"), nullable=False)
 
-    category_id: Mapped[int] = mapped_column(ForeignKey("historic_sites_categories.id"), nullable=False)    
+    category_id: Mapped[int] = mapped_column(ForeignKey("historic_sites_categories.id"), nullable=False)
+
+    tags: Mapped[list["Tag"]] = relationship(secondary=historic_sites_tags)
 
     # Relaciones
     # Nombre atributo de la clase

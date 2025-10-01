@@ -1,7 +1,7 @@
 from src.core.database import db
 from src.core.models.search.tags import Tag
 
-def list_tags_by_order(order_by, order_dir, query):
+def list_tags(order_by, order_dir, query, page=1, per_page=10):
     column = getattr(Tag, order_by)
     if not column:
         raise ValueError("Invalid order_by field")
@@ -9,8 +9,12 @@ def list_tags_by_order(order_by, order_dir, query):
         column = column.desc()
     else:
         column = column.asc()
-    query = db.session.query(Tag).filter(Tag.name.ilike(f"%{query}%")).order_by(column).all()
-    return query
+
+    query = db.session.query(Tag).filter(Tag.name.ilike(f"%{query}%")).order_by(column)
+    total = query.count()
+    tags_list = query.offset((page-1) * per_page).limit(per_page).all()
+
+    return tags_list, total
 
 def get_tag_by_id(tag_id):
     return db.session.query(Tag).filter(Tag.id == tag_id).first()
@@ -39,3 +43,9 @@ def remove_tag(tag_id):
         return True
 
     return False
+
+def tag_has_association_with_site(tag_id):
+    from src.core.models.historic_sites.historic_sites import historic_sites_tags
+
+    association = db.session.query(historic_sites_tags).filter(historic_sites_tags.c.tag_id == tag_id).first()
+    return association is not None

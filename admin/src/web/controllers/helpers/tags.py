@@ -23,5 +23,5 @@ def verify_tag_and_generate_slug(tag_name):
 
 def handle_db_error(e, log_message, user_message, template, **kwargs):
     logging.error(log_message + f": {e}")
-    flash(user_message, "error")
+    flash(user_message, "danger")
     return render_template(template, **kwargs)

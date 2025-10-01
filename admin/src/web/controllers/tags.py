@@ -1,8 +1,7 @@
-import logging
 from flask import Blueprint, render_template, request, Response, redirect, flash, abort
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
-from src.core.models.search import create_tag, list_tags_by_order, update_tag_name, get_tag_by_id, remove_tag
+from src.core.models.search import create_tag, list_tags, update_tag_name, get_tag_by_id, remove_tag, tag_has_association_with_site
 from src.web.controllers.helpers.tags import verify_tag_and_generate_slug, handle_db_error
 
 tags_bp = Blueprint('tags', __name__, url_prefix='/etiquetas')
@@ -12,9 +11,11 @@ def view_tags():
     order_by = request.args.get('order_by', 'inserted_at')
     order_dir = request.args.get('order_dir', 'asc')
     query = request.args.get('q', '')
+    page = int(request.args.get('page', 1))
+    per_page = 25
 
     try:
-        tags_list = list_tags_by_order(order_by, order_dir, query)
+        tags_list, total = list_tags(order_by, order_dir, query, page=page, per_page=per_page)
     except (ValueError, SQLAlchemyError) as e:
         return handle_db_error(
             e,
@@ -24,16 +25,7 @@ def view_tags():
             tags=[]
         )
 
-    return render_template('tags/index.html', tags=tags_list)
-
-@tags_bp.get('/<int:tag_id>')
-def view_specific_tag(tag_id):
-    tag = get_tag_by_id(tag_id)
-
-    if tag is None:
-        return redirect("/etiquetas/")
-
-    return render_template('tags/view_tag.html', tag=tag)
+    return render_template('tags/index.html', tags=tags_list, page=page, total=total, per_page=per_page)
 
 @tags_bp.get('/agregar')
 def show_add_tag_form():
@@ -45,7 +37,7 @@ def add_tag():
     slug_reponse = verify_tag_and_generate_slug(tag_name)
 
     if isinstance(slug_reponse, Response) and (slug_reponse.status_code == 400):
-        flash("El nombre de la etiqueta es obligatorio y debe contener entre 3 y 50 caracteres.", "error")
+        flash("El nombre de la etiqueta es obligatorio y debe contener entre 3 y 50 caracteres.", "danger")
         return render_template('tags/add_tag.html')
 
     try:
@@ -68,14 +60,19 @@ def add_tag():
     flash("Etiqueta creada exitosamente.", "success")
     return redirect("/etiquetas/")
 
-# SOLO ELIMINAR SI NO ESTÁ ASOCIADA A NINGÚN SITIO
 @tags_bp.post('/eliminar/<int:tag_id>')
 def delete_tag(tag_id):
+    print(request.form.get('_method'))
     if request.form.get('_method') == "DELETE":
+
+        if tag_has_association_with_site(tag_id):
+            flash("No se puede eliminar la etiqueta porque está asociada a uno o más sitios históricos.", "warning")
+            return redirect("/etiquetas/")
+
         if remove_tag(tag_id):
             flash("Etiqueta eliminada exitosamente.", "success")
         else:
-            flash("Ocurrió un error al intentar eliminar la etiqueta.", "error")
+            flash("Ocurrió un error al intentar eliminar la etiqueta.", "danger")
 
         return redirect("/etiquetas/")
     else:
@@ -99,7 +96,7 @@ def update_tag(tag_id):
         slug_reponse = verify_tag_and_generate_slug(new_name)
 
         if isinstance(slug_reponse, Response) and (slug_reponse.status_code == 400):
-            flash("El nombre de la etiqueta es obligatorio y debe contener entre 3 y 50 caracteres.", "error")
+            flash("El nombre de la etiqueta es obligatorio y debe contener entre 3 y 50 caracteres.", "danger")
             return render_template('tags/edit_tag.html', tag_id=tag_id, tag_name=previous_name)
 
         try:

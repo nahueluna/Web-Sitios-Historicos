@@ -21,6 +21,15 @@
                     return;
                 }
 
+                const exportButton = document.createElement("button");
+                exportButton.textContent = "Exportar sitios";
+                exportButton.style.margin = "10px 0";
+                exportButton.className = "btn btn-success";
+                exportButton.onclick = () => {
+                    window.open("/sitios-historicos/export-sites", "_blank");
+                };
+                container.appendChild(exportButton);
+
                 data.forEach(hs => {
                     const block = document.createElement("div");
                     block.className = "historic-site-block";

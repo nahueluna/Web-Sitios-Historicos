@@ -1,10 +1,12 @@
 from os import abort
-from flask import Blueprint, render_template, request, jsonify
+from datetime import datetime
+from flask import Blueprint, render_template, request, jsonify, Response
 from src.core.models.historic_sites import get_historic_site, list_all_historic_sites, list_visible_historic_sites, add_historic_site, edit_historic_site
 from src.core.models.historic_sites_categorie import list_historic_sites_categorie, add_category
 from src.core.models.historic_sites_state import list_states
 from src.core.models.historic_sites_logs import add_log, get_logs_per_hs
 import pickle
+import io, csv
 
 historic_sites_bp = Blueprint('historic_sites', __name__, url_prefix='/sitios-historicos')
 
@@ -23,6 +25,32 @@ def get_all():
     # PREGUNTAR SESION PARA MOSTRATR TODOS O SOLO VISIBLES
     json = [x.json() for x in list_visible_historic_sites()]
     return jsonify(json), 201
+
+# Endpoint para generar CSV del lado del servidor
+@historic_sites_bp.route('/export-sites', methods=['GET'])
+def export_sites():
+    data = [x.json() for x in list_all_historic_sites()]
+
+    output = io.StringIO()
+
+    # Defino las columnas con el primer elemento
+    if len(data) > 0:
+        fieldnames = list(data[0].keys())
+    else:
+        fieldnames = []
+
+    writer = csv.DictWriter(output, fieldnames=fieldnames, delimiter=",")
+    writer.writeheader()
+    for row in data:
+        writer.writerow(row)
+
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M')
+    filename = f"sitios_historicos_{timestamp}.csv"
+
+    response = Response(output.getvalue(), mimetype="text/csv; charset=utf-8")
+    response.headers["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
+
 
 @historic_sites_bp.route('/get-site/<int:id>', methods=['GET']) # Retorna un sitio historico específico por ID
 def get_site(id):

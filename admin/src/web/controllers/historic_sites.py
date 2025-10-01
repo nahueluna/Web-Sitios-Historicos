@@ -45,7 +45,7 @@ def export_sites():
         writer.writerow(row)
 
     timestamp = datetime.now().strftime('%Y%m%d_%H%M')
-    filename = f"sitios_historicos_{timestamp}.csv"
+    filename = f"sitios_{timestamp}.csv"
 
     response = Response(output.getvalue(), mimetype="text/csv; charset=utf-8")
     response.headers["Content-Disposition"] = f'attachment; filename="{filename}"'

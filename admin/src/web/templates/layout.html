@@ -44,19 +44,19 @@
                 <div class="sidebar-mobile">
                     <ul class="nav nav-pills flex-column p-1 gap-1">
                         <li class="nav-item">
-                            <a class="nav-link {{ 'active' if request.path == '/admin/gestion-sitios' }}"
+                            <a class="nav-link {{ 'active' if request.path.startswith('/admin/gestion-sitios') else '' }}"
                                 href="/admin/gestion-sitios">Gestion de sitios historicos</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ 'active' if request.path == '/admin/validacion-propuestas' }}"
+                            <a class="nav-link {{ 'active' if request.path.startswith('/admin/validacion-propuestas') else '' }}"
                                 href="/admin/validacion-propuestas">Validacion de propuestas</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ 'active' if request.path == '/admin/moderacion' }}"
+                            <a class="nav-link {{ 'active' if request.path.startswith('/admin/moderacion') else '' }}"
                                 href="/admin/moderacion">Moderacion de reseñas</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ 'active' if request.path == '/admin/gestion-usuarios' }}"
+                            <a class="nav-link {{ 'active' if request.path.startswith('/admin/gestion-usuarios') else '' }}"
                                 href="/admin/gestion-usuarios">Gestion de usuarios</a>
                         </li>
                     </ul>
@@ -80,19 +80,19 @@
         <div class="bg-light d-none d-lg-block sidebar-desktop" style="width: 300px">
             <ul class="nav nav-pills flex-column p-1 gap-1" style="height: 100%;">
                 <li class="nav-item">
-                    <a class="nav-link {{ 'active' if request.path == '/admin/gestion-sitios' }}"
+                    <a class="nav-link {{ 'active' if request.path.startswith('/admin/gestion-sitios') else '' }}"
                         href="/admin/gestion-sitios">Gestion de sitios historicos</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ 'active' if request.path == '/admin/validacion-propuestas' }}"
+                    <a class="nav-link {{ 'active' if request.path.startswith('/admin/validacion-propuestas') else '' }}"
                         href="/admin/validacion-propuestas">Validacion de propuestas</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ 'active' if request.path == '/admin/moderacion' }}"
+                    <a class="nav-link {{ 'active' if request.path.startswith('/admin/moderacion') else '' }}"
                         href="/admin/moderacion">Moderacion de reseñas</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ 'active' if request.path == '/admin/gestion-usuarios' }}"
+                    <a class="nav-link {{ 'active' if request.path.startswith('/admin/gestion-usuarios') else '' }}"
                         href="/admin/gestion-usuarios">Gestion de usuarios</a>
                 </li>
             </ul>

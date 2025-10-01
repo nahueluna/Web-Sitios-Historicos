@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h2>Agregar una Categoria</h2>
+
+<form id="category-form">
+    <label for="category">Nombre de la Categoria:</label><br>
+    <input type="text" id="category" name="category" required><br><br>
+    <input type="submit" value="Crear Categoria">
+</form>
+<br>
+<div>
+    <a href="{{ url_for('historic_sites.render_admin_categories') }}" style="padding: 30px ;">
+        <button>Cancelar</button>
+    </a>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+    document.getElementById('category-form').addEventListener('submit', function (e) {
+        e.preventDefault(); // Prevenir el comportamiento por defecto del formulario
+
+        const categoryName = document.getElementById('category').value;
+
+        fetch("/sitios-historicos/category/add-category", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                category: categoryName
+            })
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Categoría creada exitosamente:', data);
+                alert('Categoría creada exitosamente');
+                //  redirigir
+                window.location.href = "{{ url_for('historic_sites.render_admin_categories') }}";
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al crear la categoría');
+            });
+    });
+</script>
+{% endblock %}

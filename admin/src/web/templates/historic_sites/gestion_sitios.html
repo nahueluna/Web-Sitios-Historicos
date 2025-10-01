@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h2>Gestion sitios</h2>
+<br><br>
+
+<div>
+    <h4>Sistios Historicos</h4>
+    <br>
+    <a href="{{ url_for('historic_sites.render_admin_sites') }}">
+        <button>Ver Sitios Históricos</button>
+    </a>
+    <a href="{{ url_for('historic_sites.render_site_form') }}" style="padding: 30px ;">
+        <button>Crear Nuevo Sitio Histórico</button>
+    </a>
+</div> <br><br>
+
+<div>
+    <h4>Categorias de Sitios Historicos</h4>
+    <br>
+    <a href="{{ url_for('historic_sites.render_admin_categories') }}" >
+        <button>Ver Categoiras de Sitios Históricos</button>
+    </a>
+
+    <a href="{{ url_for('historic_sites.render_category_form') }}" style="padding: 30px ;">
+        <button>Crear Nueva Categoira de Sitio Histórico</button>
+    </a>
+</div>
+
+{% endblock %}

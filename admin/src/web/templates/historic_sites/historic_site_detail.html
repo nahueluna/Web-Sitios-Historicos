@@ -1,0 +1,174 @@
+{% extends "layout.html" %}
+
+{% block title %}Detalle Sitio Histórico{% endblock %}
+
+{% block content %}
+
+<div style="display: flex; gap: 20px; margin: 20px; height: 90vh;" >
+    <div id="historic-site-detail"
+        style="width: 400px; flex-shrink: 0; padding: 15px; border-radius: 8px; background-color: #f9f9f9; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+
+    </div>
+
+    <div id="log-container"
+        style=" flex: 1; padding: 15px; border-radius: 8px; background-color: #f9f9f9; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+        <h3>Historial de Cambios</h3>
+        <div id="logs-list" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;  max-height: 70vh; overflow-y: auto; padding-right: 10px;">
+        </div>
+        <br><br>
+        <div class="pagination">
+            <button id="prev-btn" disabled>Anterior</button>
+            <span class="page-info" id="page-info">Página 1 de 1</span>
+            <button id="next-btn" disabled>Siguiente</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+    let currentPage = 1;
+    const logsPerPage = 25;
+    let allLogs = [];
+
+    // Función para mostrar los logs de la página actual
+    function displayLogsPage() {
+        const container = document.getElementById("logs-list");
+        container.innerHTML = '';
+
+        // Calcular qué logs mostrar
+        const startIndex = (currentPage - 1) * logsPerPage;
+        const endIndex = startIndex + logsPerPage;
+        const logsToShow = allLogs.slice(startIndex, endIndex);
+
+        // Si no hay logs para mostrar
+        if (logsToShow.length === 0) {
+            container.innerHTML = '<p>No hay registros para mostrar</p>';
+            return;
+        }
+
+        // Crear elementos para cada log
+        logsToShow.forEach(log => {
+            const block = document.createElement("div");
+            block.className = "historic-site-block";
+            block.style.border = "1px solid #ccc";
+            block.style.padding = "16px";
+            block.style.maxBlockSize = "150px";
+            //block.style.marginBottom = "16px";
+
+            block.innerHTML = `
+                    <h5>${log.log_date}</h5>
+                    <p><strong>Acción:</strong> ${log.action_type}</p>
+                    <p><strong>Usuario:</strong> SIN IMPLEMENTAR</p>
+                `;
+            container.appendChild(block);
+        });
+
+        // Actualizar información de paginación
+        const totalPages = Math.ceil(allLogs.length / logsPerPage);
+        document.getElementById('page-info').textContent =
+            `Página ${currentPage} de ${totalPages}`;
+
+        // Habilitar/deshabilitar botones
+        document.getElementById('prev-btn').disabled = currentPage <= 1;
+        document.getElementById('next-btn').disabled = currentPage >= totalPages;
+    }
+    // Función para ir a la página anterior
+    function goToPrevPage() {
+        if (currentPage > 1) {
+            currentPage--;
+            displayLogsPage();
+        }
+    }
+
+    // Función para ir a la página siguiente
+    function goToNextPage() {
+        const totalPages = Math.ceil(allLogs.length / logsPerPage);
+        if (currentPage < totalPages) {
+            currentPage++;
+            displayLogsPage();
+        }
+    }
+
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const pathParts = window.location.pathname.split('/');
+        const siteId = pathParts[pathParts.length - 1];
+
+        document.getElementById('prev-btn').addEventListener('click', goToPrevPage);
+        document.getElementById('next-btn').addEventListener('click', goToNextPage);
+
+        if (!siteId) {
+            container.innerHTML = "<p>Error: No se proporcionó ID del sitio</p>";
+            return;
+        }
+
+        const url = `/sitios-historicos/admin/editar-sitio/${siteId}`;
+
+        fetch(`/sitios-historicos/get-site/${siteId}`, { method: 'GET' })
+            .then(response => response.json())
+            .then(json => {
+                const container = document.getElementById("historic-site-detail");
+
+                if (json.error) {
+                    container.innerHTML = `<p>${json.error}</p>`;
+                    return;
+                }
+                container.innerHTML = `
+                    <div style="border:1px solid #ccc; padding:16px; border-radius:8px; background:#f9f9f9;">
+                        <h3 style="color:#333; margin-top:0;">${json.historic_site.site_name}</h3>
+                        <p><strong>Descripción corta:</strong> ${json.historic_site.short_description}</p>
+                        <p><strong>Descripción larga:</strong> ${json.historic_site.long_description}</p>
+                        <p><strong>Ciudad:</strong> ${json.historic_site.city}, <strong>Provincia:</strong> ${json.historic_site.province}</p>
+                        <p><strong>Coordenadas:</strong> ${json.historic_site.latitude}, ${json.historic_site.longitude}</p>
+                        <p><strong>Categoría:</strong> ${json.category}</p>
+                        <p><strong>Estado:</strong> ${json.state}</p>
+                        <p><strong>Año de inauguración:</strong> ${json.historic_site.inauguration_year}</p>
+                        <p><strong>Visible:</strong> ${json.historic_site.visible ? 'Sí' : 'No'}</p>
+                    </div>
+                `;
+                const block = document.createElement("div");
+                block.innerHTML =
+                    `
+                <br><br>
+                <a href="" style="padding: 10px 15px;">
+                    <button>
+                        Exportar Sitio a CSV</button>
+                </a>
+                <a id="edit-site-link" href=${url} style="padding: 10px 15px;">
+                    <button>
+                        Editar Sitio</button>
+                </a>
+                `;
+                container.appendChild(block);
+            })
+            .catch(err => {
+                console.error("Error al cargar detalle:", err);
+                document.getElementById("historic-site-detail").innerHTML =
+                    "<p>Error al cargar el detalle.</p>";
+            });
+
+        fetch(`/sitios-historicos/logs/get-all/${siteId}`, { method: "GET" })
+            .then(response => response.json())
+            .then(json => {
+                const container = document.getElementById("logs-list");
+
+                if (json.error) {
+                    container.innerHTML = `<p>${json.error}</p>`;
+                    return;
+                }
+               
+                allLogs = json;
+                displayLogsPage();
+
+
+            })
+            .catch(err => {
+                console.error("Error al cargar detalle:", err);
+                document.getElementById("historic-site-detail").innerHTML =
+                    "<p>Error al cargar el detalle.</p>";
+            });
+    });
+
+</script>
+{% endblock %}

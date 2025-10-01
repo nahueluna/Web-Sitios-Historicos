@@ -30,3 +30,11 @@ def internal_server_error(e):
         description = "Lo sentimos, se ha producido un error en el servidor."
     )
     return render_template('error.html', error = error), 500
+
+def method_not_allowed(e):
+    error = HTTPError (
+        code = 405,
+        message = "Método no permitido",
+        description = "Lo sentimos, la operación que intentas realizar no está permitida."
+    )
+    return render_template('error.html', error = error), 405

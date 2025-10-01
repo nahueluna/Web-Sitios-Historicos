@@ -53,7 +53,7 @@
                             <a class="nav-link" href="/admin/moderacion">Moderacion de reseñas</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/admin/gestion-usuarios">Gestion de usuarios</a>
+                            <a class="nav-link" href="{{ url_for('user.list_users') }}">Gestion de usuarios</a>
                         </li>
                     </ul>
                 </nav>
@@ -85,7 +85,7 @@
                     <a class="nav-link" href="/admin/moderacion">Moderacion de reseñas</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/admin/gestion-usuarios">Gestion de usuarios</a>
+                    <a class="nav-link" href="{{ url_for('user.list_users') }}">Gestion de usuarios</a>
                 </li>
             </ul>
 
@@ -98,6 +98,14 @@
             {% endblock %}
         </div>
     </main>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
     <footer>
         {% block footer %}
         <span>&copy; 2025 Grupo 03. Proyecto de Software.</span>

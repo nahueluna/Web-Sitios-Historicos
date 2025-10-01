@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+{% block title %}{{ action }} Usuario{% endblock %}
+
+{% block content %}
+<h2>{{ action }} Usuario</h2>
+<form method="POST">
+    {% if action == "Nuevo" %}
+    <label>Email:</label>
+    <input type="email" name="email" class="form-control" required><br>
+
+    <label>Nombre:</label>
+    <input type="text" name="nombre" class="form-control" required><br>
+
+    <label>Apellido:</label>
+    <input type="text" name="apellido" class="form-control" required><br>
+    {% else %}
+    <label>Email:</label>
+    <input type="email" name="email" class="form-control" value="{{ user.email }}" required><br>
+
+    <label>Nombre:</label>
+    <input type="text" name="nombre" class="form-control" value="{{ user.nombre }}" required><br>
+
+    <label>Apellido:</label>
+    <input type="text" name="apellido" class="form-control" value="{{ user.apellido }}" required><br>
+    {% endif %}
+
+    <label>Rol:</label>
+    <select name="rol" class="form-control" required>
+        <option value="PUBLICO" {% if user and user.rol == RolUsuario.PUBLICO %}selected{% endif %}>Usuario público</option>
+        <option value="EDITOR" {% if user and user.rol == RolUsuario.EDITOR %}selected{% endif %}>Editor</option>
+        <option value="ADMIN" {% if user and user.rol == RolUsuario.ADMIN %}selected{% endif %}>Administrador</option>
+    </select><br>
+
+    <button type="submit" class="btn btn-primary">Guardar</button>
+</form>
+{% endblock %}

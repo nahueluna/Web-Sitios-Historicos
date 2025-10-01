@@ -101,18 +101,21 @@
         <div class="vr" style="background-color: rgb(0, 0, 0);"></div>
 
         <div class="p-3">
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
             {% block content %}
             <!-- Contenido principal aca -->
             {% endblock %}
+
         </div>
     </main>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-    {% for category, message in messages %}
-    <div class="alert alert-{{ category }}">{{ message }}</div>
-    {% endfor %}
-    {% endif %}
-    {% endwith %}
 
     <footer>
         {% block footer %}

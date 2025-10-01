@@ -8,6 +8,8 @@ from src.web.config import config
 from src.core import database
 from src.web.controllers.historic_sites import historic_sites_bp
 from src.web.controllers.historic_sites import render_index
+from src.web.controllers.role_controller import role_bp
+from src.web.controllers.user_controller import bp_user
 
 
 def create_app(env='development', static_folder='../../static'):
@@ -46,6 +48,8 @@ def create_app(env='development', static_folder='../../static'):
     app.register_blueprint(advanced_search_bp)
     app.register_blueprint(tags_bp)
     app.register_blueprint(bp_user)
+
+    app.register_blueprint(role_bp)
 
     @app.cli.command("reset-db")
     def reset_db():

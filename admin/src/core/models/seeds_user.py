@@ -1,6 +1,7 @@
-from src.core.models.auth.user import User
+from src.core.models.auth.user import Usuario as User
 from src.core.models.auth.role_permission import Role, Permission, RolePermission
 from src.core.database import db
+from src.core.models.auth import create_permission, assign_permission_to_role
 
 
 def run_seeds():
@@ -17,59 +18,51 @@ def run_seeds():
 
     print("Creación de permisos")
     # Permisos para gestión de usuarios
-    permission_user_index = Permission(name="user_index", description="Listar usuarios")
-    permission_user_new = Permission(name="user_new", description="Crear usuario")
-    permission_user_update = Permission(name="user_update", description="Actualizar usuario")
-    permission_user_destroy = Permission(name="user_destroy", description="Eliminar usuario")
-    permission_user_show = Permission(name="user_show", description="Ver detalle de usuario")
+    permission_user_index = create_permission("user_index")
+    permission_user_new = create_permission("user_new")
+    permission_user_update = create_permission("user_update")
+    permission_user_destroy = create_permission("user_destroy")
+    permission_user_show = create_permission("user_show")
     
     # Permisos para sitios históricos
-    permission_site_index = Permission(name="site_index", description="Listar sitios históricos")
-    permission_site_new = Permission(name="site_new", description="Crear sitio histórico")
-    permission_site_update = Permission(name="site_update", description="Actualizar sitio histórico")
-    permission_site_destroy = Permission(name="site_destroy", description="Eliminar sitio histórico")
-    permission_site_show = Permission(name="site_show", description="Ver detalle de sitio histórico")
+    permission_site_index = create_permission("site_index")
+    permission_site_new = create_permission("site_new")
+    permission_site_update = create_permission("site_update")
+    permission_site_destroy = create_permission("site_destroy")
+    permission_site_show = create_permission("site_show")
 
     # Permisos para moderación de reseñas
-    permission_review_index = Permission(name="review_index", description="Listar reseñas")
-    permission_review_moderate = Permission(name="review_moderate", description="Moderar reseñas")
-    permission_review_destroy = Permission(name="review_destroy", description="Eliminar reseñas")
+    permission_review_index = create_permission("review_index")
+    permission_review_moderate = create_permission("review_moderate")
+    permission_review_destroy = create_permission("review_destroy")
 
-    permissions = [
-        permission_user_index, permission_user_new, permission_user_update, 
-        permission_user_destroy, permission_user_show,
-        permission_site_index, permission_site_new, permission_site_update, 
-        permission_site_destroy, permission_site_show,
-        permission_review_index, permission_review_moderate, permission_review_destroy
-    ]
+    # Permisos para gestión de roles
+    permission_role_assign = create_permission("role_assign")
+    permission_role_index = create_permission("role_index")
+    permission_role_update = create_permission("role_update")
     
-    for permission in permissions:
-        db.session.add(permission)
-    db.session.flush()
+
     print("Permisos de prueba creados.")
 
     print("Asignando permisos a roles...")
     
     # Permisos para EDITOR (administrar sitios históricos y validar)
-    editor_permissions = [
-        permission_site_index, permission_site_new, permission_site_update, 
-        permission_site_destroy, permission_site_show,
-        permission_review_index, permission_review_moderate, permission_review_destroy
+    editor_permission_names = [
+        "site_index", "site_new", "site_update", "site_destroy", "site_show",
+        "review_index", "review_moderate", "review_destroy"
     ]
     
-    for permission in editor_permissions:
-        role_permission = RolePermission(role_id=role_editor.id, permission_id=permission.id)
-        db.session.add(role_permission)
+    for perm_name in editor_permission_names:
+        assign_permission_to_role(role_editor, perm_name)
     
     # Permisos para ADMIN (todo lo del editor + gestión de usuarios)
-    admin_permissions = editor_permissions + [
-        permission_user_index, permission_user_new, permission_user_update, 
-        permission_user_destroy, permission_user_show
+    admin_permission_names = editor_permission_names + [
+        "user_index", "user_new", "user_update", "user_destroy", "user_show",
+        "role_assign", "role_index", "role_update"
     ]
     
-    for permission in admin_permissions:
-        role_permission = RolePermission(role_id=role_admin.id, permission_id=permission.id)
-        db.session.add(role_permission)
+    for perm_name in admin_permission_names:
+        assign_permission_to_role(role_admin, perm_name)
     
     print("Permisos asignados a roles.")
 
@@ -77,7 +70,9 @@ def run_seeds():
     # System admin con acceso completo (sin rol específico con system_admin=True)
     sys_admin = User(
         email="sys_admin@example.com", 
-        alias="sys_admin", 
+        nombre="System",
+        apellido="Admin",
+        alias="sys_admin",
         password="sys_admin123",
         system_admin=True,  
         enabled=True,
@@ -87,6 +82,8 @@ def run_seeds():
     # Administrador (asignado al rol admin)
     admin = User(
         email="admin@example.com", 
+        nombre="Admin",
+        apellido="User",
         alias="admin", 
         password="admin123",
         role_id=role_admin.id,
@@ -96,6 +93,8 @@ def run_seeds():
     # Editor (asignado al rol editor)
     editor = User(
         email="editor@example.com", 
+        nombre="Editor",
+        apellido="User",
         alias="editor", 
         password="editor123",
         role_id=role_editor.id,
@@ -105,6 +104,8 @@ def run_seeds():
     # Usuario público (asignado al rol user)
     user = User(
         email="user@example.com", 
+        nombre="Public",
+        apellido="User",
         alias="user", 
         password="user123",
         role_id=role_user.id,

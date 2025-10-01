@@ -4,6 +4,8 @@ from src.core.models.auth import Usuario, RolUsuario
 from werkzeug.security import generate_password_hash
 from datetime import datetime, timedelta
 
+
+# También existe seeds_user.py, que crea roles, permisos y asigna permisos a roles
 # Cantidad de usuarios a crear
 CANTIDAD_USUARIOS = 60
 

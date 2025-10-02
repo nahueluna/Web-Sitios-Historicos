@@ -1,7 +1,7 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from src.web.decorator import permission_required
-from src.web.handlers.auth import is_authenticated
-from src.core.models.auth import (get_all_usuarios,
+from flask import Blueprint, render_template, request, redirect, url_for, flash
+from src.web.handlers.auth import role_required
+from src.core.models.auth import RolUsuario
+from src.core.models.auth import (
     crear_usuario,
     actualizar_usuario,
     eliminar_usuario,
@@ -14,8 +14,9 @@ bp_user = Blueprint("user", __name__, url_prefix="/usuarios")
 
 # Ruta raiz
 @bp_user.route("/")
-#@permission_required('user_index')
-def list_users():
+# @permission_required('user_index')
+@role_required([RolUsuario.ADMIN])
+def list_users(_session_user):
     email = request.args.get("email")
     activo = request.args.get("activo")
     rol = request.args.get("rol")
@@ -48,7 +49,8 @@ def list_users():
 
 # Crear usuario
 @bp_user.route("/nuevo", methods=["GET", "POST"])
-#@permission_required('user_new')
+# @permission_required('user_new')
+@role_required([RolUsuario.ADMIN])
 def new_user():
     if request.method == "POST":
         email = request.form["email"]
@@ -69,7 +71,8 @@ def new_user():
 
 # Actualizar usuario
 @bp_user.route("/actualizar/<int:usuario_id>", methods=["GET", "POST"])
-#@permission_required('user_update')
+# @permission_required('user_update')
+@role_required([RolUsuario.ADMIN])
 def update_user(usuario_id):
     if request.method == "POST":
         usuario = actualizar_usuario(
@@ -91,7 +94,8 @@ def update_user(usuario_id):
 
 # Eliminar usuario
 @bp_user.route("/eliminar/<int:usuario_id>", methods=["GET", "POST"])
-#@permission_required('user_destroy')
+# @permission_required('user_destroy')
+@role_required([RolUsuario.ADMIN])
 def delete_user(usuario_id):
     if request.method == "POST":
         usuario = eliminar_usuario(usuario_id)
@@ -103,37 +107,3 @@ def delete_user(usuario_id):
     if not usuario:
         return "Usuario no encontrado", 404
     return render_template("user_confirm_delete.html", user=usuario)
-
-
-# Antes de eliminar verificar si la validación de los permisos arriba funciona
-
-# @user_bp.route('/', methods=['GET'])
-# @login_required
-# @permission_required('user_index')
-# def index():
-#     return render_template('gestion_usuarios.html')
-
-# @user_bp.route('/new', methods=['GET'])
-# @login_required
-# @permission_required('user_new')
-# def new():
-#     return "Formulario para crear usuario"
-
-# @user_bp.route('/<int:user_id>', methods=['GET'])
-# @login_required
-# @permission_required('user_show')
-# def show(user_id):
-#     return f"Detalle del usuario {user_id}"
-
-# @user_bp.route('/<int:user_id>/edit', methods=['GET'])
-# @login_required
-# @permission_required('user_update')
-# def edit(user_id):
-#     return f"Formulario para editar usuario {user_id}"
-
-# @user_bp.route('/<int:user_id>/toggle', methods=['POST'])
-# @login_required
-# def toggle_enabled(user_id):
-#     return f"Toggle enabled para usuario {user_id}"
-
-

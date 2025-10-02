@@ -64,7 +64,7 @@
             </div>
         </div>
         <img class="logo d-none d-md-block" src="{{ url_for('static', filename='logo.png') }}">
-        {% if is_authenticated(session) %}
+        {% if is_authenticated() %}
             <div class="dropdown">
                 <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
                     Cuenta

@@ -1,5 +1,5 @@
 from flask import Flask
-from flask import render_template
+from flask import render_template, redirect, url_for
 from flask_session import Session
 from src.web.controllers.tags import tags_bp
 from src.web.handlers import error
@@ -32,7 +32,10 @@ def create_app(env='development', static_folder='../../static'):
 
     @app.route('/')
     def home():  # return render_index()
-        return render_template('home.html')
+        if is_authenticated():
+            return render_template('home.html')
+        else:
+            return redirect(url_for("auth.login"))
 
     @app.route('/admin')
     def admin():
@@ -52,6 +55,7 @@ def create_app(env='development', static_folder='../../static'):
 
     app.register_error_handler(404, error.not_found)
     app.register_error_handler(401, error.unauthorized)
+    app.register_error_handler(403, error.forbidden)
     app.register_error_handler(500, error.internal_server_error)
     app.register_error_handler(405, error.method_not_allowed)
 

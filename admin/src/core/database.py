@@ -1,19 +1,24 @@
-
 from flask_sqlalchemy_lite import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 
 db = SQLAlchemy()
+
+class Base(DeclarativeBase):
+    pass
 
 def init_app(app):
     db.init_app(app)
     return db
 
 def reset_db():
-    from src.core.models.historic_sites_state import generate_states
-    from src.core.models.historic_sites_categorie import __generate_categories
+    from src.core.models.historic_sites_state import generate_states # noqa: F401
+    from src.core.models.historic_sites_categorie import __generate_categories # noqa: F401
     #from src.core.models.logs_actions import __generate_log_actions
-    from src.core.search import tags # noqa: F401
+    from src.core.models.search import tags # noqa: F401
     from src.core.models.auth.user import Usuario # noqa: F401
+    from src.core.models.auth.role_permission import Role, Permission, RolePermission # noqa: F
+    
+
     print("Resetting database...")
 
     Base.metadata.drop_all(bind=db.engine)
@@ -33,5 +38,10 @@ def seed_db():
     seed_usuarios()
     print("✅ Database seeding complete.")
 
-class Base(DeclarativeBase):
-    pass
+
+def seed_db_user():
+    from src.core.models.seeds_user import run_seeds
+    print("🌱 Seeding database with user data...")
+    run_seeds()
+    print("✅ User database seeding complete.")
+

@@ -72,10 +72,8 @@ def run_seeds():
         email="sys_admin@example.com", 
         nombre="System",
         apellido="Admin",
-        alias="sys_admin",
         password="sys_admin123",
         system_admin=True,  
-        enabled=True,
         role_id=None  # System admin no necesita rol específico
     )
     
@@ -84,10 +82,8 @@ def run_seeds():
         email="admin@example.com", 
         nombre="Admin",
         apellido="User",
-        alias="admin", 
         password="admin123",
         role_id=role_admin.id,
-        enabled=True
     )
     
     # Editor (asignado al rol editor)
@@ -95,10 +91,8 @@ def run_seeds():
         email="editor@example.com", 
         nombre="Editor",
         apellido="User",
-        alias="editor", 
         password="editor123",
         role_id=role_editor.id,
-        enabled=True
     )
     
     # Usuario público (asignado al rol user)
@@ -106,10 +100,8 @@ def run_seeds():
         email="user@example.com", 
         nombre="Public",
         apellido="User",
-        alias="user", 
         password="user123",
         role_id=role_user.id,
-        enabled=True
     )
     
     # Guardar usuarios
@@ -121,9 +113,9 @@ def run_seeds():
     db.session.commit()
     
     print("Usuarios de prueba creados con roles asignados:")
-    print(f"- System Admin: {sys_admin.alias} (system_admin=True)")
-    print(f"- Administrador: {admin.alias} (rol: {role_admin.name})")
-    print(f"- Editor: {editor.alias} (rol: {role_editor.name})")
-    print(f"- Usuario público: {user.alias} (rol: {role_user.name})")
+    print(f"- System Admin: {sys_admin.email} (system_admin=True)")
+    print(f"- Administrador: {admin.email} (rol: {role_admin.name})")
+    print(f"- Editor: {editor.email} (rol: {role_editor.name})")
+    print(f"- Usuario público: {user.email} (rol: {role_user.name})")
     print("Seeds ejecutados exitosamente.")
 

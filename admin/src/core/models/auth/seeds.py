@@ -22,7 +22,6 @@ def seed_usuarios():
             activo=bool(i % 10),
             rol=roles[i % len(roles)],
             fecha_creacion=hora_actual - timedelta(seconds=i),
-            alias=f"alias{i}",
         )
         usuarios.append(usuario)
 

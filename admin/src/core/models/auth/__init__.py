@@ -48,7 +48,6 @@ def crear_usuario(email: str, nombre: str, apellido: str, rol: RolUsuario) -> tu
         apellido=apellido,
         password=password_hash,
         rol=rol,
-        alias=email,
     )
 
     db.session.add(usuario)

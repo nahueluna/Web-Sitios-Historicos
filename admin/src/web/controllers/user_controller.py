@@ -13,7 +13,7 @@ bp_user = Blueprint("user", __name__, url_prefix="/usuarios")
 
 # Ruta raiz
 @bp_user.route("/")
-@permission_required('user_index')
+#@permission_required('user_index')
 def list_users():
     email = request.args.get("email")
     activo = request.args.get("activo")
@@ -47,7 +47,7 @@ def list_users():
 
 # Crear usuario
 @bp_user.route("/nuevo", methods=["GET", "POST"])
-@permission_required('user_new')
+#@permission_required('user_new')
 def new_user():
     if request.method == "POST":
         email = request.form["email"]
@@ -68,7 +68,7 @@ def new_user():
 
 # Actualizar usuario
 @bp_user.route("/actualizar/<int:usuario_id>", methods=["GET", "POST"])
-@permission_required('user_update')
+#@permission_required('user_update')
 def update_user(usuario_id):
     if request.method == "POST":
         usuario = actualizar_usuario(
@@ -90,7 +90,7 @@ def update_user(usuario_id):
 
 # Eliminar usuario
 @bp_user.route("/eliminar/<int:usuario_id>", methods=["GET", "POST"])
-@permission_required('user_destroy')
+#@permission_required('user_destroy')
 def delete_user(usuario_id):
     if request.method == "POST":
         usuario = eliminar_usuario(usuario_id)

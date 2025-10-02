@@ -1,7 +1,6 @@
 # src/core/database/seed.py
 from src.core.database import db
-from src.core.models.auth import Usuario, RolUsuario
-from werkzeug.security import generate_password_hash
+from src.core.models.auth import Usuario, RolUsuario, hash_password
 from datetime import datetime, timedelta
 
 
@@ -19,10 +18,11 @@ def seed_usuarios():
             email=f"user{i}@example.com",
             nombre=f"Nombre{i}",
             apellido=f"Apellido{i}",
-            password=generate_password_hash("password"),
+            password=hash_password("password"),
             activo=bool(i % 10),
             rol=roles[i % len(roles)],
-            fecha_creacion=hora_actual - timedelta(seconds=i)
+            fecha_creacion=hora_actual - timedelta(seconds=i),
+            alias=f"alias{i}",
         )
         usuarios.append(usuario)
 

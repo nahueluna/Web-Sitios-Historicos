@@ -20,7 +20,6 @@ def role_required(roles: list[RolUsuario]):
         @wraps(f)
         def decorated_function(*args, **kwargs):
             # 1. Verificar login
-            print(session)
             user_email = session.get("user")
             if not user_email:
                 flash("Debes iniciar sesión para acceder a esta página", "warning")

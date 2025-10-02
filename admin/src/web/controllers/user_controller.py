@@ -51,7 +51,7 @@ def list_users(_session_user):
 @bp_user.route("/nuevo", methods=["GET", "POST"])
 # @permission_required('user_new')
 @role_required([RolUsuario.ADMIN])
-def new_user():
+def new_user(_session_user):
     if request.method == "POST":
         email = request.form["email"]
         nombre = request.form["nombre"]
@@ -73,7 +73,7 @@ def new_user():
 @bp_user.route("/actualizar/<int:usuario_id>", methods=["GET", "POST"])
 # @permission_required('user_update')
 @role_required([RolUsuario.ADMIN])
-def update_user(usuario_id):
+def update_user(_session_user, usuario_id):
     if request.method == "POST":
         usuario = actualizar_usuario(
             usuario_id,
@@ -96,7 +96,7 @@ def update_user(usuario_id):
 @bp_user.route("/eliminar/<int:usuario_id>", methods=["GET", "POST"])
 # @permission_required('user_destroy')
 @role_required([RolUsuario.ADMIN])
-def delete_user(usuario_id):
+def delete_user(_session_user, usuario_id):
     if request.method == "POST":
         usuario = eliminar_usuario(usuario_id)
         if not usuario:

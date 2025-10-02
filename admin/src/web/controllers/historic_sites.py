@@ -26,30 +26,57 @@ def get_all():
     json = [x.json() for x in list_visible_historic_sites()]
     return jsonify(json), 201
 
+
 # Endpoint para generar CSV del lado del servidor
 @historic_sites_bp.route('/export-sites', methods=['GET'])
 def export_sites():
     data = [x.json() for x in list_all_historic_sites()]
+    
+    # Devolver si no hay sitios
+    if len(data) == 0:
+        return jsonify({"error": "No hay datos para exportar"}), 404
 
+    # Defino las columnas con el primer sitio
+    fieldnames = list(data[0].keys())
+
+    # StringIO sirve para crear un archivo en memoria, en este caso CSV. Lo creo
     output = io.StringIO()
-
-    # Defino las columnas con el primer elemento
-    if len(data) > 0:
-        fieldnames = list(data[0].keys())
-    else:
-        fieldnames = []
-
+    # Se crea el writer que va a escribir en output, con las columnas fieldnames y separador coma
     writer = csv.DictWriter(output, fieldnames=fieldnames, delimiter=",")
+    # Escribir los encabezados
     writer.writeheader()
-    for row in data:
-        writer.writerow(row)
 
+    # Obtengo id y nombre correspondiente a cada categoria y estado
+    categories = {cat.id: cat.category for cat in list_historic_sites_categorie()}
+    states = {state.id: state.state for state in list_states()}
+
+    for row in data:
+        # Tengo que crear una copia para no modificar data (aunque no deberia pasar nada en este caso creo)
+        modified_row = row.copy()
+        
+        # Primero verifico que tenga contenido en Categoria en cada sitio que entro
+        # entonces uso get para buscar el nombre en mi diccionario categories segun el ID guardado
+        # y si no uso un fallback con el valor que tenga guardado
+        if 'category' in modified_row and modified_row['category'] is not None:
+            category_name = categories.get(modified_row['category'], modified_row['category'])
+            modified_row['category'] = category_name
+        
+        # lo mismo 
+        if 'status' in modified_row and modified_row['status'] is not None:
+            state_name = states.get(modified_row['status'], modified_row['status'])
+            modified_row['status'] = state_name
+        
+        # Escribir la fila modificada al CSV
+        writer.writerow(modified_row)
+
+    # Nombre como lo solicita el documento
     timestamp = datetime.now().strftime('%Y%m%d_%H%M')
     filename = f"sitios_{timestamp}.csv"
 
+    # Response recibe el contenido en formato de string (getvalue), el mimetype o tipo de archivo (csv con codificacion utf-8 o algo asi)
     response = Response(output.getvalue(), mimetype="text/csv; charset=utf-8")
     response.headers["Content-Disposition"] = f'attachment; filename="{filename}"'
-    return response
+    return response, 200
 
 
 @historic_sites_bp.route('/get-site/<int:id>', methods=['GET']) # Retorna un sitio historico específico por ID

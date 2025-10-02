@@ -156,8 +156,7 @@ def __get_all_tags():
 @historic_sites_bp.route('/tags/site-tags/<int:id>', methods = ['GET'])
 def __get_all_tags_by_site(id):
     list = get_tags_by_site(id)
-    list = [x.json() for x in list]
-    return jsonify([x['name'] for x in list]), 201
+    return jsonify([x.json() for x in list]), 201
 
 def __validator__(json: dict):
     # Validaciones individuales

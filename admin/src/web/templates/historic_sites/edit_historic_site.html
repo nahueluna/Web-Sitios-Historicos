@@ -214,20 +214,24 @@
 
                 // Cargar tags ya asociados al sitio
                 choicesTags.clearStore();
-
+                console.log("site_tags", site_tags)
                 // Crear array de IDs de tags ya asociados al sitio para verificación rápida
                 const siteTagIds = site_tags.map(tag => tag.id);
+                
 
                 // Preparar las opciones, marcando como seleccionadas las que estén en site_tags
                 const tagOptions = tags.map(tag => {
+                    console.log("tag", tag.id)
                     return {
                         value: tag.id,
                         label: tag.name,
                         selected: siteTagIds.includes(tag.id) // true si el tag está asociado al sitio
                     };
+                    
                 });
+                console.log("tagOptions", tagOptions)
 
-                choicesTags.setChoices(tagOptions, 'value', 'label', false);
+                choicesTags.setChoices(tagOptions, 'value', 'label', true);
             })
             .catch(error => alert(`Error al cargar los datos: ${error.message}`));
 

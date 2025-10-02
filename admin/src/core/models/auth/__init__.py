@@ -22,7 +22,7 @@ def hash_password(password: str) -> str:
 
 def check_user(email: str, password: str) -> Usuario:
     user = get_usuario_by_email(email)
-    if user and bcrypt.check_password_hash(user.password, password):
+    if user and user.activo and bcrypt.check_password_hash(user.password, password):
         return user
 
 def get_all_usuarios():

@@ -64,15 +64,17 @@
             </div>
         </div>
         <img class="logo d-none d-md-block" src="{{ url_for('static', filename='logo.png') }}">
-        <div class="dropdown">
-            <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                Cuenta
-            </button>
-            <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="#">Ver perfil</a></li>
-                <li><a class="dropdown-item" href="#">Cerrar sesion</a></li>
-            </ul>
-        </div>
+        {% if is_authenticated(session) %}
+            <div class="dropdown">
+                <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    Cuenta
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#">Ver perfil</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Cerrar sesion</a></li>
+                </ul>
+            </div>
+        {% endif %}
         {% endblock %}
     </header>
     <main>

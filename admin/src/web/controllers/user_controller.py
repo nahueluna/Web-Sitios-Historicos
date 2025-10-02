@@ -1,5 +1,6 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from src.web.decorator import permission_required
+from src.web.handlers.auth import is_authenticated
 from src.core.models.auth import (get_all_usuarios,
     crear_usuario,
     actualizar_usuario,

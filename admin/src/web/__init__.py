@@ -3,6 +3,7 @@ from flask import render_template
 from flask_session import Session
 from src.web.controllers.tags import tags_bp
 from src.web.handlers import error
+from src.web.handlers.auth import is_authenticated
 from src.web.controllers.user_controller import bp_user
 from src.web.controllers.advanced_search import advanced_search_bp
 from src.web.config import config
@@ -53,6 +54,9 @@ def create_app(env='development', static_folder='../../static'):
     app.register_error_handler(401, error.unauthorized)
     app.register_error_handler(500, error.internal_server_error)
     app.register_error_handler(405, error.method_not_allowed)
+
+    # Registrar funcion global
+    app.jinja_env.globals['is_authenticated'] = is_authenticated
 
     app.register_blueprint(advanced_search_bp)
     app.register_blueprint(tags_bp)

@@ -1,30 +1,30 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<h2>Gestion sitios</h2>
-<br><br>
+<div class="container my-4">
+    <h2>Gestión Sitios</h2>
+    <br><br>
 
-<div>
-    <h4>Sistios Historicos</h4>
-    <br>
-    <a href="{{ url_for('historic_sites.render_admin_sites') }}">
-        <button>Ver Sitios Históricos</button>
-    </a>
-    <a href="{{ url_for('historic_sites.render_site_form') }}" style="padding: 30px ;">
-        <button>Crear Nuevo Sitio Histórico</button>
-    </a>
-</div> <br><br>
+    <div class="mb-5">
+        <h4>Sitios Históricos</h4>
+        <br>
+        <a href="{{ url_for('historic_sites.render_admin_sites') }}" class="btn btn-primary">
+            Ver Sitios Históricos
+        </a>
+        <a href="{{ url_for('historic_sites.render_site_form') }}" class="btn btn-success ms-3">
+            Crear Nuevo Sitio Histórico
+        </a>
+    </div>
 
-<div>
-    <h4>Categorias de Sitios Historicos</h4>
-    <br>
-    <a href="{{ url_for('historic_sites.render_admin_categories') }}" >
-        <button>Ver Categoiras de Sitios Históricos</button>
-    </a>
-
-    <a href="{{ url_for('historic_sites.render_category_form') }}" style="padding: 30px ;">
-        <button>Crear Nueva Categoira de Sitio Histórico</button>
-    </a>
+    <div>
+        <h4>Categorías de Sitios Históricos</h4>
+        <br>
+        <a href="{{ url_for('historic_sites.render_admin_categories') }}" class="btn btn-primary">
+            Ver Categorías de Sitios Históricos
+        </a>
+        <a href="{{ url_for('historic_sites.render_category_form') }}" class="btn btn-success ms-3">
+            Crear Nueva Categoría de Sitio Histórico
+        </a>
+    </div>
 </div>
-
 {% endblock %}

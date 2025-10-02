@@ -1,13 +1,22 @@
 {% extends "layout.html" %}
 
-{% block title %}Sitios Historicos{% endblock %}
+{% block title %}Sitios Históricos{% endblock %}
 
 {% block content %}
-<h2>Listado de Sitios Historicos</h2>
-
-<div id="historic-sites-list"></div>
-
+<div class="container-fluid vh-100 d-flex flex-column py-4">
+    <div class="row mb-3">
+        <div class="col-12">
+            <h2 class="text-center mb-0">Listado de Sitios Históricos</h2>
+        </div>
+    </div>
+    <div class="row flex-grow-1">
+        <div class="col-12 h-100">
+            <div id="historic-sites-list" class="row g-3 h-100 align-content-start" style="overflow-y: auto;"></div>
+        </div>
+    </div>
+</div>
 {% endblock %}
+
 {% block scripts %}
 <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -17,34 +26,46 @@
                 const container = document.getElementById("historic-sites-list");
 
                 if (data.length === 0) {
-                    container.innerHTML = "<p>No hay sitios históricos registrados.</p>";
+                    container.innerHTML = `
+                        <div class="col-12">
+                            <div class="alert alert-warning text-center">
+                                No hay sitios históricos registrados.
+                            </div>
+                        </div>`;
                     return;
                 }
 
                 data.forEach(hs => {
                     const block = document.createElement("div");
-                    block.className = "historic-site-block";
-                    block.style.border = "1px solid #ccc";
-                    block.style.padding = "16px";
-                    block.style.marginBottom = "16px";
+                    block.className = "col-md-6 col-lg-4"; // responsive grid
 
                     block.innerHTML = `
-                    <h3>${hs.site_name}</h3>
-                    <p><strong>Descripción corta:</strong> ${hs.short_description}</p>
-                    <p><strong>Ciudad:</strong> ${hs.city}, <strong>Provincia:</strong> ${hs.province}</p>
-                    <p><strong>Estado de conservación:</strong> ${hs.status_id}</p>
-                    <p><strong>Año de inauguración:</strong> ${hs.inauguration_year}</p>
-                    <a href="/sitios-historicos/detalle/${hs.id}">
-                        <button>Ver Detalle</button>
-                    </a>
-                `;
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title">${hs.site_name}</h5>
+                                <p class="card-text"><strong>Descripción corta:</strong> ${hs.short_description}</p>
+                                <p class="card-text"><strong>Ciudad:</strong> ${hs.city}, <strong>Provincia:</strong> ${hs.province}</p>
+                                <p class="card-text"><strong>Estado de conservación:</strong> ${hs.status_id}</p>
+                                <p class="card-text"><strong>Año de inauguración:</strong> ${hs.inauguration_year}</p>
+                            </div>
+                            <div class="card-footer text-end">
+                                <a href="/sitios-historicos/detalle/${hs.id}" class="btn btn-sm btn-primary">
+                                    Ver Detalle
+                                </a>
+                            </div>
+                        </div>
+                    `;
                     container.appendChild(block);
                 });
             })
             .catch(err => {
                 console.error("Error al cargar los sitios históricos:", err);
-                document.getElementById("historic-sites-list").innerHTML =
-                    "<p>Error al cargar los datos.</p>";
+                document.getElementById("historic-sites-list").innerHTML = `
+                    <div class="col-12">
+                        <div class="alert alert-danger text-center">
+                            Error al cargar los datos.
+                        </div>
+                    </div>`;
             });
     })
 </script>

@@ -1,25 +1,29 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<h2>Agregar una Categoria</h2>
+<div class="container mt-4">
+    <h2 class="mb-4">Agregar una Categoría</h2>
 
-<form id="category-form">
-    <label for="category">Nombre de la Categoria:</label><br>
-    <input type="text" id="category" name="category" required><br><br>
-    <input type="submit" value="Crear Categoria">
-</form>
-<br>
-<div>
-    <a href="{{ url_for('historic_sites.render_admin_categories') }}" style="padding: 30px ;">
-        <button>Cancelar</button>
-    </a>
+    <form id="category-form" class="mb-3">
+        <div class="mb-3">
+            <label for="category" class="form-label">Nombre de la Categoría:</label>
+            <input type="text" class="form-control" id="category" name="category" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Crear Categoría</button>
+    </form>
+
+    <div>
+        <a href="{{ url_for('historic_sites.render_admin_categories') }}" class="btn btn-secondary">
+            Cancelar
+        </a>
+    </div>
 </div>
-
 {% endblock %}
+
 {% block scripts %}
 <script>
     document.getElementById('category-form').addEventListener('submit', function (e) {
-        e.preventDefault(); // Prevenir el comportamiento por defecto del formulario
+        e.preventDefault();
 
         const categoryName = document.getElementById('category').value;
 
@@ -32,22 +36,21 @@
                 category: categoryName
             })
         })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Error en la respuesta del servidor');
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Categoría creada exitosamente:', data);
-                alert('Categoría creada exitosamente');
-                //  redirigir
-                window.location.href = "{{ url_for('historic_sites.render_admin_categories') }}";
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error al crear la categoría');
-            });
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error en la respuesta del servidor');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Categoría creada exitosamente:', data);
+            alert('Categoría creada exitosamente');
+            window.location.href = "{{ url_for('historic_sites.render_admin_categories') }}";
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al crear la categoría');
+        });
     });
 </script>
 {% endblock %}

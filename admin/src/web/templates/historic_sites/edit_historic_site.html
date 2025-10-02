@@ -4,6 +4,9 @@
 
 {% block head %}
 {{ super() }}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+
 <style>
     .map-container {
         margin: 25px 0;
@@ -17,78 +20,97 @@
         width: 100%;
     }
 </style>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
 
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
 {% endblock %}
 
 {% block content %}
-<h2>Formulario para Modificar un Sitio Histórico</h2>
-<div id="loading-message" class="loading">Cargando datos del sitio histórico...</div>
+<div class="container mt-4">
+    <h2 class="mb-4">Formulario para Modificar un Sitio Histórico</h2>
+    <div id="loading-message" class="alert alert-info">Cargando datos del sitio histórico...</div>
 
-<form id="historic-site-form" style="display: none;">
-    <label for="site-name">Nombre del sitio:</label>
-    <input type="text" id="site-name" name="site-name" required><br><br>
-
-    <label for="short-description">Descripción corta:</label>
-    <input type="text" id="short-description" name="short-description" required><br><br>
-
-    <label for="long-description">Descripción larga:</label>
-    <textarea id="long-description" name="long-description" required></textarea><br><br>
-
-    <label for="city">Ciudad:</label>
-    <input type="text" id="city" name="city" required><br><br>
-
-    <label for="province">Provincia:</label>
-    <input type="text" id="province" name="province" required><br><br>
-
-     <!-- mapa -->
-    <div class="map-container">
-        <div id="map"></div>
-        <div style="margin-top: 8px;">
-            <span>Latitud: <span id="latitude-display"></span></span> &nbsp;
-            <span>Longitud: <span id="longitude-display"></span></span>
-            <button type="button" id="reset-btn">Restablecer ubicación</button>
+    <form id="historic-site-form" class="needs-validation" style="display: none;">
+        <div class="mb-3">
+            <label for="site-name" class="form-label">Nombre del sitio:</label>
+            <input type="text" class="form-control" id="site-name" name="site-name" required>
         </div>
-    </div>
-    <input type="hidden" id="latitude" name="latitude" required>
-    <input type="hidden" id="longitude" name="longitude" required>
 
-    <label for="conservation-status">Estado de conservación:</label>
-    <select id="conservation-status" name="conservation-status" required>
-    </select><br><br>
+        <div class="mb-3">
+            <label for="short-description" class="form-label">Descripción corta:</label>
+            <input type="text" class="form-control" id="short-description" name="short-description" required>
+        </div>
 
-    <label for="inauguration-year">Año de inauguración:</label>
-    <input type="date" id="inauguration-year" name="inauguration-year" required><br><br>
+        <div class="mb-3">
+            <label for="long-description" class="form-label">Descripción larga:</label>
+            <textarea class="form-control" id="long-description" name="long-description" required></textarea>
+        </div>
 
-    <label for="category">Categoría:</label>
-    <select id="category" name="category" required>
-    </select><br><br>
+        <div class="mb-3">
+            <label for="city" class="form-label">Ciudad:</label>
+            <input type="text" class="form-control" id="city" name="city" required>
+        </div>
 
-    <label for="visible">Visible:</label>
-    <select id="visible" name="visible">
-        <option value="true">Sí</option>
-        <option value="false">No</option>
-    </select><br><br>
+        <div class="mb-3">
+            <label for="province" class="form-label">Provincia:</label>
+            <input type="text" class="form-control" id="province" name="province" required>
+        </div>
 
-    <div style="padding: 10px 15px;">
-        <button type="submit">Modificar Sitio Histórico</button>
-    </div>
+        <!-- mapa -->
+        <div class="map-container mb-3">
+            <div id="map"></div>
+            <div class="mt-2">
+                <span>Latitud: <span id="latitude-display"></span></span> &nbsp;
+                <span>Longitud: <span id="longitude-display"></span></span>
+                <button type="button" class="btn btn-sm btn-secondary" id="reset-btn">Restablecer ubicación</button>
+            </div>
+        </div>
+        <input type="hidden" id="latitude" name="latitude" required>
+        <input type="hidden" id="longitude" name="longitude" required>
 
-    <a href="#" id="cancel-link" style="padding: 10px 15px;">
-        <button type="button">Cancelar y Volver</button>
-    </a>
-</form>
+        <div class="mb-3">
+            <label for="conservation-status" class="form-label">Estado de conservación:</label>
+            <select class="form-select" id="conservation-status" name="conservation-status" required></select>
+        </div>
 
-<div id="error-message" class="error" style="display: none;"></div>
+        <div class="mb-3">
+            <label for="inauguration-year" class="form-label">Año de inauguración:</label>
+            <input type="date" class="form-control" id="inauguration-year" name="inauguration-year" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="category" class="form-label">Categoría:</label>
+            <select class="form-select" id="category" name="category" required></select>
+        </div>
+
+        <div class="mb-3">
+            <label for="visible" class="form-label">Visible:</label>
+            <select class="form-select" id="visible" name="visible">
+                <option value="true">Sí</option>
+                <option value="false">No</option>
+            </select>
+        </div>
+
+        <!-- Tags -->
+        <div class="mb-3">
+            <label for="tags" class="form-label">Etiquetas:</label>
+            <select id="tags" name="tags" multiple></select>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Modificar Sitio Histórico</button>
+            <a href="#" id="cancel-link" class="btn btn-outline-secondary">Cancelar y Volver</a>
+        </div>
+    </form>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", () => {
         const form = document.getElementById("historic-site-form");
         const loadingMessage = document.getElementById("loading-message");
-        const errorMessage = document.getElementById("error-message");
 
         // Obtener el ID del sitio histórico de la URL
         const pathParts = window.location.pathname.split('/');
@@ -99,14 +121,14 @@
         let initialLat = 0;
         let initialLng = 0;
 
-        // Función para mostrar errores
-        function showError(message) {
-            errorMessage.textContent = message;
-            errorMessage.style.display = 'block';
-            loadingMessage.style.display = 'none';
-        }
+        // Inicializar selector de tags
+        const tagsSelect = document.getElementById('tags');
+        const choicesTags = new Choices(tagsSelect, {
+            removeItemButton: true,
+            searchPlaceholderValue: 'Buscar...',
+            noResultsText: 'No se encontraron resultados'
+        });
 
-        // Función para establecer coordenadas
         function setCoordinates(lat, lng) {
             document.getElementById('latitude-display').textContent = lat.toFixed(6);
             document.getElementById('longitude-display').textContent = lng.toFixed(6);
@@ -114,123 +136,105 @@
             document.getElementById('longitude').value = lng;
         }
 
-        // Inicializar el mapa
         function initMap() {
             map = L.map('map').setView([initialLat, initialLng], 6);
-
-            // Capa base
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: 'Datos © OpenStreetMap contributors'
             }).addTo(map);
 
-            // Marcador arrastrable
             marker = L.marker([initialLat, initialLng], { draggable: true }).addTo(map);
 
-            // Al mover el marcador
-            marker.on('move', function (e) {
-                setCoordinates(e.latlng.lat, e.latlng.lng);
-            });
-
-            // Al hacer click en el mapa
-            map.on('click', function (e) {
+            marker.on('move', e => setCoordinates(e.latlng.lat, e.latlng.lng));
+            map.on('click', e => {
                 marker.setLatLng(e.latlng);
                 setCoordinates(e.latlng.lat, e.latlng.lng);
             });
 
-            // Botón para resetear
-            document.getElementById('reset-btn').onclick = function () {
+            document.getElementById('reset-btn').onclick = () => {
                 marker.setLatLng([initialLat, initialLng]);
                 map.setView([initialLat, initialLng], 6);
                 setCoordinates(initialLat, initialLng);
             };
         }
 
-        let category; 
-        let state;
+        let category, state;
 
-        console.log("Site ID:", siteId);
-        // Cargar datos del sitio histórico
         fetch(`/sitios-historicos/get-site/${siteId}`)
             .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Error ${response.status}: ${response.statusText}`);
-                }
+                if (!response.ok) throw new Error(`Error ${response.status}: ${response.statusText}`);
                 return response.json();
             })
             .then(historicSiteData => {
-                // Ocultar mensaje de carga y mostrar formulario
                 loadingMessage.style.display = 'none';
                 form.style.display = 'block';
 
-                console.log("HS:", historicSiteData)
-
-                // Establecer valores iniciales para el mapa
                 initialLat = parseFloat(historicSiteData['historic_site']['latitude']) || 0;
                 initialLng = parseFloat(historicSiteData['historic_site']['longitude']) || 0;
                 setCoordinates(initialLat, initialLng);
-
-                // Inicializar el mapa con las coordenadas del sitio
                 initMap();
 
-                // Llenar el formulario con los datos del sitio
-                document.getElementById('site-name').value = historicSiteData['historic_site']['site_name']
-                document.getElementById('short-description').value = historicSiteData['historic_site']['short_description']
-                document.getElementById('long-description').value = historicSiteData['historic_site']['long_description']
-                document.getElementById('city').value = historicSiteData['historic_site']['city']
-                document.getElementById('province').value = historicSiteData['historic_site']['province']
+                document.getElementById('site-name').value = historicSiteData['historic_site']['site_name'];
+                document.getElementById('short-description').value = historicSiteData['historic_site']['short_description'];
+                document.getElementById('long-description').value = historicSiteData['historic_site']['long_description'];
+                document.getElementById('city').value = historicSiteData['historic_site']['city'];
+                document.getElementById('province').value = historicSiteData['historic_site']['province'];
                 document.getElementById('inauguration-year').value = historicSiteData['historic_site']['inauguration_year'].split(' ')[0];
                 document.getElementById('visible').value = historicSiteData['historic_site']['visible'] ? 'true' : 'false';
 
-                // Configurar el enlace de cancelación
                 document.getElementById('cancel-link').href = `/sitios-historicos/detalle/${siteId}`;
-
 
                 category = historicSiteData['historic_site']['category'];
                 state = historicSiteData['historic_site']['status'];
 
-                // Cargar estados y categorías
                 return Promise.all([
                     fetch("/sitios-historicos/state/get-all").then(res => res.json()),
-                    fetch("/sitios-historicos/category/get-all").then(res => res.json())
+                    fetch("/sitios-historicos/category/get-all").then(res => res.json()),
+                    fetch(`/sitios-historicos/tags/get-all`).then(res => res.json()),
+                    fetch(`/sitios-historicos/tags/site-tags/${siteId}`).then(res => res.json())
                 ]);
             })
-            .then(([states, categories]) => {
-                // Llenar select de estados
+            .then(([states, categories, tags, site_tags]) => {
                 const stateSelect = document.getElementById("conservation-status");
-                states.forEach(state => {
+                states.forEach(s => {
                     const opt = document.createElement("option");
-                    opt.value = state.id;
-                    opt.textContent = state.state;
+                    opt.value = s.id;
+                    opt.textContent = s.state;
                     stateSelect.appendChild(opt);
                 });
-
-                // Seleccionar el estado actual si está disponible
-                // Necesitarías tener esta información en los datos del sitio histórico
                 stateSelect.value = state;
 
-                // Llenar select de categorías
                 const categorySelect = document.getElementById("category");
-                categories.forEach(category => {
+                categories.forEach(c => {
                     const opt = document.createElement("option");
-                    opt.value = category.id;
-                    opt.textContent = category.category;
+                    opt.value = c.id;
+                    opt.textContent = c.category;
                     categorySelect.appendChild(opt);
                 });
-
-                // Seleccionar la categoría actual si está disponible
-                // Necesitarías tener esta información en los datos del sitio histórico
                 categorySelect.value = category;
+
+                // Cargar tags ya asociados al sitio
+                choicesTags.clearStore();
+
+                // Crear array de IDs de tags ya asociados al sitio para verificación rápida
+                const siteTagIds = site_tags.map(tag => tag.id);
+
+                // Preparar las opciones, marcando como seleccionadas las que estén en site_tags
+                const tagOptions = tags.map(tag => {
+                    return {
+                        value: tag.id,
+                        label: tag.name,
+                        selected: siteTagIds.includes(tag.id) // true si el tag está asociado al sitio
+                    };
+                });
+
+                choicesTags.setChoices(tagOptions, 'value', 'label', false);
             })
-            .catch(error => {
-                console.error('Error al cargar datos:', error);
-                showError(`Error al cargar los datos: ${error.message}`);
-            });
+            .catch(error => alert(`Error al cargar los datos: ${error.message}`));
 
-        // Manejar envío del formulario
-        form.addEventListener('submit', function (e) {
+        form.addEventListener('submit', e => {
             e.preventDefault();
+            const selectedTags = choicesTags.getValue(true);
 
-            // Recopilar datos del formulario
             const formData = {
                 "id": siteId,
                 'site_name': document.getElementById('site-name').value,
@@ -243,31 +247,30 @@
                 'conservation_status': document.getElementById('conservation-status').value,
                 'inauguration_year': document.getElementById('inauguration-year').value,
                 'category': document.getElementById('category').value,
-                'visible': document.getElementById('visible').value === 'true'
+                'visible': document.getElementById('visible').value === 'true',
+                'tags': selectedTags
             };
 
-            // Enviar datos al servidor
             fetch(`/sitios-historicos/edit-site`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
             })
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error(`Error ${response.status}: ${response.statusText}`);
+                        // Si la respuesta no es ok, intenta parsear el cuerpo de la respuesta como JSON
+                        return response.json().then(errorData => {
+                            // Lanza un error con el mensaje del servidor
+                            throw new Error(errorData.error || 'Error en la respuesta del servidor');
+                        });
                     }
                     return response.json();
                 })
-                .then(data => {
+                .then(() => {
                     alert('Sitio histórico modificado exitosamente');
                     window.location.href = `/sitios-historicos/detalle/${siteId}`;
                 })
-                .catch(error => {
-                    console.error('Error al modificar sitio:', error);
-                    showError(`Error al modificar el sitio: ${error.message}`);
-                });
+                .catch(error => alert(`Error al modificar el sitio: ${error.error}`));
         });
     });
 </script>

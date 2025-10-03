@@ -17,10 +17,6 @@ class Role(Base):
     # Permite acceder a todas las asignaciones de permisos para este rol
     # Para obtener los permisos: [rp.permission for rp in role.role_permissions]
     role_permissions: Mapped[list["RolePermission"]] = relationship(back_populates="role")
-    
-    # Un rol puede ser asignado a múltiples usuarios (One-to-Many con User)
-    # Permite acceder a todos los usuarios que tienen este rol asignado
-    users: Mapped[list["Usuario"]] = relationship(back_populates="role")
 
     def __repr__(self):
         return f'<Role - Name: {self.name}>'

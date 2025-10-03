@@ -1,4 +1,5 @@
 from src.core.database import db
+from src.core.bcrypt import bcrypt
 from src.core.models.auth.user import Usuario, RolUsuario
 from src.core.models.auth.role_permission import Role, Permission, RolePermission
 from src.core.database import db
@@ -15,8 +16,14 @@ def generar_password_aleatoria(longitud: int = 8) -> str:
     caracteres = string.ascii_letters + string.digits
     return ''.join(secrets.choice(caracteres) for _ in range(longitud))
 
+# Esta aca en vez de ser metodo de Usuario para evitar circular imports
 def hash_password(password: str) -> str:
-    return hashlib.sha256(password.encode("utf-8")).hexdigest()
+    return bcrypt.generate_password_hash(password).decode('utf-8')
+
+def check_user(email: str, password: str) -> Usuario:
+    user = get_usuario_by_email(email)
+    if user and user.activo and bcrypt.check_password_hash(user.password, password):
+        return user
 
 def get_all_usuarios():
     return db.session.query(Usuario).all()
@@ -24,6 +31,8 @@ def get_all_usuarios():
 def get_usuario_by_id(usuario_id: int):
     return db.session.query(Usuario).filter_by(id=usuario_id).first()
 
+def get_usuario_by_email(email: str):
+    return db.session.query(Usuario).filter_by(email=email).first()
 
 def crear_usuario(email: str, nombre: str, apellido: str, rol: RolUsuario) -> tuple[Usuario, str]:
     """
@@ -38,7 +47,7 @@ def crear_usuario(email: str, nombre: str, apellido: str, rol: RolUsuario) -> tu
         nombre=nombre,
         apellido=apellido,
         password=password_hash,
-        rol=rol
+        rol=rol,
     )
 
     db.session.add(usuario)

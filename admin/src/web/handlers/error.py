@@ -38,3 +38,11 @@ def method_not_allowed(e):
         description = "Lo sentimos, la operación que intentas realizar no está permitida."
     )
     return render_template('error.html', error = error), 405
+
+def forbidden(e):
+    error = HTTPError (
+        code = 403,
+        message = "Acceso no autorizado",
+        description = "No cuenta con los permisos necesarios para continuar."
+    )
+    return render_template('error.html', error = error), 401

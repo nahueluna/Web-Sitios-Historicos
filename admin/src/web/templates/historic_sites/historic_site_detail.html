@@ -25,24 +25,24 @@
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
 
-    #log-container {
-        flex: 1;
-        padding: 15px;
-        border-radius: 8px;
-        background-color: #f9f9f9;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        
-        
-    }
-
     #logs-list {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         gap: 20px;
         max-height: 70vh;
-        
         overflow-y: auto;
         padding-right: 10px;
+    }
+
+    .log-block {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 16px;
+        background-color: #fff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s;
+        break-inside: avoid;
+        margin-bottom: 20px;
     }
 
     .historic-site-block {
@@ -80,62 +80,78 @@
     <div id="historic-site-detail">
         <!-- Contenido cargado por JavaScript -->
     </div>
-
-    <div id="log-container">
-        <h3>Historial de Cambios</h3>
-        <div id="logs-list">
-            <!-- Logs cargados por JavaScript -->
+    {% if has_access %}
+        <div id="log-container">
+            <h3>Historial de Cambios</h3>
+            <div id="logs-list">
+                <!-- Logs cargados por JavaScript -->
+            </div>
+            <br><br>
+            <div class="pagination">
+                <button id="prev-btn" class="btn btn-sm btn-outline-primary" disabled>Anterior</button>
+                <span class="page-info mx-2" id="page-info">Página 1 de 1</span>
+                <button id="next-btn" class="btn btn-sm btn-outline-primary" disabled>Siguiente</button>
+            </div>
         </div>
-        <br><br>
-        <div class="pagination">
-            <button id="prev-btn" class="btn btn-sm btn-outline-primary" disabled>Anterior</button>
-            <span class="page-info mx-2" id="page-info">Página 1 de 1</span>
-            <button id="next-btn" class="btn btn-sm btn-outline-primary" disabled>Siguiente</button>
-        </div>
-    </div>
+    {% endif %}
 </div>
-
+<div id="flash-container" class="position-fixed bottom-0 start-0 p-3" style="z-index: 1080;"></div>
 {% endblock %}
 {% block scripts %}
+<script>
+    window.alert = function (message, type = "info") {
+        const container = document.getElementById("flash-container");
+        const alerta = document.createElement("div");
+
+        alerta.className = `alert alert-${type} alert-dismissible fade show`;
+        alerta.role = "alert";
+        alerta.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+        container.appendChild(alerta);
+
+        // Se cierra solo después de 3 segundos
+        setTimeout(() => {
+            alerta.remove();
+        }, 3000);
+    };
+</script>
 <script>
     let currentPage = 1;
     const logsPerPage = 25;
     let allLogs = [];
+    let siteId = 0;
 
     // Function to display logs for the current page
     function displayLogsPage() {
         const container = document.getElementById("logs-list");
         container.innerHTML = '';
 
-        // Calculate which logs to show
         const startIndex = (currentPage - 1) * logsPerPage;
         const endIndex = startIndex + logsPerPage;
         const logsToShow = allLogs.slice(startIndex, endIndex);
 
-        // If no logs to display
         if (logsToShow.length === 0) {
             container.innerHTML = '<p class="text-center text-muted">No hay registros para mostrar</p>';
             return;
         }
 
-        // Create elements for each log
+        // Crear elementos para cada log
         logsToShow.forEach(log => {
-            const col = document.createElement("div");
-            col.className = "col-md-4";
-
             const block = document.createElement("div");
             block.className = "card log-block";
 
             block.innerHTML = `
-                    <div class="card-body">
-                        <h5 class="card-title">${log.log_date}</h5>
-                        <p class="card-text"><strong>Acción:</strong> ${log.action_type}</p>
-                        <p class="card-text"><strong>Usuario:</strong> SIN IMPLEMENTAR</p>
-                    </div>
-                `;
+            <div class="card-body">
+                <h5 class="card-title">${log.log_date}</h5>
+                <p class="card-text"><strong>Acción:</strong> ${log.action_type}</p>
+                <p class="card-text"><strong>Usuario:</strong>${log.user_email}</p>
+            </div>
+        `;
 
-            col.appendChild(block);
-            container.appendChild(col);
+            container.appendChild(block);
         });
 
         // Update pagination info
@@ -168,7 +184,7 @@
     // When DOM is loaded
     document.addEventListener("DOMContentLoaded", function () {
         const pathParts = window.location.pathname.split('/');
-        const siteId = pathParts[pathParts.length - 1];
+        siteId = pathParts[pathParts.length - 1];
 
         document.getElementById('prev-btn').addEventListener('click', goToPrevPage);
         document.getElementById('next-btn').addEventListener('click', goToNextPage);
@@ -210,6 +226,14 @@
                                 Editar Sitio
                             </a>
                         </div>
+                        <br>
+                        {% if is_admin %}
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-start" onclick=deleteSite()>
+                                <a id="delete-site-btn" class="btn btn-danger">
+                                    Eliminar Sitio
+                                </a>
+                            </div>
+                        {% endif %}
                     `;
             })
             .catch(err => {
@@ -260,8 +284,8 @@
                         <h5>Etiquetas del Sitio:</h5>
                         <div id="site-tags-container">
                             ${tagsData.map(tag =>
-                                            `<span class="badge bg-info me-1 mb-1">${tag.name || tag}</span>`
-                                        ).join('')}
+                        `<span class="badge bg-info me-1 mb-1">${tag.name || tag}</span>`
+                    ).join('')}
                         </div>
                         `;
                 } else {
@@ -273,7 +297,8 @@
                         `;
                 }
 
-                // Insert tags after the description section descriptionSection.after(tagsDiv);
+                // Insert tags after the description section 
+                descriptionSection.after(tagsDiv);
 
                 // Now you can select the newly created element
                 const siteTagsContainer = document.getElementById("site-tags-container");
@@ -283,13 +308,30 @@
             })
             .catch(err => {
                 console.error("Error al cargar etiquetas:", err);
-                // Optional: display error message to user
-                const siteDetailContainer = document.getElementById("historic-site-detail");
-                const errorDiv = document.createElement('div');
-                errorDiv.className = 'alert alert-warning mt-3';
-                errorDiv.textContent = 'No se pudieron cargar las etiquetas';
-                siteDetailContainer.appendChild(errorDiv);
             });
+
+
     });
+
+    function deleteSite() {
+        if (confirm('¿Seguro que quieres eliminar este sitio?')) {
+            fetch('/sitios-historicos/delete-site', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: siteId })
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert('Sitio histórico eliminado exitosamente. Redirigiendo...');
+                        setTimeout(() => {
+                            window.location.href = '/sitios-historicos/admin/';
+                        }, 2500);
+                    } else {
+                        response.json().then(data => alert(data.error || 'Error al eliminar'));
+                    }
+                });
+        }
+    }
+
 </script>
 {% endblock %}

@@ -104,10 +104,31 @@
         <a href="{{ url_for('historic_sites.render_admin_sites') }}" class="btn btn-secondary ms-2">Volver</a>
     </form>
 </div>
+<div id="flash-container" class="position-fixed bottom-0 start-0 p-3" style="z-index: 1080;"></div>
 {% endblock %}
 
 {% block scripts %}
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script>
+    window.alert = function (message, type = "info") {
+        const container = document.getElementById("flash-container");
+        const alerta = document.createElement("div");
+
+        alerta.className = `alert alert-${type} alert-dismissible fade show`;
+        alerta.role = "alert";
+        alerta.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+        container.appendChild(alerta);
+
+        // Se cierra solo después de 3 segundos
+        setTimeout(() => {
+            alerta.remove();
+        }, 3000);
+    };
+</script>
 <script>
     // Inicializar Choices.js para el select de tags
     const tagSelect = new Choices('#tags', {
@@ -194,12 +215,11 @@
                     return response.json();
                 })
                 .then(data => {
-                    alert("Sitio agregado con éxito");
-                    console.log("Nuevo sitio:", data);
-
-                    window.location.href = "{{ url_for('historic_sites.render_admin_sites') }}";
+                    alert("Sitio agregado con éxito. Redigiriendo...");
+                    setTimeout(() => {
+                        window.location.href = "{{ url_for('historic_sites.render_admin_sites') }}";
+                    }, 2500);
                 }).catch(error => {
-                    console.error('Error:', error);
                     alert('Error al crear la categoría: ' + error.message);
                 });
 

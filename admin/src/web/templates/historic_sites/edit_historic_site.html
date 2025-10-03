@@ -102,11 +102,32 @@
         </div>
     </form>
 </div>
+<div id="flash-container" class="position-fixed bottom-0 start-0 p-3" style="z-index: 1080;"></div>
 {% endblock %}
 
 {% block scripts %}
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+<script>
+    window.alert = function(message, type = "info") {
+        const container = document.getElementById("flash-container");
+        const alerta = document.createElement("div");
+
+        alerta.className = `alert alert-${type} alert-dismissible fade show`;
+        alerta.role = "alert";
+        alerta.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+        container.appendChild(alerta);
+
+        // Se cierra solo después de 3 segundos
+        setTimeout(() => {
+            alerta.remove();
+        }, 3000);
+    };
+</script>
 <script>
     document.addEventListener("DOMContentLoaded", () => {
         const form = document.getElementById("historic-site-form");
@@ -271,8 +292,10 @@
                     return response.json();
                 })
                 .then(() => {
-                    alert('Sitio histórico modificado exitosamente');
-                    window.location.href = `/sitios-historicos/detalle/${siteId}`;
+                    alert('Sitio histórico modificado exitosamente. Redirigiendo...');
+                    setTimeout(() => {
+                         window.location.href = `/sitios-historicos/detalle/${siteId}`;
+                    }, 2500);
                 })
                 .catch(error => alert(`Error al modificar el sitio: ${error.error}`));
         });

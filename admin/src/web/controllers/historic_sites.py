@@ -1,8 +1,11 @@
 from os import abort
+from src.core.models.auth import get_usuario_by_email
+from src.core.models.auth.user import RolUsuario
+from src.web.handlers.auth import login_required, role_required
 from src.core.models.historic_site_tags import get_tags_by_site
 from src.core.models.search import get_all_tags
-from flask import Blueprint, render_template, request, jsonify
-from src.core.models.historic_sites import get_historic_site, list_all_historic_sites, list_visible_historic_sites, add_historic_site, edit_historic_site
+from flask import Blueprint, render_template, request, jsonify, session
+from src.core.models.historic_sites import delete_histoirc_site, get_historic_site, list_all_historic_sites, list_visible_historic_sites, add_historic_site, edit_historic_site
 from src.core.models.historic_sites_categorie import list_historic_sites_categorie, add_category
 from src.core.models.historic_sites_state import list_states
 from src.core.models.historic_sites_logs import get_logs_per_hs
@@ -14,10 +17,17 @@ historic_sites_bp = Blueprint('historic_sites', __name__, url_prefix='/sitios-hi
 
 # RENDERING
 @historic_sites_bp.route('/') # Renderiza html
+@login_required
 def render_index(): return render_template('/historic_sites/index.html')
 
 @historic_sites_bp.route('/detalle/<int:id>') # Renderiza html
-def render_detail(id): return render_template('historic_sites/historic_site_detail.html')
+@login_required
+def render_detail(id): 
+    user_email = session.get("user")
+    user = get_usuario_by_email(user_email)
+    is_admin = user.rol == RolUsuario.ADMIN
+    has_access = user.rol in [RolUsuario.ADMIN, RolUsuario.EDITOR]
+    return render_template('historic_sites/historic_site_detail.html', is_admin=is_admin, has_access=has_access)
 # RENDERING
 
 @historic_sites_bp.route('/get-all', methods=['GET']) # Retorna todos los sitios historicos de la BD
@@ -43,32 +53,39 @@ def get_site(id):
 
 # RENDERING
 @historic_sites_bp.route('/admin/gestion-sitios')  # Renderiza html
-def render_admin_management(): 
+@role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
+def render_admin_management(user): 
     # PREGUNTAR SI TIENE PERMISIOS
-    return render_template('/historic_sites/gestion_sitios.html')
+    is_admin = user.rol == RolUsuario.ADMIN
+    return render_template('/historic_sites/gestion_sitios.html', is_admin=is_admin)
 
 @historic_sites_bp.route('/admin/')  # Renderiza html
+@login_required
 def render_admin_sites(): 
     # PREGUNTAR SI TIENE PERMISIOS
     return render_template('/historic_sites/index.html')
 
 @historic_sites_bp.route('/admin/agregar-sitio') # 
-def render_site_form(): 
+@role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
+def render_site_form(user): 
     # PREGUNTAR SI TIENE PERMISIOS
     return render_template('historic_sites/add_historic_site.html')
 
 @historic_sites_bp.route('/admin/editar-sitio/<int:id>') # 
-def render_edite_site_form(id): 
+@role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
+def render_edite_site_form(user, id): 
     # PREGUNTAR SI TIENE PERMISIOS
     return render_template('historic_sites/edit_historic_site.html')
 
 @historic_sites_bp.route('/admin/categorias') # 
-def render_admin_categories(): 
+@role_required([RolUsuario.ADMIN])
+def render_admin_categories(user): 
     # PREGUNTAR SI TIENE PERMISIOS
     return render_template('historic_sites/category/categories.html')
 
 @historic_sites_bp.route('/admin/categorias/agregar') # 
-def render_category_form(): 
+@role_required([RolUsuario.ADMIN])
+def render_category_form(user): 
     # PREGUNTAR SI TIENE PERMISIOS
     return render_template('historic_sites/category/add_category.html')
 
@@ -78,8 +95,9 @@ def render_category_form():
 def add_site(): 
     try:
         json = request.get_json()
-        print(json)
         __validator__(json)
+        user_email = session.get("user")
+        user_id = get_usuario_by_email(user_email).id
         hs = add_historic_site(
             site_name=json['site_name'],
             short_description=json['short_description'],
@@ -93,6 +111,7 @@ def add_site():
             conservation_status=json['conservation_status'],       
             category=json['category'],
             tags=json.get('tags'),
+            user_id=user_id
         )
 
         return jsonify({}), 201
@@ -105,7 +124,8 @@ def edit_site():
     try:
         json = request.get_json()
         __validator__(json)
-        print(json)
+        user_email = session.get("user")
+        user_id = get_usuario_by_email(user_email).id
         edit_historic_site(
             hs_id = int(json['id']),
             site_name=json['site_name'],
@@ -120,7 +140,18 @@ def edit_site():
             conservation_status=json['conservation_status'],       
             category=json['category'],
             tags=json.get('tags'),
+            user_id=user_id
         )
+
+        return jsonify({}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+@historic_sites_bp.route('/delete-site', methods=['DELETE'])
+def delete_site(): 
+    try:
+        id = request.get_json()['id']
+        delete_histoirc_site(hs_id=int(id))
 
         return jsonify({}), 201
     except Exception as e:
@@ -145,7 +176,19 @@ def get_all_states():
 
 @historic_sites_bp.route('/logs/get-all/<int:id>', methods=['GET']) # Retorna todas los estados de sitios historicos de la BD
 def get_all_logs(id):
-    return jsonify([x.json() for x in get_logs_per_hs(hs_id=id)]), 201 
+    list =get_logs_per_hs(hs_id=id)
+    response = []
+
+    for log, email in list: 
+        response.append(
+            {
+                "log_date": log.log_date,
+                "user_email": email,
+                "action_type": log.action_type
+            }
+        )
+    
+    return jsonify(response), 201 
 
 @historic_sites_bp.route('/tags/get-all', methods = ['GET'])
 def __get_all_tags():
@@ -188,4 +231,3 @@ def __validator__(json: dict):
 
 # -- AUXILIARES -- #
 
-__hs_labels__ = ["Etiqueta 1", "Etiqueta 2", "Etiqueta 3"]

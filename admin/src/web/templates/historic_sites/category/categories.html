@@ -1,33 +1,65 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<h2>Categorias de Sitios Historicos</h2>
+<h2>Categorías de Sitios Históricos</h2>
 <br>
 <div>
     <a href="{{ url_for('historic_sites.render_category_form') }}" style="padding: 30px ;">
-        <button>Crear Nueva Categoira de Sitio Histórico</button>
+        <button class="btn btn-primary">Crear Nueva Categoría de Sitio Histórico</button>
     </a>
     <a href="{{ url_for('historic_sites.render_admin_management') }}" style="padding: 30px ;">
-        <button>Volver</button>
+        <button class="btn btn-secondary">Volver</button>
     </a>
 </div>
 <br>
+
+
+
 <div id="cateogire-list"></div>
+<div id="flash-container" class="position-fixed bottom-0 start-0 p-3" style="z-index: 1080;"></div>
 
 {% endblock %}
+
 {% block scripts %}
+<script>
+    window.alert = function(message, type = "info") {
+        const container = document.getElementById("flash-container");
+        const alerta = document.createElement("div");
+
+        alerta.className = `alert alert-${type} alert-dismissible fade show`;
+        alerta.role = "alert";
+        alerta.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+        container.appendChild(alerta);
+
+        // Se cierra solo después de 3 segundos
+        setTimeout(() => {
+            alerta.remove();
+        }, 3000);
+    };
+</script>
+
 <script>
     document.addEventListener("DOMContentLoaded", function (){
         fetch("/sitios-historicos/category/get-all", {method: "GET"})
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Error en la respuesta del servidor");
+                }
+                return response.json();
+            })
             .then(data => {
                 const container = document.getElementById("cateogire-list");
 
                 if (data.length === 0) {
-                    container.innerHTML = "<p>No hay categorias para sitios históricos registrados.</p>";
+                    container.innerHTML = "<p>No hay categorías para sitios históricos registradas.</p>";
                     return;
                 }
-                console.log("categorias:", data)
+
+                console.log("categorías:", data);
 
                 data.forEach(category => {
                     const block = document.createElement("div");
@@ -37,18 +69,21 @@
                     block.style.marginBottom = "16px";
 
                     block.innerHTML = `
-                    <h3>${category.category}</h3>
-                    <a href="/sitios-historicos/category/delete/${category.id}">
-                        <button>Eliminar</button>
-                    </a>
-                `;
+                        <h3>${category.category}</h3>
+                        <a href="/sitios-historicos/category/delete/${category.id}">
+                            <button class="btn btn-danger btn-sm">Eliminar</button>
+                        </a>
+                    `;
                     container.appendChild(block);
                 });
+
+                alert("Categorías cargadas exitosamente", "success");
             })
             .catch(err => {
-                console.error("Error al cargar las categorias:", err);
+                console.error("Error al cargar las categorías:", err);
                 document.getElementById("cateogire-list").innerHTML =
                     "<p>Error al cargar los datos.</p>";
+                alert("Error al cargar las categorías", "danger");
             });
     });
 </script>

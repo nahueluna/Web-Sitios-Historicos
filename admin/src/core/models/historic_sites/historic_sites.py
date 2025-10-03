@@ -30,6 +30,8 @@ class HistoricSites(Base):
 
     category_id: Mapped[int] = mapped_column(ForeignKey("historic_sites_categories.id"), nullable=False)
 
+    delete: Mapped[bool] = mapped_column(nullable=False, default=False)
+
 
     def json(self):
         return {

@@ -15,16 +15,18 @@
             Crear Nuevo Sitio Histórico
         </a>
     </div>
-
-    <div>
-        <h4>Categorías de Sitios Históricos</h4>
-        <br>
-        <a href="{{ url_for('historic_sites.render_admin_categories') }}" class="btn btn-primary">
-            Ver Categorías de Sitios Históricos
-        </a>
-        <a href="{{ url_for('historic_sites.render_category_form') }}" class="btn btn-success ms-3">
-            Crear Nueva Categoría de Sitio Histórico
-        </a>
-    </div>
+    {% if is_admin %}
+        <div>
+            <h4>Categorías de Sitios Históricos</h4>
+            <br>
+            <a href="{{ url_for('historic_sites.render_admin_categories') }}" class="btn btn-primary">
+                Ver Categorías de Sitios Históricos
+            </a>
+            <a href="{{ url_for('historic_sites.render_category_form') }}" class="btn btn-success ms-3">
+                Crear Nueva Categoría de Sitio Histórico
+            </a>
+        </div>
+    {% endif %}
 </div>
+<div id="flash-container" class="position-fixed bottom-0 start-0 p-3" style="z-index: 1080;"></div>
 {% endblock %}

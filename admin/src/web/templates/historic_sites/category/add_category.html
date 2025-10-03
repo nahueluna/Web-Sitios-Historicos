@@ -1,25 +1,50 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<h2>Agregar una Categoria</h2>
+<div class="container mt-4">
+    <h2 class="mb-4">Agregar una Categoría</h2>
 
-<form id="category-form">
-    <label for="category">Nombre de la Categoria:</label><br>
-    <input type="text" id="category" name="category" required><br><br>
-    <input type="submit" value="Crear Categoria">
-</form>
-<br>
-<div>
-    <a href="{{ url_for('historic_sites.render_admin_categories') }}" style="padding: 30px ;">
-        <button>Cancelar</button>
-    </a>
+    <form id="category-form" class="mb-3">
+        <div class="mb-3">
+            <label for="category" class="form-label">Nombre de la Categoría:</label>
+            <input type="text" class="form-control" id="category" name="category" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Crear Categoría</button>
+    </form>
+
+    <div>
+        <a href="{{ url_for('historic_sites.render_admin_categories') }}" class="btn btn-secondary">
+            Cancelar
+        </a>
+    </div>
 </div>
-
+<div id="flash-container" class="position-fixed bottom-0 start-0 p-3" style="z-index: 1080;"></div>
 {% endblock %}
+
 {% block scripts %}
 <script>
+    window.alert = function (message, type = "info") {
+        const container = document.getElementById("flash-container");
+        const alerta = document.createElement("div");
+
+        alerta.className = `alert alert-${type} alert-dismissible fade show`;
+        alerta.role = "alert";
+        alerta.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+        container.appendChild(alerta);
+
+        // Se cierra solo después de 3 segundos
+        setTimeout(() => {
+            alerta.remove();
+        }, 3000);
+    };
+</script>
+<script>
     document.getElementById('category-form').addEventListener('submit', function (e) {
-        e.preventDefault(); // Prevenir el comportamiento por defecto del formulario
+        e.preventDefault();
 
         const categoryName = document.getElementById('category').value;
 
@@ -40,9 +65,10 @@
             })
             .then(data => {
                 console.log('Categoría creada exitosamente:', data);
-                alert('Categoría creada exitosamente');
-                //  redirigir
-                window.location.href = "{{ url_for('historic_sites.render_admin_categories') }}";
+                alert('Categoría creada exitosamente. Redirigiendo...');
+                setTimeout(() => {
+                    window.location.href = "{{ url_for('historic_sites.render_admin_categories') }}";
+                }, 2500);
             })
             .catch(error => {
                 console.error('Error:', error);

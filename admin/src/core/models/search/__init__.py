@@ -49,3 +49,6 @@ def tag_has_association_with_site(tag_id):
 
     association = db.session.query(historic_sites_tags).filter(historic_sites_tags.c.tag_id == tag_id).first()
     return association is not None
+
+def get_all_tags():
+    return db.session.query(Tag).all()

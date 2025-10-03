@@ -23,4 +23,14 @@ class Tag(Base):
     )
 
     def __repr__(self):
-        return f"<Tag(id={self.id}, name={self.name}, slug={self.slug}"
+       return f"<Tag(id={self.id}, name={self.name}, slug={self.slug}"
+
+
+    def json(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "slug": self.slug,
+            "inserted_at": self.inserted_at.isoformat(),
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None
+        }

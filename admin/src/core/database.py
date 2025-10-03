@@ -17,6 +17,7 @@ def reset_db():
     from src.core.models.search import tags # noqa: F401
     from src.core.models.auth.user import Usuario # noqa: F401
     from src.core.models.auth.role_permission import Role, Permission, RolePermission # noqa: F
+    from src.core.models.feature_flag import initialize_default_flags # noqa: F401
     
 
     print("Resetting database...")
@@ -28,6 +29,8 @@ def reset_db():
     print("Historic sites states generated...")
     __generate_categories()
     print("Historic sites categories generated...")
+    initialize_default_flags()
+    print("Feature flags initialized...")
     #__generate_log_actions()
     #print("Log actions generated...")
     print("Database reset complete...")

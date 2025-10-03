@@ -5,7 +5,7 @@ from sqlalchemy import DateTime, ForeignKey, String, Boolean, Integer
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from src.core.models.auth.user import User
+    from src.core.models.auth.user import Usuario
 
 class FeatureFlag(Base):
     __tablename__ = 'feature_flags'
@@ -27,7 +27,7 @@ class FeatureFlag(Base):
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
     )
-    updated_by: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=True)
+    updated_by: Mapped[int] = mapped_column(ForeignKey('usuarios.id'), nullable=True)
 
     # Relación con el usuario que actualizó (sysAdmin)
-    updated_by_user: Mapped["User"] = relationship("User")
+    updated_by_user: Mapped["Usuario"] = relationship("Usuario")

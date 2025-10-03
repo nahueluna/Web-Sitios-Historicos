@@ -13,6 +13,7 @@ from src.web.controllers.historic_sites import render_index
 from src.web.controllers.role_controller import role_bp
 from src.web.controllers.user_controller import bp_user
 from src.web.controllers.auth import bp_auth
+from src.web.controllers.feature_flag import feature_flag_bp
 from src.core.bcrypt import bcrypt
 
 
@@ -67,6 +68,7 @@ def create_app(env='development', static_folder='../../static'):
     app.register_blueprint(bp_user)
     app.register_blueprint(role_bp)
     app.register_blueprint(bp_auth)
+    app.register_blueprint(feature_flag_bp)
 
     @app.cli.command("reset-db")
     def reset_db():

@@ -1,7 +1,8 @@
 from flask import Blueprint, session, jsonify, render_template, request
 from src.core.models.feature_flag.feature_flag import FeatureFlag
-from src.core.models.auth.user import Usuario
 from src.core.database import db
+from src.core.models.auth.user import Usuario
+from src.core.models.auth import get_usuario_by_email
 from src.core.models.feature_flag import get_all_flags, find_flag_by_id
 from src.web.decorator import system_admin_required
 
@@ -57,7 +58,7 @@ def update_feature_flag(flag_id: int):
     else:
         flag.description = description
 
-    user = db.session.get(Usuario, session.get('user_id'))
+    user = get_usuario_by_email(session.get('user'))
     flag.updated_by = user.id
     
     db.session.commit()

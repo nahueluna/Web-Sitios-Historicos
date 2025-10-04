@@ -32,8 +32,8 @@ def initialize_default_flags():
     default_flags = [
         {
             'name': 'admin_maintenance_mode',
-            'description': 'Bloquea el acceso al panel de administración',
-            'maintenance_message': 'El panel de administración está en mantenimiento. Por favor, inténtelo más tarde.'
+            'maintenance_message': 'El panel de administración está en mantenimiento. Por favor, inténtelo más tarde.',
+            'description': 'Bloquea el acceso al panel de administración'
         },
         {
             'name': 'portal_maintenance_mode',
@@ -42,13 +42,14 @@ def initialize_default_flags():
         },
         {
             'name': 'reviews_enabled',
-            'description': 'Habilita la creación de reseñas en el portal',
+            'maintenance_message': 'Las reseñas están deshabilitadas temporalmente.',
+            'description': 'Habilita o deshabilita las reseñas en el portal público',
             'is_enabled': True  # Por defecto activo
         }
     ]
     
     for flag_data in default_flags:
-        existing = FeatureFlag.query.filter_by(name=flag_data['name']).first()
+        existing = db.session.query(FeatureFlag).filter_by(name=flag_data['name']).first()
         if not existing:
             flag = FeatureFlag(**flag_data)
             db.session.add(flag)

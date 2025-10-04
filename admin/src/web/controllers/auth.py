@@ -14,7 +14,7 @@ def authenticate():
     password = request.form["password"]
     user = check_user(email, password)
     if not user:
-        flash("Credenciales Invalidas.", "error")
+        flash("Credenciales Invalidas.", "danger")
         return redirect(url_for("auth.login"))
 
     session["user"] = email
@@ -28,5 +28,5 @@ def logout():
         session.clear()
         flash("Has cerrado sesión correctamente.", "success")
     else:
-        flash("No has iniciado sesión.", "error")
+        flash("No has iniciado sesión.", "danger")
     return redirect(url_for("auth.login"))

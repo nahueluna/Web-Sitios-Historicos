@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="container my-4">
-    <h2>Gestión Sitios</h2>
+    <h2 class="display-6 fw-bold text-primary">Gestión Sitios</h2>
     <br><br>
 
     <div class="mb-5">
@@ -16,7 +16,7 @@
         </a>
     </div>
     {% if is_admin %}
-        <div>
+        <div class="mb-5">
             <h4>Categorías de Sitios Históricos</h4>
             <br>
             <a href="{{ url_for('historic_sites.render_admin_categories') }}" class="btn btn-primary">
@@ -27,6 +27,15 @@
             </a>
         </div>
     {% endif %}
+
+    <div class="mb-5">
+        <h4>Etiquetas</h4>
+        <br>
+        <a href="{{ url_for('tags.view_tags') }}" class="btn btn-primary">
+            Ver listado de etiquetas
+        </a>
+    </div>
+
 </div>
 <div id="flash-container" class="position-fixed bottom-0 start-0 p-3" style="z-index: 1080;"></div>
 {% endblock %}

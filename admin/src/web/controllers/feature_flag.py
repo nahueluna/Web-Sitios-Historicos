@@ -5,10 +5,12 @@ from src.core.models.auth.user import Usuario
 from src.core.models.auth import get_usuario_by_email
 from src.core.models.feature_flag import get_all_flags, find_flag_by_id
 from src.web.decorator import system_admin_required
+from src.web.handlers.auth import login_required
 
 feature_flag_bp = Blueprint('feature_flag', __name__, url_prefix='/feature_flags')
 
 @feature_flag_bp.route('/', methods=['GET'])
+@login_required
 @system_admin_required
 def get_feature_flags():
     """Obtiene todos los feature flags"""
@@ -33,6 +35,7 @@ def get_feature_flags():
 
 
 @feature_flag_bp.route('/<int:flag_id>', methods=['POST'])
+@login_required
 @system_admin_required
 def update_feature_flag(flag_id: int):
     """Actualiza un feature flag (e.g., mensaje de mantenimiento)"""
@@ -66,6 +69,7 @@ def update_feature_flag(flag_id: int):
 
 
 @feature_flag_bp.route('/<int:flag_id>/toggle', methods=['POST'])
+@login_required
 @system_admin_required
 def toggle_feature_flag(flag_id: int):
     """Activa o desactiva un feature flag"""
@@ -75,6 +79,7 @@ def toggle_feature_flag(flag_id: int):
         return jsonify({'error': 'Flag no encontrado'}), 404
 
     flag.is_enabled = not flag.is_enabled
-    flag.updated_by = session.get('user_id')
+    user = get_usuario_by_email(session.get('user'))
+    flag.updated_by = user.id
     db.session.commit()
     return jsonify({'id': flag.id, 'is_enabled': flag.is_enabled})

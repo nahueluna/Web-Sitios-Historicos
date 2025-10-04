@@ -5,6 +5,13 @@ from src.core.models.auth import RolUsuario, get_usuario_by_email
 def is_authenticated():
     return session.get("user") is not None
 
+def is_system_admin():
+    """Verifica si el usuario autenticado es un administrador del sistema"""
+    if not is_authenticated():
+        return False
+    user = get_usuario_by_email(session.get("user"))
+    return user and user.system_admin
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):

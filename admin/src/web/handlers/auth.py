@@ -31,9 +31,12 @@ def role_required(roles: list[RolUsuario]):
             if not user_email:
                 flash("Debes iniciar sesión para acceder a esta página", "warning")
                 return redirect(url_for("auth.login"))
+            
 
             # 2. Obtener el usuario
             user = get_usuario_by_email(user_email)
+            if user.system_admin:
+                return f(user, *args, **kwargs)
 
             if not user:
                 abort(500)

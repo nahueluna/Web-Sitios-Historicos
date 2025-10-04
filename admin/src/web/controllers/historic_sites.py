@@ -36,44 +36,61 @@ def export_sites():
     if len(data) == 0:
         return jsonify({"error": "No hay datos para exportar"}), 404
 
-    # Defino las columnas con el primer sitio
-    fieldnames = list(data[0].keys())
-
-    # StringIO sirve para crear un archivo en memoria, en este caso CSV. Lo creo
-    output = io.StringIO()
-    # Se crea el writer que va a escribir en output, con las columnas fieldnames y separador coma
-    writer = csv.DictWriter(output, fieldnames=fieldnames, delimiter=",")
-    # Escribir los encabezados
-    writer.writeheader()
-
     # Obtengo id y nombre correspondiente a cada categoria y estado
     categories = {cat.id: cat.category for cat in list_historic_sites_categorie()}
     states = {state.id: state.state for state in list_states()}
 
+    # Diccionario para definir las columnas en español y poder manejar en el for los valores correspondientes
+    # Excluyo la descripcion larga, fusiono las coordenadas y excluyo cualquier otro dato nuevo que no este definido aca
+    column_translation = {
+        "id": "ID del sitio",
+        "site_name": "Nombre",
+        "short_description": "Descripcion breve", 
+        "city": "Ciudad",
+        "province": "Provincia",
+        "status": "Estado de conservacion",
+        "registration_date": "Fecha de registro",
+        "inauguration_year": "Año de inauguracion",
+        "category": "Categoria",
+        "visible": "Visible"
+    }
+
+    fieldnames = list(column_translation.values()) + ["Coordenadas de geolocalizacion"]
+
+    # StringIO sirve para crear un archivo en memoria, en este caso CSV
+    output = io.StringIO()
+    writer = csv.DictWriter(output, fieldnames=fieldnames, delimiter=",")
+    writer.writeheader()
+
     for row in data:
-        # Tengo que crear una copia para no modificar data (aunque no deberia pasar nada en este caso creo)
-        modified_row = row.copy()
+        # Creo una nueva fila
+        spanish_row = {}
         
-        # Primero verifico que tenga contenido en Categoria en cada sitio que entro
-        # entonces uso get para buscar el nombre en mi diccionario categories segun el ID guardado
-        # y si no uso un fallback con el valor que tenga guardado
-        if 'category' in modified_row and modified_row['category'] is not None:
-            category_name = categories.get(modified_row['category'], modified_row['category'])
-            modified_row['category'] = category_name
+        # Clave (ingles) valor (español) en el diccionario.
+        for english_col, spanish_col in column_translation.items():
+            # Si existe una columna con ese nombre en ingles en donde estoy parado
+            if english_col in row:
+                # Agarro el status_id o category_id y en base al diccionario lo reemplazo por el nombre correspondiente
+                # El metodo get busca la clave del 1er param en el diccionario para entonces agarrar el valor, y si no la encuentra devuelve el segundo parametro (fallback)
+                if english_col == "status":
+                    spanish_row[spanish_col] = states.get(row[english_col], row[english_col])
+                elif english_col == "category":
+                    spanish_row[spanish_col] = categories.get(row[english_col], row[english_col])
+                else:
+                    spanish_row[spanish_col] = row[english_col]
         
-        # lo mismo 
-        if 'status' in modified_row and modified_row['status'] is not None:
-            state_name = states.get(modified_row['status'], modified_row['status'])
-            modified_row['status'] = state_name
+        # Combino latitud y longitud (si existen) en una sola columna
+        if 'latitude' in row and 'longitude' in row:
+            spanish_row["Coordenadas de geolocalizacion"] = f"{row['latitude']}; {row['longitude']}" 
         
-        # Escribir la fila modificada al CSV
-        writer.writerow(modified_row)
+        # Escribir fila transformada
+        writer.writerow(spanish_row)
 
     # Nombre como lo solicita el documento
     timestamp = datetime.now().strftime('%Y%m%d_%H%M')
     filename = f"sitios_{timestamp}.csv"
 
-    # Response recibe el contenido en formato de string (getvalue), el mimetype o tipo de archivo (csv con codificacion utf-8 o algo asi)
+    # Response recibe el contenido en formato de string (getvalue), el mimetype o tipo de archivo (csv con codificacion utf-8)
     response = Response(output.getvalue(), mimetype="text/csv; charset=utf-8")
     response.headers["Content-Disposition"] = f'attachment; filename="{filename}"'
     return response, 200

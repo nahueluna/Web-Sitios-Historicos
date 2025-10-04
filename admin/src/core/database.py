@@ -1,4 +1,3 @@
-
 from flask_sqlalchemy_lite import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 
@@ -9,11 +8,12 @@ def init_app(app):
     return db
 
 def reset_db():
-    from src.core.models.historic_sites_state import generate_states
-    from src.core.models.historic_sites_categorie import __generate_categories
+    from src.core.models.historic_sites_state import generate_states # noqa: F401
+    from src.core.models.historic_sites_categorie import __generate_categories # noqa: F401
     #from src.core.models.logs_actions import __generate_log_actions
-    from src.core.search import tags # noqa: F401
     from src.core.models.auth.user import Usuario # noqa: F401
+    from src.core.models.search import tags # noqa: F401
+
     print("Resetting database...")
 
     Base.metadata.drop_all(bind=db.engine)

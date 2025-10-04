@@ -40,6 +40,7 @@ def create_app(env='development', static_folder='../../static'):
     app.register_error_handler(404, error.not_found)
     app.register_error_handler(401, error.unauthorized)
     app.register_error_handler(500, error.internal_server_error)
+    app.register_error_handler(405, error.method_not_allowed)
 
     app.register_blueprint(advanced_search_bp)
     app.register_blueprint(tags_bp)

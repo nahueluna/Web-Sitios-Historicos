@@ -12,7 +12,7 @@ class HistoricSitesLogs(Base):
     log_date: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     
     historic_site_id: Mapped[int] = mapped_column(ForeignKey("historic_sites.id"), nullable=False)
-    #user_id: Mapped[id] = mapped_column(ForeignKey("users.id"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"))
     action_type: Mapped[str] = mapped_column(nullable=False)
 
     # Relaciones
@@ -24,10 +24,11 @@ class HistoricSitesLogs(Base):
             "log_id": self.id,
             "log_date": self.log_date,
             "historic_site_id": self.historic_site_id,
-            #"user_id": self.user_id,
+            "user_id": self.user_id,
             "action_type": self.action_type
         }
 
-    def __init__(self, historic_site_id: int, action_type: str):
+    def __init__(self, historic_site_id: int, action_type: str, user_id: int):
         self.historic_site_id = historic_site_id
         self.action_type = action_type
+        self.user_id = user_id

@@ -1,18 +1,8 @@
-#from src.core.models.historic_sites_state.hs_states import HistoricSitesStates
-#from src.core.models.historic_sites_categorie.hs_categories import HistoricSitesCategories
-#from src.core.models.historic_sites_logs.hs_logs import HistoricSitesLogs
-from src.core.database import Base
-from src.core.models.search.tags import Tag
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import DateTime, ForeignKey, Table, Column
-from datetime import datetime, timezone
 
-historic_sites_tags = Table(
-    'historic_sites_tags',
-    Base.metadata,
-    Column('historic_site_id', ForeignKey('historic_sites.id'), primary_key=True),
-    Column('tag_id', ForeignKey('tags.id'), primary_key=True)
-)
+from src.core.database import Base
+from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import DateTime, ForeignKey
+from datetime import datetime, timezone
 
 class HistoricSites(Base):
     __tablename__ = "historic_sites"
@@ -39,13 +29,7 @@ class HistoricSites(Base):
 
     category_id: Mapped[int] = mapped_column(ForeignKey("historic_sites_categories.id"), nullable=False)
 
-    tags: Mapped[list["Tag"]] = relationship(secondary=historic_sites_tags)
-
-    # Relaciones
-    # Nombre atributo de la clase
-    #logs: Mapped["HistoricSitesLogs"] = relationship("HistoricSitesLogs", back_populates="historic_site")
-    #category_rel: Mapped["HistoricSitesCategories"] = relationship("HistoricSitesCategories", back_populates="sites")
-    #status_rel: Mapped["HistoricSitesStates"] = relationship("HistoricSitesStates", back_populates="sites")
+    delete: Mapped[bool] = mapped_column(nullable=False, default=False)
 
 
     def json(self):

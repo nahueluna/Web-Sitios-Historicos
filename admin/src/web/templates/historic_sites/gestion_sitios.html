@@ -1,30 +1,41 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<h2>Gestion sitios</h2>
-<br><br>
+<div class="container my-4">
+    <h2 class="display-6 fw-bold text-primary">Gestión Sitios</h2>
+    <br><br>
 
-<div>
-    <h4>Sistios Historicos</h4>
-    <br>
-    <a href="{{ url_for('historic_sites.render_admin_sites') }}">
-        <button>Ver Sitios Históricos</button>
-    </a>
-    <a href="{{ url_for('historic_sites.render_site_form') }}" style="padding: 30px ;">
-        <button>Crear Nuevo Sitio Histórico</button>
-    </a>
-</div> <br><br>
+    <div class="mb-5">
+        <h4>Sitios Históricos</h4>
+        <br>
+        <a href="{{ url_for('historic_sites.render_admin_sites') }}" class="btn btn-primary">
+            Ver Sitios Históricos
+        </a>
+        <a href="{{ url_for('historic_sites.render_site_form') }}" class="btn btn-success ms-3">
+            Crear Nuevo Sitio Histórico
+        </a>
+    </div>
+    {% if is_admin %}
+        <div class="mb-5">
+            <h4>Categorías de Sitios Históricos</h4>
+            <br>
+            <a href="{{ url_for('historic_sites.render_admin_categories') }}" class="btn btn-primary">
+                Ver Categorías de Sitios Históricos
+            </a>
+            <a href="{{ url_for('historic_sites.render_category_form') }}" class="btn btn-success ms-3">
+                Crear Nueva Categoría de Sitio Histórico
+            </a>
+        </div>
+    {% endif %}
 
-<div>
-    <h4>Categorias de Sitios Historicos</h4>
-    <br>
-    <a href="{{ url_for('historic_sites.render_admin_categories') }}" >
-        <button>Ver Categoiras de Sitios Históricos</button>
-    </a>
+    <div class="mb-5">
+        <h4>Etiquetas</h4>
+        <br>
+        <a href="{{ url_for('tags.view_tags') }}" class="btn btn-primary">
+            Ver listado de etiquetas
+        </a>
+    </div>
 
-    <a href="{{ url_for('historic_sites.render_category_form') }}" style="padding: 30px ;">
-        <button>Crear Nueva Categoira de Sitio Histórico</button>
-    </a>
 </div>
-
+<div id="flash-container" class="position-fixed bottom-0 start-0 p-3" style="z-index: 1080;"></div>
 {% endblock %}

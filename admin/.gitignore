@@ -220,3 +220,6 @@ setup.cfg
 
 # IDE
 *.idea
+
+# Flask Session
+flask_session

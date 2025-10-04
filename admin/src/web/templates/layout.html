@@ -59,20 +59,28 @@
                             <a class="nav-link {{ 'active' if request.path.startswith('/admin/gestion-usuarios') else '' }}"
                                 href="{{ url_for('user.list_users') }}">Gestion de usuarios</a>
                         </li>
+                        {% if is_system_admin() %}
+                        <li class="nav-item">
+                            <a class="nav-link {{ 'active' if request.path.startswith('/feature_flags') else '' }}"
+                                href="{{ url_for('feature_flag.get_feature_flags') }}">⚙️ Feature Flags</a>
+                        </li>
+                        {% endif %}
                     </ul>
                 </div>
             </div>
         </div>
         <img class="logo d-none d-md-block" src="{{ url_for('static', filename='logo.png') }}">
-        <div class="dropdown">
-            <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                Cuenta
-            </button>
-            <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="#">Ver perfil</a></li>
-                <li><a class="dropdown-item" href="#">Cerrar sesion</a></li>
-            </ul>
-        </div>
+        {% if is_authenticated() %}
+            <div class="dropdown">
+                <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    Cuenta
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#">Ver perfil</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Cerrar sesion</a></li>
+                </ul>
+            </div>
+        {% endif %}
         {% endblock %}
     </header>
     <main>
@@ -95,27 +103,32 @@
                     <a class="nav-link {{ 'active' if request.path.startswith('/admin/gestion-usuarios') else '' }}"
                         href="{{ url_for('user.list_users') }}">Gestion de usuarios</a>
                 </li>
+                {% if is_system_admin() %}
+                <li class="nav-item">
+                    <a class="nav-link {{ 'active' if request.path.startswith('/feature_flags') else '' }}"
+                        href="{{ url_for('feature_flag.get_feature_flags') }}">⚙️ Feature Flags</a>
+                </li>
+                {% endif %}
             </ul>
         </div>
 
         <div class="vr" style="background-color: rgb(0, 0, 0);"></div>
 
         <div class="p-3">
-
-            {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-            {% for category, message in messages %}
-            <div class="alert alert-{{ category }}">{{ message }}</div>
-            {% endfor %}
-            {% endif %}
-            {% endwith %}
-
             {% block content %}
             <!-- Contenido principal aca -->
             {% endblock %}
 
         </div>
     </main>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
 
     <footer>
         {% block footer %}

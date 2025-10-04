@@ -1,0 +1,225 @@
+{% extends "layout.html" %}
+
+{% block title %}Feature Flags - Gestión{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="mb-4">
+        <h1 class="display-5 fw-bold">Feature Flags</h1>
+        <p class="text-muted">Administra las funcionalidades del sistema</p>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col" class="px-4 py-3">Nombre</th>
+                            <th scope="col" class="px-4 py-3">Mensaje de Mantenimiento</th>
+                            <th scope="col" class="px-4 py-3">Estado</th>
+                            <th scope="col" class="px-4 py-3">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for flag in flags %}
+                        <tr>
+                            <td class="px-4 py-3 fw-semibold">
+                                {{ flag.name }}
+                            </td>
+                            <td class="px-4 py-3 text-truncate" style="max-width: 300px;" title="{{ flag.maintenance_message or 'Sin mensaje' }}">
+                                {{ flag.maintenance_message or 'Sin mensaje' }}
+                            </td>
+                            <td class="px-4 py-3">
+                                <button 
+                                    onclick="toggleFlag({{ flag.id }}, '{{ flag.name }}', {{ 'true' if flag.is_enabled else 'false' }})"
+                                    class="btn btn-sm rounded-pill {% if flag.is_enabled %}btn-success{% else %}btn-danger{% endif %}">
+                                    {% if flag.is_enabled %}✓ Activado{% else %}✗ Desactivado{% endif %}
+                                </button>
+                            </td>
+                            <td class="px-4 py-3">
+                                <button 
+                                    onclick="openEditModal({{ flag.id }}, '{{ flag.name }}', '{{ flag.description or '' }}', '{{ flag.maintenance_message or '' }}', '{{ flag.inserted_at }}', '{{ flag.updated_at }}')"
+                                    class="btn btn-primary btn-sm">
+                                    📝 Editar
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para editar -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">Editar Feature Flag</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editForm" onsubmit="updateFlag(event)">
+                <div class="modal-body">
+                    <input type="hidden" id="edit_flag_id">
+                    
+                    <!-- Nombre (deshabilitado) -->
+                    <div class="mb-3">
+                        <label for="edit_flag_name" class="form-label">
+                            Nombre <small class="text-muted">(no editable)</small>
+                        </label>
+                        <input type="text" class="form-control" id="edit_flag_name" disabled>
+                    </div>
+
+                    <!-- Descripción -->
+                    <div class="mb-3">
+                        <label for="edit_description" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="edit_description" rows="2" maxlength="255" 
+                            placeholder="Descripción del feature flag"></textarea>
+                        <div class="form-text">Máximo 255 caracteres</div>
+                    </div>
+
+                    <!-- Mensaje de Mantenimiento -->
+                    <div class="mb-3">
+                        <label for="edit_maintenance_message" class="form-label">Mensaje de Mantenimiento</label>
+                        <textarea class="form-control" id="edit_maintenance_message" rows="3" maxlength="255" 
+                            placeholder="Mensaje que se mostrará cuando esté en mantenimiento"></textarea>
+                        <div class="form-text">Máximo 255 caracteres</div>
+                    </div>
+
+                    <!-- Información de auditoría (solo lectura) -->
+                    <div class="card bg-light border">
+                        <div class="card-body">
+                            <h6 class="card-title fw-semibold mb-3">📋 Información de Auditoría</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <small class="text-muted d-block">Creado:</small>
+                                    <span class="fw-medium" id="view_inserted_at">-</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <small class="text-muted d-block">Última actualización:</small>
+                                    <span class="fw-medium" id="view_updated_at">-</span>
+                                </div>
+                                <div class="col-12">
+                                    <small class="text-muted d-block">Actualizado por:</small>
+                                    <span class="fw-medium" id="view_updated_by">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">💾 Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+let editModalInstance = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    const modalElement = document.getElementById('editModal');
+    if (modalElement && typeof bootstrap !== 'undefined') {
+        editModalInstance = new bootstrap.Modal(modalElement);
+    }
+});
+
+function toggleFlag(flagId, flagName, currentState) {
+    const action = currentState ? 'desactivar' : 'activar';
+    const emoji = currentState ? '⚠️' : '✅';
+    const needsConfirmation = !currentState && (flagName.includes('maintenance'));
+    
+    let confirmMessage = `${emoji} ¿Deseas ${action} el feature flag "${flagName}"?`;
+    if (needsConfirmation) {
+        confirmMessage = `⚠️ ¡ATENCIÓN! ¿Estás seguro de que deseas ${action} "${flagName}"?\n\nEsto puede afectar el acceso al sistema para los usuarios.`;
+    }
+    
+    if (!confirm(confirmMessage)) {
+        return;
+    }
+
+    fetch(`/feature_flags/${flagId}/toggle`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert('❌ Error: ' + data.error);
+        } else {
+            location.reload();
+        }
+    })
+    .catch(error => {
+        alert('❌ Error al actualizar el flag: ' + error);
+    });
+}
+
+function openEditModal(flagId, name, description, maintenanceMessage, insertedAt, updatedAt) {
+    document.getElementById('edit_flag_id').value = flagId;
+    document.getElementById('edit_flag_name').value = name;
+    document.getElementById('edit_description').value = description || '';
+    document.getElementById('edit_maintenance_message').value = maintenanceMessage || '';
+    
+    // Mostrar información de auditoría
+    document.getElementById('view_inserted_at').textContent = insertedAt || 'No disponible';
+    document.getElementById('view_updated_at').textContent = updatedAt || 'No disponible';
+    document.getElementById('view_updated_by').textContent = 'N/A';
+    
+    // Abrir modal con Bootstrap
+    if (editModalInstance) {
+        editModalInstance.show();
+    }
+}
+
+function closeEditModal() {
+    if (editModalInstance) {
+        editModalInstance.hide();
+    }
+}
+
+function updateFlag(event) {
+    event.preventDefault();
+    
+    const flagId = document.getElementById('edit_flag_id').value;
+    const description = document.getElementById('edit_description').value;
+    const maintenanceMessage = document.getElementById('edit_maintenance_message').value;
+
+    // Validación
+    if (!maintenanceMessage.trim()) {
+        alert('⚠️ El mensaje de mantenimiento es requerido');
+        return;
+    }
+
+    fetch(`/feature_flags/${flagId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            description: description,
+            maintenance_message: maintenanceMessage
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert('❌ Error: ' + data.error);
+        } else {
+            closeEditModal();
+            location.reload();
+        }
+    })
+    .catch(error => {
+        alert('❌ Error al actualizar el flag: ' + error);
+    });
+}
+</script>
+{% endblock %}

@@ -1,7 +1,10 @@
 from datetime import datetime
+from src.core.models.search.tags import Tag
+from src.core.models.historic_site_tags.hs_tags import HistoricSitesTags
+from src.core.models.historic_sites_logs import add_log
+from src.core.models.historic_site_tags import add_historic_site_tag, reset_tags
 from src.core.models.historic_sites_state.hs_states import HistoricSitesStates
 from src.core.models.historic_sites_categorie.hs_categories import HistoricSitesCategories
-from src.core.models.historic_sites_logs.hs_logs import HistoricSitesLogs
 from src.core.database import db
 from src.core.models.historic_sites.historic_sites import HistoricSites  
 
@@ -9,6 +12,8 @@ from src.core.models.historic_sites.historic_sites import HistoricSites
 def list_all_historic_sites(): 
     return db.session.query(
         HistoricSites
+    ).filter(
+        HistoricSites.delete == False
     ).all()
 
 # Solo sitios visibles con su categoría y estado
@@ -16,7 +21,7 @@ def list_visible_historic_sites():
     return db.session.query(
         HistoricSites
     ).filter(
-        HistoricSites.visible == True
+        HistoricSites.visible == True, HistoricSites.delete == False
     ).all()
 
 # Un sitio visible específico por ID con todos sus logs y su categoría
@@ -35,7 +40,7 @@ def get_historic_site(hs_id: int):
 def add_historic_site(
         site_name: str, short_description: str, long_description: str, city: str, 
         province: str, latitude: float, longitude: float, conservation_status: str, 
-        inauguration_year: datetime, category: str, visible: bool = True
+        inauguration_year: datetime, category: str, user_id: int, visible: bool = True, tags: list = [],
     )-> HistoricSites: 
     hs_model = HistoricSites(
         site_name=site_name, 
@@ -50,6 +55,14 @@ def add_historic_site(
         category_id=category,
         visible=visible)
     db.session.add(hs_model)
+
+    db.session.flush() 
+
+    add_log(hs_id=hs_model.id, action_type="Creación", user_id= user_id) # AGREGAR EL USUARIO INVOLUCRADO (ID)
+
+    for tag_id in tags:
+        add_historic_site_tag(site_id=hs_model.id, tag_id=tag_id)
+
     db.session.commit()
     return hs_model
 
@@ -57,7 +70,7 @@ def edit_historic_site(
         hs_id: int, site_name: str, short_description: str, long_description: str, 
         city: str, province: str, latitude: float, longitude: float, 
         conservation_status: str, inauguration_year: datetime, category: str, 
-        visible: bool = True
+        user_id: int, visible: bool = True, tags: list = []
     ) -> HistoricSites:
     hs_model = db.session.query(HistoricSites).filter(HistoricSites.id == hs_id).first()
     if not hs_model:
@@ -73,6 +86,22 @@ def edit_historic_site(
     hs_model.inauguration_year = inauguration_year
     hs_model.category_id = category
     hs_model.visible = visible
+
+    add_log(hs_id=hs_id, action_type="Edición", user_id=user_id) # AGREGAR EL USUARIO INVOLUCRADO (ID)
+    reset_tags(site_id=hs_id)
+    for tag_id in tags:
+        add_historic_site_tag(site_id=hs_id, tag_id=tag_id)
+
+    db.session.commit()
+    return hs_model
+
+def delete_histoirc_site(hs_id: int, user_id: int):
+    hs_model = db.session.query(HistoricSites).filter(HistoricSites.id == hs_id).first()
+    if not hs_model:
+        return None
+    hs_model.delete = True
+
+    add_log(hs_id=hs_id, action_type="Eliminación", user_id=user_id) # AGREGAR EL USUARIO INVOLUCRADO (ID)
 
     db.session.commit()
     return hs_model

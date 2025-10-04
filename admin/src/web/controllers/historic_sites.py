@@ -11,6 +11,9 @@ from src.core.models.historic_sites_state import list_states
 from src.core.models.historic_sites_logs import get_logs_per_hs
 import pickle
 import io, csv
+from datetime import datetime
+from flask import Response
+
 
 historic_sites_bp = Blueprint('historic_sites', __name__, url_prefix='/sitios-historicos')
 
@@ -66,16 +69,25 @@ def export_sites():
         "visible": "Visible"
     }
 
-    fieldnames = list(column_translation.values()) + ["Coordenadas de geolocalizacion"]
+    fieldnames = list(column_translation.values()) + ["Coordenadas de geolocalizacion"] + ["Tags asociados"]
 
     # StringIO sirve para crear un archivo en memoria, en este caso CSV
     output = io.StringIO()
+    
+    # Agregar BOM para UTF-8. Marca invisible para que Excel reconozca UTF-8, por mas que ya se defina en el mimetype
+    output.write('\ufeff') 
+    
     writer = csv.DictWriter(output, fieldnames=fieldnames, delimiter=",")
     writer.writeheader()
 
     for row in data:
         # Creo una nueva fila
         spanish_row = {}
+
+        # Obtener los tags del sitio en cada iteracion
+        site_tags = get_tags_by_site(row['id'])  # Lista de objetos Tag
+        tag_names = [tag.name for tag in site_tags]  # Extraer solo los nombres
+        spanish_row["Tags asociados"] = " ; ".join(tag_names) if tag_names else "Sin tags" 
         
         # Clave (ingles) valor (español) en el diccionario.
         for english_col, spanish_col in column_translation.items():

@@ -35,12 +35,22 @@ class Usuario(Base):
         return f'<User - Id: {self.id} - Email: {self.email} - Rol: {self.rol} - Inserted At: {self.inserted_at} - Updated At: {self.updated_at}>'
 
     def has_permission(self, permission_name: str) -> bool:
+        # Los System Admins tienen todos los permisos
         if self.system_admin:
+            print(f"User {self.nombre} is a system admin and has all permissions.")
             return True
-        elif self.role:
-            return self.role.has_permission(permission_name)
-        else:
+        
+        # Si no tiene rol asignado, no tiene permisos
+        if not self.role_id or not self.role:
+            print(f"User {self.id} has no role assigned")
             return False
+        
+        # Verificar si el rol tiene el permiso
+        if self.role.has_permission(permission_name):
+            print(f"User {self.nombre} with role {self.role.nombre} has permission: {permission_name}")
+            return True
+            
+        return False
 
     def get_name_role(self) -> str:
         if self.system_admin:
@@ -49,3 +59,6 @@ class Usuario(Base):
             return self.role.name
         else:
             return "No Role"
+
+    def __repr__(self):
+        return f'<User - Alias: {self.alias} - Email: {self.email} - Rol: {self.rol} - Inserted At: {self.inserted_at} - Updated At: {self.updated_at}>'

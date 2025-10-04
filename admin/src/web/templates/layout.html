@@ -59,6 +59,12 @@
                             <a class="nav-link {{ 'active' if request.path.startswith('/admin/gestion-usuarios') else '' }}"
                                 href="{{ url_for('user.list_users') }}">Gestion de usuarios</a>
                         </li>
+                        {% if is_system_admin() %}
+                        <li class="nav-item">
+                            <a class="nav-link {{ 'active' if request.path.startswith('/feature_flags') else '' }}"
+                                href="{{ url_for('feature_flag.get_feature_flags') }}">⚙️ Feature Flags</a>
+                        </li>
+                        {% endif %}
                     </ul>
                 </div>
             </div>
@@ -97,6 +103,12 @@
                     <a class="nav-link {{ 'active' if request.path.startswith('/admin/gestion-usuarios') else '' }}"
                         href="{{ url_for('user.list_users') }}">Gestion de usuarios</a>
                 </li>
+                {% if is_system_admin() %}
+                <li class="nav-item">
+                    <a class="nav-link {{ 'active' if request.path.startswith('/feature_flags') else '' }}"
+                        href="{{ url_for('feature_flag.get_feature_flags') }}">⚙️ Feature Flags</a>
+                </li>
+                {% endif %}
             </ul>
         </div>
 

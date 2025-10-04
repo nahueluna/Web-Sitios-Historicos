@@ -113,12 +113,6 @@ def buscar_usuarios(email=None, activo=None, rol=None, orden="asc", pagina=1, po
 
     return usuarios, total
 
-
-# Ver si se puede reemplazar por el método de arriba get_user_by_id o viceversa
-def find_user_by_id(user_id: int) -> Usuario | None:
-        return db.session.query(Usuario).filter_by(id=user_id).first()
-
-
 def create_permission(name: str) -> Permission:
     # Verificar si el permiso ya existe
     existing_permission = db.session.query(Permission).filter_by(name=name).first()

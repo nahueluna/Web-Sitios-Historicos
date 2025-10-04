@@ -1,7 +1,7 @@
 from src.core.models.auth.user import Usuario as User
 from src.core.models.auth.role_permission import Role, Permission, RolePermission
 from src.core.database import db
-from src.core.models.auth import create_permission, assign_permission_to_role
+from src.core.models.auth import create_permission, assign_permission_to_role, hash_password
 
 
 def run_seeds():
@@ -72,7 +72,7 @@ def run_seeds():
         email="sys_admin@example.com", 
         nombre="System",
         apellido="Admin",
-        password="sys_admin123",
+        password= hash_password("sys_admin123"),
         system_admin=True,  
         role_id=None  # System admin no necesita rol específico
     )
@@ -82,7 +82,7 @@ def run_seeds():
         email="admin@example.com", 
         nombre="Admin",
         apellido="User",
-        password="admin123",
+        password=hash_password("admin123"),
         role_id=role_admin.id,
     )
     
@@ -91,7 +91,7 @@ def run_seeds():
         email="editor@example.com", 
         nombre="Editor",
         apellido="User",
-        password="editor123",
+        password=hash_password("editor123"),
         role_id=role_editor.id,
     )
     
@@ -100,7 +100,7 @@ def run_seeds():
         email="user@example.com", 
         nombre="Public",
         apellido="User",
-        password="user123",
+        password=hash_password("user123"),
         role_id=role_user.id,
     )
     

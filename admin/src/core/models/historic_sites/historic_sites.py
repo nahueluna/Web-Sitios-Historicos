@@ -1,8 +1,7 @@
 
 from src.core.database import Base
-from src.core.models.search.tags import Tag
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import DateTime, ForeignKey, Table, Column
+from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import DateTime, ForeignKey
 from datetime import datetime, timezone
 
 class HistoricSites(Base):

@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+
+{% block title %}Gestión de Roles y Permisos{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5 mb-3">Gestión de Roles y Permisos</h1>
+            <p class="lead text-muted">Visualización de roles y sus permisos asignados</p>
+        </div>
+    </div>
+
+    <!-- Vista de Roles -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for role in roles %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <span class="badge bg-light text-primary me-2">{{ role.id }}</span>
+                        {{ role.name }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-3 text-muted">Permisos asignados:</h6>
+                    {% set role_perms = role.get_permissions() %}
+                    {% if role_perms %}
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for perm_name in role_perms %}
+                        <span class="badge bg-success">{{ perm_name }}</span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted fst-italic">Sin permisos asignados</p>
+                    {% endif %}
+                </div>
+                <div class="card-footer text-muted">
+                    <small>{{ role_perms|length }} permiso(s)</small>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if not roles %}
+    <div class="alert alert-info" role="alert">
+        <h4 class="alert-heading">No hay roles disponibles</h4>
+        <p>Actualmente no existen roles en el sistema.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

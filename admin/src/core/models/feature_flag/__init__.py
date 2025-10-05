@@ -1,24 +1,28 @@
 from src.core.models.feature_flag.feature_flag import FeatureFlag
 from src.core.database import db
 
-def is_enabled(flag_key: str) -> bool:
+def is_active(flag_key: str) -> bool:
     """Verifica si un flag está activo"""
-    return db.session.query(FeatureFlag).filter_by(name=flag_key, is_enabled=True).first() is not None
+    return db.session.query(FeatureFlag).filter_by(name=flag_key, is_active=True).first() is not None
 
 def find_flag_by_id(flag_id: int) -> FeatureFlag:
     """Obtiene un flag específico"""
     return db.session.query(FeatureFlag).filter_by(id=flag_id).first()
 
+def find_flag_by_name(flag_name: str) -> FeatureFlag:
+    """Obtiene un flag específico por su nombre"""
+    return db.session.query(FeatureFlag).filter_by(name=flag_name).first()
+
 def get_all_flags():
     """Obtiene todos los flags"""
     return db.session.query(FeatureFlag).all()
 
-def update_flag(flag_id: int, is_enabled: bool, updated_by: int, maintenance_message: str = None, description: str = None):
+def update_flag(flag_id: int, is_active: bool, updated_by: int, maintenance_message: str = None, description: str = None):
     """Actualiza un flag específico"""
     flag = db.session.get(FeatureFlag, flag_id)
     if not flag:
         return None
-    flag.is_enabled = is_enabled
+    flag.is_active = is_active
     flag.updated_by = updated_by
     if maintenance_message is not None:
         flag.maintenance_message = maintenance_message
@@ -44,7 +48,7 @@ def initialize_default_flags():
             'name': 'reviews_enabled',
             'maintenance_message': 'Las reseñas están deshabilitadas temporalmente.',
             'description': 'Habilita o deshabilita las reseñas en el portal público',
-            'is_enabled': True  # Por defecto activo
+            'is_active': True  # Por defecto activo
         }
     ]
     

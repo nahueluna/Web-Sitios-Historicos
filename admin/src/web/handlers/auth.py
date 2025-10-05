@@ -63,10 +63,4 @@ def is_admin():
     user = get_usuario_by_email(session.get("user"))
     return user.rol == RolUsuario.ADMIN
 
-def get_current_user_id():
-    if not is_authenticated():
-        return None
-    user = get_usuario_by_email(session.get("user"))
-    return user.id
-
 ### FUNCIONES QUE NECESITA JUANI

@@ -2,7 +2,7 @@ import datetime
 from os import abort
 from src.core.models.auth import get_usuario_by_email
 from src.core.models.auth.user import RolUsuario
-from src.web.handlers.auth import get_current_user_id, login_required, role_required
+from src.web.handlers.auth import login_required, role_required
 from src.core.models.historic_site_tags import get_tags_by_site
 from src.core.models.search import get_all_tags
 from flask import Blueprint, render_template, request, jsonify, session
@@ -79,11 +79,12 @@ def render_category_form(user):
 # RENDERING
 
 @historic_sites_bp.route('/add-site', methods=['POST']) # 
-def add_site(): 
+@role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
+def add_site(user): 
     try:
         json = request.get_json()
         __validator__(json)
-        user_id = get_current_user_id()
+        user_id = user.id
 
         date = json['inauguration_year']
         format_date = datetime.strptime(date, "%Y-%m-%d")
@@ -111,11 +112,12 @@ def add_site():
         return jsonify({"error": str(e)}), 400
 
 @historic_sites_bp.route('/edit-site', methods=['PUT'])
-def edit_site(): 
+@role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
+def edit_site(user): 
     try:
         json = request.get_json()
         __validator__(json)
-        user_id = get_current_user_id()
+        user_id = user.id
         edit_historic_site(
             hs_id = int(json['id']),
             site_name=json['site_name'],
@@ -138,6 +140,7 @@ def edit_site():
         return jsonify({"error": str(e)}), 400
 
 @historic_sites_bp.route('/delete-site', methods=['DELETE'])
+@role_required([RolUsuario.ADMIN])
 def delete_site(): 
     try:
         id = request.get_json()['id']
@@ -151,10 +154,12 @@ def delete_site():
 
 # -- AUXILIARES -- #
 @historic_sites_bp.route('/category/get-all', methods=['GET']) # Retorna todas las categorias de sitios historicos de la BD
+@role_required([RolUsuario.ADMIN])
 def get_all_cateorie():
     return jsonify([x.json() for x in list_historic_sites_categorie()]), 201 
 
 @historic_sites_bp.route('/category/add-category', methods=['POST'])
+@role_required([RolUsuario.ADMIN])
 def admin_add_category(): 
     try: 
         json = request.get_json()
@@ -164,6 +169,7 @@ def admin_add_category():
         return jsonify({"error": str(e)}), 400
 
 @historic_sites_bp.route('/category/delete', methods=['DELETE'])
+@role_required([RolUsuario.ADMIN])
 def admin_delete_category():
     try:
         id = request.get_json()["id"]
@@ -179,6 +185,7 @@ def get_all_states():
     return jsonify([x.json() for x in list_states()]), 201 
 
 @historic_sites_bp.route('/logs/get-all/<int:id>', methods=['GET']) # Retorna todas los estados de sitios historicos de la BD
+@role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
 def get_all_logs(id):
     list =get_logs_per_hs(hs_id=id)
     response = []
@@ -195,6 +202,7 @@ def get_all_logs(id):
     return jsonify(response), 201 
 
 @historic_sites_bp.route('/tags/get-all', methods = ['GET'])
+@role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
 def __get_all_tags():
     tags = get_all_tags()
 

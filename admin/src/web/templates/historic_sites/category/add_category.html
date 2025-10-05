@@ -65,14 +65,14 @@
             })
             .then(data => {
                 console.log('Categoría creada exitosamente:', data);
-                alert('Categoría creada exitosamente. Redirigiendo...');
+                alert('Categoría creada exitosamente. Redirigiendo...', "success");
                 setTimeout(() => {
                     window.location.href = "{{ url_for('historic_sites.render_admin_categories') }}";
-                }, 2500);
+                }, 2000);
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Error al crear la categoría');
+                alert('Error al crear la categoría', "danger");
             });
     });
 </script>

@@ -11,11 +11,13 @@
         <a href="{{ url_for('historic_sites.render_admin_sites') }}" class="btn btn-primary">
             Ver Sitios Históricos
         </a>
+        {% if is_editor_or_admin() %}
         <a href="{{ url_for('historic_sites.render_site_form') }}" class="btn btn-success ms-3">
             Crear Nuevo Sitio Histórico
         </a>
+        {% endif %}
     </div>
-    {% if is_admin %}
+    {% if is_admin() %}
         <div class="mb-5">
             <h4>Categorías de Sitios Históricos</h4>
             <br>
@@ -27,7 +29,7 @@
             </a>
         </div>
     {% endif %}
-
+    {% if is_editor_or_admin() %}
     <div class="mb-5">
         <h4>Etiquetas</h4>
         <br>
@@ -35,6 +37,7 @@
             Ver listado de etiquetas
         </a>
     </div>
+     {% endif %}
 
 </div>
 <div id="flash-container" class="position-fixed bottom-0 start-0 p-3" style="z-index: 1080;"></div>

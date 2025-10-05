@@ -3,7 +3,7 @@ from flask import render_template, redirect, url_for
 from flask_session import Session
 from src.web.controllers.tags import tags_bp
 from src.web.handlers import error
-from src.web.handlers.auth import is_authenticated, is_system_admin
+from src.web.handlers.auth import is_authenticated, is_system_admin, is_admin, is_editor_or_admin
 from src.web.controllers.user_controller import bp_user
 from src.web.controllers.advanced_search import advanced_search_bp
 from src.web.config import config
@@ -63,6 +63,10 @@ def create_app(env='development', static_folder='../../static'):
     # Registrar funciones globales para templates
     app.jinja_env.globals['is_authenticated'] = is_authenticated
     app.jinja_env.globals['is_system_admin'] = is_system_admin
+
+    ## Funciones globales que usa juani
+    app.jinja_env.globals['is_admin'] = is_admin
+    app.jinja_env.globals['is_editor_or_admin'] = is_editor_or_admin
 
     app.register_blueprint(advanced_search_bp)
     app.register_blueprint(tags_bp)

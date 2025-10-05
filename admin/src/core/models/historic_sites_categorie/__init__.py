@@ -1,3 +1,4 @@
+from src.core.models.historic_sites.historic_sites import HistoricSites
 from src.core.database import db
 from src.core.models.historic_sites_categorie.hs_categories import HistoricSitesCategories  
 
@@ -22,6 +23,28 @@ def add_category(category_name: str):
     db.session.add(category_model)
     db.session.commit()
     return category_model
+
+def delete_category(c_id: int):
+    print("id", c_id)
+    # Busca la categoría por ID
+    category = db.session.query(
+        HistoricSitesCategories
+    ).filter_by(
+        id=c_id
+    ).first()
+
+    exists = db.session.query(
+        HistoricSites
+    ).filter_by(
+        category_id=c_id
+    ).first()
+
+
+    if exists != None:
+        raise Exception("No se puede eliminar la categoría porque está asociada a uno o más sitios históricos.")
+
+    db.session.delete(category)
+    db.session.commit()
 
 def __generate_categories():
     categoires = ["Arquitectura", "Infraestructura", "Sitio arqueológico"]

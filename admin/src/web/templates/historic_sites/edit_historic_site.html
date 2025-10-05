@@ -292,12 +292,12 @@
                     return response.json();
                 })
                 .then(() => {
-                    alert('Sitio histórico modificado exitosamente. Redirigiendo...');
+                    alert('Sitio histórico modificado exitosamente. Redirigiendo...', "success");
                     setTimeout(() => {
                          window.location.href = `/sitios-historicos/detalle/${siteId}`;
-                    }, 2500);
+                    }, 2000);
                 })
-                .catch(error => alert(`Error al modificar el sitio: ${error.error}`));
+                .catch(error => alert(`Error al modificar el sitio: ${error}`, "danger"));
         });
     });
 </script>

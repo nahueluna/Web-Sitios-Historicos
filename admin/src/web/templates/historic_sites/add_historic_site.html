@@ -215,12 +215,12 @@
                     return response.json();
                 })
                 .then(data => {
-                    alert("Sitio agregado con éxito. Redigiriendo...");
+                    alert("Sitio agregado con éxito. Redigiriendo...", "success");
                     setTimeout(() => {
                         window.location.href = "{{ url_for('historic_sites.render_admin_sites') }}";
-                    }, 2500);
+                    }, 2000);
                 }).catch(error => {
-                    alert('Error al crear la categoría: ' + error.message);
+                    alert('Error al crear la categoría: ' + error, "danger");
                 });
 
         });

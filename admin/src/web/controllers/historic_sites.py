@@ -1,12 +1,13 @@
+import datetime
 from os import abort
 from src.core.models.auth import get_usuario_by_email
 from src.core.models.auth.user import RolUsuario
-from src.web.handlers.auth import login_required, role_required
+from src.web.handlers.auth import get_current_user_id, login_required, role_required
 from src.core.models.historic_site_tags import get_tags_by_site
 from src.core.models.search import get_all_tags
 from flask import Blueprint, render_template, request, jsonify, session
 from src.core.models.historic_sites import delete_histoirc_site, get_historic_site, list_all_historic_sites, list_visible_historic_sites, add_historic_site, edit_historic_site
-from src.core.models.historic_sites_categorie import list_historic_sites_categorie, add_category
+from src.core.models.historic_sites_categorie import delete_category, list_historic_sites_categorie, add_category
 from src.core.models.historic_sites_state import list_states
 from src.core.models.historic_sites_logs import get_logs_per_hs
 import pickle
@@ -27,16 +28,11 @@ def render_index(): return render_template('/historic_sites/index.html', is_admi
 @historic_sites_bp.route('/detalle/<int:id>') # Renderiza html
 @login_required
 def render_detail(id): 
-    user_email = session.get("user")
-    user = get_usuario_by_email(user_email)
-    is_admin = user.rol == RolUsuario.ADMIN
-    has_access = user.rol in [RolUsuario.ADMIN, RolUsuario.EDITOR]
-    return render_template('historic_sites/historic_site_detail.html', is_admin=is_admin, has_access=has_access)
+    return render_template('historic_sites/historic_site_detail.html')
 # RENDERING
 
 @historic_sites_bp.route('/get-all', methods=['GET']) # Retorna todos los sitios historicos de la BD
 def get_all(): 
-    # PREGUNTAR SESION PARA MOSTRATR TODOS O SOLO VISIBLES
     json = [x.json() for x in list_all_historic_sites()]
     return jsonify(json), 201
 
@@ -125,7 +121,6 @@ def export_sites(user):
 @historic_sites_bp.route('/get-site/<int:id>', methods=['GET']) # Retorna un sitio historico específico por ID
 def get_site(id):
     hs = get_historic_site(int(id))
-
     response = {
         "historic_site": hs[0].json(),
         "category": hs[1].category,
@@ -139,40 +134,32 @@ def get_site(id):
 
 # RENDERING
 @historic_sites_bp.route('/admin/gestion-sitios')  # Renderiza html
-@role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
-def render_admin_management(user): 
-    # PREGUNTAR SI TIENE PERMISIOS
-    is_admin = user.rol == RolUsuario.ADMIN
-    return render_template('/historic_sites/gestion_sitios.html', is_admin=is_admin)
+def render_admin_management(): 
+    return render_template('/historic_sites/gestion_sitios.html')
 
 @historic_sites_bp.route('/admin/')  # Renderiza html
 @login_required
 def render_admin_sites(): 
-    # PREGUNTAR SI TIENE PERMISIOS
     return render_template('/historic_sites/index.html')
 
 @historic_sites_bp.route('/admin/agregar-sitio') # 
 @role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
 def render_site_form(user): 
-    # PREGUNTAR SI TIENE PERMISIOS
     return render_template('historic_sites/add_historic_site.html')
 
 @historic_sites_bp.route('/admin/editar-sitio/<int:id>') # 
 @role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
 def render_edite_site_form(user, id): 
-    # PREGUNTAR SI TIENE PERMISIOS
     return render_template('historic_sites/edit_historic_site.html')
 
 @historic_sites_bp.route('/admin/categorias') # 
 @role_required([RolUsuario.ADMIN])
 def render_admin_categories(user): 
-    # PREGUNTAR SI TIENE PERMISIOS
     return render_template('historic_sites/category/categories.html')
 
 @historic_sites_bp.route('/admin/categorias/agregar') # 
 @role_required([RolUsuario.ADMIN])
 def render_category_form(user): 
-    # PREGUNTAR SI TIENE PERMISIOS
     return render_template('historic_sites/category/add_category.html')
 
 # RENDERING
@@ -182,8 +169,12 @@ def add_site():
     try:
         json = request.get_json()
         __validator__(json)
-        user_email = session.get("user")
-        user_id = get_usuario_by_email(user_email).id
+        user_id = get_current_user_id()
+
+        date = json['inauguration_year']
+        format_date = datetime.strptime(date, "%Y-%m-%d")
+        format_date = format_date.strftime("%d-%m-%Y")
+
         hs = add_historic_site(
             site_name=json['site_name'],
             short_description=json['short_description'],
@@ -192,7 +183,7 @@ def add_site():
             province=json['province'],
             latitude=json['latitude'],
             longitude=json['longitude'],
-            inauguration_year=json['inauguration_year'],  
+            inauguration_year=format_date,  
             visible=json['visible'],
             conservation_status=json['conservation_status'],       
             category=json['category'],
@@ -203,15 +194,14 @@ def add_site():
         return jsonify({}), 201
     except Exception as e:
         print(e)
-        return jsonify({"error": e.args}), 400
+        return jsonify({"error": str(e)}), 400
 
 @historic_sites_bp.route('/edit-site', methods=['PUT'])
 def edit_site(): 
     try:
         json = request.get_json()
         __validator__(json)
-        user_email = session.get("user")
-        user_id = get_usuario_by_email(user_email).id
+        user_id = get_current_user_id()
         edit_historic_site(
             hs_id = int(json['id']),
             site_name=json['site_name'],
@@ -252,9 +242,23 @@ def get_all_cateorie():
 
 @historic_sites_bp.route('/category/add-category', methods=['POST'])
 def admin_add_category(): 
-    json = request.get_json()
-    add_category(category_name=json["category"])
-    return jsonify({}), 201
+    try: 
+        json = request.get_json()
+        add_category(category_name=json["category"])
+        return jsonify({}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+@historic_sites_bp.route('/category/delete', methods=['DELETE'])
+def admin_delete_category():
+    try:
+        id = request.get_json()["id"]
+        delete_category(c_id=id)
+        return jsonify({}), 201
+    except Exception as e:
+        print(e)
+        return jsonify({"error": str(e)}), 400
+
 
 @historic_sites_bp.route('/state/get-all', methods=['GET']) # Retorna todas los estados de sitios historicos de la BD
 def get_all_states():
@@ -303,6 +307,9 @@ def __validator__(json: dict):
 
     if not json.get('province'):
         raise ValueError("La provincia no puede estar vacía")
+    
+    if not json.get('inauguration_year'):
+        raise ValueError("El año de inauguración no puede estar vacío")
 
     # Validación para coordenadas numéricas
     try:

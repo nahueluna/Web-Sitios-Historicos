@@ -56,7 +56,7 @@
                     return;
                 }
 
-                // Crear botón de exportar 
+                {% if is_admin() %}
                 const exportButton = document.createElement("button");
                 exportButton.textContent = "Exportar CSV";
                 exportButton.style.margin = "10px 0";
@@ -89,6 +89,7 @@
                     }
                 };
                 container.appendChild(exportButton);
+                {% endif %}
 
                 data.forEach(hs => {
                     const block = document.createElement("div");

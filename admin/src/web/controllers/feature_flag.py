@@ -21,15 +21,19 @@ def get_feature_flags():
         inserted_at_formatted = flag.inserted_at.strftime('%Y-%m-%d %H:%M') if flag.inserted_at else ''
         updated_at_formatted = flag.updated_at.strftime('%Y-%m-%d %H:%M') if flag.updated_at else ''
         
+        # Obtener email del usuario que actualizó
+        updated_by_email = flag.updated_by_user.email if flag.updated_by_user else 'N/A'
+        
         flags_data.append({
             'id': flag.id,
             'name': flag.name,
-            'is_enabled': flag.is_enabled,
+            'is_active': flag.is_active,
             'description': flag.description,
             'maintenance_message': flag.maintenance_message,
             'inserted_at': inserted_at_formatted,
             'updated_at': updated_at_formatted,
-            'updated_by': flag.updated_by
+            'updated_by': flag.updated_by,
+            'updated_by_email': updated_by_email
         })
     return render_template('feature_flags/index.html', flags=flags_data)
 
@@ -78,8 +82,12 @@ def toggle_feature_flag(flag_id: int):
     if not flag:
         return jsonify({'error': 'Flag no encontrado'}), 404
 
-    flag.is_enabled = not flag.is_enabled
+    # Validación: si se va a activar, verificar que tenga mensaje de mantenimiento
+    if not flag.is_active and not flag.maintenance_message.strip():
+        return jsonify({'error': 'No se puede activar el flag sin un mensaje de mantenimiento configurado'}), 400
+
+    flag.is_active = not flag.is_active
     user = get_usuario_by_email(session.get('user'))
     flag.updated_by = user.id
     db.session.commit()
-    return jsonify({'id': flag.id, 'is_enabled': flag.is_enabled})
+    return jsonify({'id': flag.id, 'is_active': flag.is_active})

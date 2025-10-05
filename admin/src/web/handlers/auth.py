@@ -34,6 +34,9 @@ def role_required(roles: list[RolUsuario]):
 
             # 2. Obtener el usuario
             user = get_usuario_by_email(user_email)
+            if user.system_admin:
+                return f(user, *args, **kwargs)
+
 
             if not user:
                 abort(500)

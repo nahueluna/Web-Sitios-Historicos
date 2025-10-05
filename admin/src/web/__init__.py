@@ -10,8 +10,7 @@ from src.web.config import config
 from src.core import database
 from src.web.controllers.historic_sites import historic_sites_bp
 from src.web.controllers.historic_sites import render_index
-from src.web.controllers.role_controller import role_bp
-from src.web.controllers.user_controller import bp_user
+from src.web.controllers.role_permission import role_bp
 from src.web.controllers.auth import bp_auth
 from src.web.controllers.feature_flag import feature_flag_bp
 from src.core.bcrypt import bcrypt

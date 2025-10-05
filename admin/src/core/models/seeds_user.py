@@ -1,4 +1,4 @@
-from src.core.models.auth.user import Usuario as User
+from src.core.models.auth.user import Usuario, RolUsuario
 from src.core.models.auth.role_permission import Role, Permission, RolePermission
 from src.core.database import db
 from src.core.models.auth import create_permission, assign_permission_to_role, hash_password
@@ -68,40 +68,45 @@ def run_seeds():
 
     print("Creación de usuarios")
     # System admin con acceso completo (sin rol específico con system_admin=True)
-    sys_admin = User(
+    sys_admin = Usuario(
         email="sys_admin@example.com", 
         nombre="System",
         apellido="Admin",
         password= hash_password("sys_admin123"),
         system_admin=True,  
-        role_id=None  # System admin no necesita rol específico
+        role_id=None,  # System admin no necesita rol específico
+        rol=None
     )
     
     # Administrador (asignado al rol admin)
-    admin = User(
+    admin = Usuario(
         email="admin@example.com", 
         nombre="Admin",
         apellido="User",
         password=hash_password("admin123"),
         role_id=role_admin.id,
+        rol= RolUsuario.ADMIN
     )
     
     # Editor (asignado al rol editor)
-    editor = User(
+    editor = Usuario(
         email="editor@example.com", 
         nombre="Editor",
         apellido="User",
         password=hash_password("editor123"),
         role_id=role_editor.id,
+        rol= RolUsuario.EDITOR
     )
     
     # Usuario público (asignado al rol user)
-    user = User(
+    user = Usuario(
         email="user@example.com", 
         nombre="Public",
         apellido="User",
         password=hash_password("user123"),
         role_id=role_user.id,
+        rol= RolUsuario.PUBLICO
+        
     )
     
     # Guardar usuarios

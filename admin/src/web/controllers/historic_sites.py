@@ -22,7 +22,7 @@ historic_sites_bp = Blueprint('historic_sites', __name__, url_prefix='/sitios-hi
 # RENDERING
 @historic_sites_bp.route('/') # Renderiza html
 @login_required
-def render_index(): return render_template('/historic_sites/index.html')
+def render_index(): return render_template('/historic_sites/index.html', is_admin=is_admin)
 
 @historic_sites_bp.route('/detalle/<int:id>') # Renderiza html
 @login_required
@@ -42,13 +42,16 @@ def get_all():
 
 
 # Endpoint para generar CSV del lado del servidor
-@historic_sites_bp.route('/export-sites', methods=['GET'])
-def export_sites():
+@historic_sites_bp.route('/admin/export-sites', methods=['GET'])
+@role_required([RolUsuario.ADMIN])
+def export_sites(user):
     data = [x.json() for x in list_all_historic_sites()]
     
     # Devolver si no hay sitios
     if len(data) == 0:
-        return jsonify({"error": "No hay datos para exportar"}), 404
+        return jsonify({
+            "error": "No hay datos para exportar"
+        }), 404
 
     # Obtengo id y nombre correspondiente a cada categoria y estado
     categories = {cat.id: cat.category for cat in list_historic_sites_categorie()}

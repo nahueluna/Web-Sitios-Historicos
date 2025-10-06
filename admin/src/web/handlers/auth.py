@@ -38,11 +38,8 @@ def role_required(roles: list[RolUsuario]):
             if not user:
                 abort(500)
 
-            if user.system_admin:
-                return f(user, *args, **kwargs)
-
             # 3. Verificar rol
-            if user.rol not in roles:
+            if (user.rol not in roles) and (not user.system_admin):
                 abort(403)
 
             # 4. Pasar usuario a la vista

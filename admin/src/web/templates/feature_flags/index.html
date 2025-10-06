@@ -5,8 +5,8 @@
 {% block content %}
 <div class="container py-4">
     <div class="mb-4">
-        <h1 class="display-5 fw-bold">Feature Flags</h1>
-        <p class="text-muted">Administra las funcionalidades del sistema</p>
+        <h1 class="">Feature Flags</h1>
+        <p class="lead text-muted">Administra las funcionalidades del sistema</p>
     </div>
 
     <div class="card shadow-sm">
@@ -18,6 +18,8 @@
                             <th scope="col" class="px-4 py-3">Nombre</th>
                             <th scope="col" class="px-4 py-3">Mensaje de Mantenimiento</th>
                             <th scope="col" class="px-4 py-3">Estado</th>
+                            <th scope="col" class="px-4 py-3">Última Modificación</th>
+                            <th scope="col" class="px-4 py-3">Modificado Por</th>
                             <th scope="col" class="px-4 py-3">Acciones</th>
                         </tr>
                     </thead>
@@ -32,16 +34,22 @@
                             </td>
                             <td class="px-4 py-3">
                                 <button 
-                                    onclick="toggleFlag({{ flag.id }}, '{{ flag.name }}', {{ 'true' if flag.is_enabled else 'false' }})"
-                                    class="btn btn-sm rounded-pill {% if flag.is_enabled %}btn-success{% else %}btn-danger{% endif %}">
-                                    {% if flag.is_enabled %}✓ Activado{% else %}✗ Desactivado{% endif %}
+                                    onclick="toggleFlag({{ flag.id }}, '{{ flag.name }}', {{ 'true' if flag.is_active else 'false' }})"
+                                    class="btn btn-sm rounded-pill {% if flag.is_active %}btn-success{% else %}btn-danger{% endif %}">
+                                    {% if flag.is_active %}Activado{% else %}Desactivado{% endif %}
                                 </button>
                             </td>
                             <td class="px-4 py-3">
+                                <small class="text-muted">{{ flag.updated_at or 'N/A' }}</small>
+                            </td>
+                            <td class="px-4 py-3">
+                                <small class="text-muted">{{ flag.updated_by_email or 'N/A' }}</small>
+                            </td>
+                            <td class="px-4 py-3">
                                 <button 
-                                    onclick="openEditModal({{ flag.id }}, '{{ flag.name }}', '{{ flag.description or '' }}', '{{ flag.maintenance_message or '' }}', '{{ flag.inserted_at }}', '{{ flag.updated_at }}')"
+                                    onclick="openEditModal({{ flag.id }}, '{{ flag.name }}', '{{ flag.description or '' }}', '{{ flag.maintenance_message or '' }}', '{{ flag.inserted_at }}', '{{ flag.updated_at }}', '{{ flag.updated_by_email or 'N/A' }}')"
                                     class="btn btn-primary btn-sm">
-                                    📝 Editar
+                                    Editar
                                 </button>
                             </td>
                         </tr>
@@ -149,20 +157,28 @@ function toggleFlag(flagId, flagName, currentState) {
             'Content-Type': 'application/json',
         }
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(data => {
+                throw new Error(data.error || 'Error desconocido');
+            });
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.error) {
             alert('❌ Error: ' + data.error);
         } else {
+            alert(`✅ Feature flag ${action} correctamente`);
             location.reload();
         }
     })
     .catch(error => {
-        alert('❌ Error al actualizar el flag: ' + error);
+        alert('❌ Error al actualizar el flag: ' + error.message);
     });
 }
 
-function openEditModal(flagId, name, description, maintenanceMessage, insertedAt, updatedAt) {
+function openEditModal(flagId, name, description, maintenanceMessage, insertedAt, updatedAt, updatedByEmail) {
     document.getElementById('edit_flag_id').value = flagId;
     document.getElementById('edit_flag_name').value = name;
     document.getElementById('edit_description').value = description || '';
@@ -171,7 +187,7 @@ function openEditModal(flagId, name, description, maintenanceMessage, insertedAt
     // Mostrar información de auditoría
     document.getElementById('view_inserted_at').textContent = insertedAt || 'No disponible';
     document.getElementById('view_updated_at').textContent = updatedAt || 'No disponible';
-    document.getElementById('view_updated_by').textContent = 'N/A';
+    document.getElementById('view_updated_by').textContent = updatedByEmail || 'N/A';
     
     // Abrir modal con Bootstrap
     if (editModalInstance) {

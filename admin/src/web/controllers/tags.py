@@ -1,14 +1,16 @@
 from flask import Blueprint, render_template, request, Response, redirect, flash, abort
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
-from src.core.models.search import create_tag, list_tags, update_tag_name, get_tag_by_id, remove_tag, tag_has_association_with_site
 from src.web.controllers.helpers.tags import verify_tag_and_generate_slug, handle_db_error
 from src.web.handlers.auth import role_required
+from src.web.decorator import block_admin_maintenance
+from src.core.models.search import create_tag, list_tags, update_tag_name, get_tag_by_id, remove_tag, tag_has_association_with_site
 from src.core.models.auth.user import RolUsuario
 
 tags_bp = Blueprint('tags', __name__, url_prefix='/etiquetas')
 
 @tags_bp.get('/')
+@block_admin_maintenance
 @role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
 def view_tags(_user):
     order_by = request.args.get('order_by', 'inserted_at')
@@ -31,11 +33,13 @@ def view_tags(_user):
     return render_template('tags/index.html', tags=tags_list, page=page, total=total, per_page=per_page)
 
 @tags_bp.get('/agregar')
+@block_admin_maintenance
 @role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
 def show_add_tag_form(_user):
     return render_template('tags/add_tag.html')
 
 @tags_bp.post('/agregar')
+@block_admin_maintenance
 @role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
 def add_tag(_user):
     tag_name = request.form.get('name')
@@ -66,6 +70,7 @@ def add_tag(_user):
     return redirect("/etiquetas/")
 
 @tags_bp.post('/eliminar/<int:tag_id>')
+@block_admin_maintenance
 @role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
 def delete_tag(_user, tag_id):
     if request.form.get('_method') == "DELETE":
@@ -84,6 +89,7 @@ def delete_tag(_user, tag_id):
         abort(405)
 
 @tags_bp.get('/actualizar/<int:tag_id>')
+@block_admin_maintenance
 @role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
 def show_update_tag_form(_user, tag_id):
     tag = get_tag_by_id(tag_id)
@@ -94,6 +100,7 @@ def show_update_tag_form(_user, tag_id):
     return render_template('tags/edit_tag.html', tag_id=tag_id, tag_name=tag.name)
 
 @tags_bp.post('/actualizar/<int:tag_id>')
+@block_admin_maintenance
 @role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
 def update_tag(_user, tag_id):
     if request.form.get('_method') == "PUT":

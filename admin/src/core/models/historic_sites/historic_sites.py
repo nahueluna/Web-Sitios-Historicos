@@ -43,6 +43,7 @@ class HistoricSites(Base):
             "latitude": self.latitude,
             "longitude": self.longitude,
             "status": self.status_id,
+            "registration_date": (self.registration_date).strftime('%Y-%m-%d'),
             "inauguration_year": (self.inauguration_year).strftime('%Y-%m-%d'),
             "category": self.category_id,
             "visible": self.visible,

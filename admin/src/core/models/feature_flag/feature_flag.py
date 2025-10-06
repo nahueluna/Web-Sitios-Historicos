@@ -14,7 +14,7 @@ class FeatureFlag(Base):
     # Unique name for the feature flag: 
     # admin_maintenance_mode, portal_maintenance_mode and reviews_enabled
     name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
-    is_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     maintenance_message: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str] = mapped_column(String(255), nullable=True)
     

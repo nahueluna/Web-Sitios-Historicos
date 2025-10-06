@@ -11,6 +11,12 @@ from src.core.models.historic_sites_categorie import delete_category, list_histo
 from src.core.models.historic_sites_state import list_states
 from src.core.models.historic_sites_logs import get_logs_per_hs
 import pickle
+import io, csv
+from datetime import datetime
+from flask import Response
+
+from web.decorator import block_admin_maintenance
+
 
 historic_sites_bp = Blueprint('historic_sites', __name__, url_prefix='/sitios-historicos')
 
@@ -19,7 +25,7 @@ historic_sites_bp = Blueprint('historic_sites', __name__, url_prefix='/sitios-hi
 # RENDERING
 @historic_sites_bp.route('/') # Renderiza html
 @login_required
-def render_index(): return render_template('/historic_sites/index.html')
+def render_index(): return render_template('/historic_sites/index.html', is_admin=is_admin)
 
 @historic_sites_bp.route('/detalle/<int:id>') # Renderiza html
 @login_required
@@ -31,6 +37,88 @@ def render_detail(id):
 def get_all(): 
     json = [x.json() for x in list_all_historic_sites()]
     return jsonify(json), 201
+
+
+# Endpoint para generar CSV del lado del servidor
+@historic_sites_bp.route('/admin/export-sites', methods=['GET'])
+@role_required([RolUsuario.ADMIN])
+def export_sites(user):
+    data = [x.json() for x in list_all_historic_sites()]
+    
+    # Devolver si no hay sitios
+    if len(data) == 0:
+        return jsonify({
+            "error": "No hay datos para exportar"
+        }), 404
+
+    # Obtengo id y nombre correspondiente a cada categoria y estado
+    categories = {cat.id: cat.category for cat in list_historic_sites_categorie()}
+    states = {state.id: state.state for state in list_states()}
+
+    # Diccionario para definir las columnas en español y poder manejar en el for los valores correspondientes
+    # Excluyo la descripcion larga, fusiono las coordenadas y excluyo cualquier otro dato nuevo que no este definido aca
+    column_translation = {
+        "id": "ID del sitio",
+        "site_name": "Nombre",
+        "short_description": "Descripcion breve", 
+        "city": "Ciudad",
+        "province": "Provincia",
+        "status": "Estado de conservacion",
+        "registration_date": "Fecha de registro",
+        "inauguration_year": "Año de inauguracion",
+        "category": "Categoria",
+        "visible": "Visible"
+    }
+
+    fieldnames = list(column_translation.values()) + ["Coordenadas de geolocalizacion"] + ["Tags asociados"]
+
+    # StringIO sirve para crear un archivo en memoria, en este caso CSV
+    output = io.StringIO()
+    
+    # Agregar BOM para UTF-8. Marca invisible para que Excel reconozca UTF-8, por mas que ya se defina en el mimetype
+    output.write('\ufeff') 
+    
+    writer = csv.DictWriter(output, fieldnames=fieldnames, delimiter=",")
+    writer.writeheader()
+
+    for row in data:
+        # Creo una nueva fila
+        spanish_row = {}
+
+        # Obtener los tags del sitio en cada iteracion
+        site_tags = get_tags_by_site(row['id'])  # Lista de objetos Tag
+        tag_names = [tag.name for tag in site_tags]  # Extraer solo los nombres
+        spanish_row["Tags asociados"] = " ; ".join(tag_names) if tag_names else "Sin tags" 
+        
+        # Clave (ingles) valor (español) en el diccionario.
+        for english_col, spanish_col in column_translation.items():
+            # Si existe una columna con ese nombre en ingles en donde estoy parado
+            if english_col in row:
+                # Agarro el status_id o category_id y en base al diccionario lo reemplazo por el nombre correspondiente
+                # El metodo get busca la clave del 1er param en el diccionario para entonces agarrar el valor, y si no la encuentra devuelve el segundo parametro (fallback)
+                if english_col == "status":
+                    spanish_row[spanish_col] = states.get(row[english_col], row[english_col])
+                elif english_col == "category":
+                    spanish_row[spanish_col] = categories.get(row[english_col], row[english_col])
+                else:
+                    spanish_row[spanish_col] = row[english_col]
+        
+        # Combino latitud y longitud (si existen) en una sola columna
+        if 'latitude' in row and 'longitude' in row:
+            spanish_row["Coordenadas de geolocalizacion"] = f"{row['latitude']}; {row['longitude']}" 
+        
+        # Escribir fila transformada
+        writer.writerow(spanish_row)
+
+    # Nombre como lo solicita el documento
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M')
+    filename = f"sitios_{timestamp}.csv"
+
+    # Response recibe el contenido en formato de string (getvalue), el mimetype o tipo de archivo (csv con codificacion utf-8)
+    response = Response(output.getvalue(), mimetype="text/csv; charset=utf-8")
+    response.headers["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response, 200
+
 
 @historic_sites_bp.route('/get-site/<int:id>', methods=['GET']) # Retorna un sitio historico específico por ID
 def get_site(id):
@@ -48,30 +136,36 @@ def get_site(id):
 
 # RENDERING
 @historic_sites_bp.route('/admin/gestion-sitios')  # Renderiza html
+@block_admin_maintenance
 def render_admin_management(): 
     return render_template('/historic_sites/gestion_sitios.html')
 
 @historic_sites_bp.route('/admin/')  # Renderiza html
+@block_admin_maintenance
 @login_required
 def render_admin_sites(): 
     return render_template('/historic_sites/index.html')
 
 @historic_sites_bp.route('/admin/agregar-sitio') # 
+@block_admin_maintenance
 @role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
 def render_site_form(user): 
     return render_template('historic_sites/add_historic_site.html')
 
 @historic_sites_bp.route('/admin/editar-sitio/<int:id>') # 
+@block_admin_maintenance
 @role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
 def render_edite_site_form(user, id): 
     return render_template('historic_sites/edit_historic_site.html')
 
 @historic_sites_bp.route('/admin/categorias') # 
+@block_admin_maintenance
 @role_required([RolUsuario.ADMIN])
 def render_admin_categories(user): 
     return render_template('historic_sites/category/categories.html')
 
 @historic_sites_bp.route('/admin/categorias/agregar') # 
+@block_admin_maintenance
 @role_required([RolUsuario.ADMIN])
 def render_category_form(user): 
     return render_template('historic_sites/category/add_category.html')
@@ -80,6 +174,7 @@ def render_category_form(user):
 
 @historic_sites_bp.route('/add-site', methods=['POST']) # 
 @role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
+@block_admin_maintenance
 def add_site(user): 
     try:
         json = request.get_json()
@@ -113,6 +208,7 @@ def add_site(user):
 
 @historic_sites_bp.route('/edit-site', methods=['PUT'])
 @role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
+@block_admin_maintenance
 def edit_site(user): 
     try:
         json = request.get_json()
@@ -140,6 +236,7 @@ def edit_site(user):
         return jsonify({"error": str(e)}), 400
 
 @historic_sites_bp.route('/delete-site', methods=['DELETE'])
+@block_admin_maintenance
 @role_required([RolUsuario.ADMIN])
 def delete_site(): 
     try:

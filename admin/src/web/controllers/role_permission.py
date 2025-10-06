@@ -1,20 +1,23 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from src.web.decorator import permission_required
-
+from core.models.auth.user import RolUsuario
+# Servicios
 from src.core.models.auth import (
-    get_role_by_id,
-    assign_permission_to_role,
-    remove_permission_from_role,
-    get_role_by_name,
-    get_permissions_by_role,
+    get_role_by_id, 
+    assign_permission_to_role, 
+    remove_permission_from_role, 
+    get_role_by_name, 
+    get_permissions_by_role, 
     get_all_permissions
 )
-from src.core.database import db
+# Decoradores y handlers
+from web.handlers.auth import role_required
+from src.web.decorator import block_admin_maintenance
 
 role_bp = Blueprint('role', __name__, url_prefix='/roles')
 
 @role_bp.route('/', methods=['GET'])
-@permission_required('role_index')
+@block_admin_maintenance
+@role_required([RolUsuario.ADMIN])
 def index():
     """Muestra la lista de roles con sus permisos asignados"""
     admin_role = get_role_by_name("admin")
@@ -50,7 +53,8 @@ def index():
 
 
 @role_bp.route('/<int:role_id>/add-permission', methods=['POST'])
-@permission_required('role_update')
+@block_admin_maintenance
+@role_required([RolUsuario.ADMIN])
 def add_permission(role_id):
     """Agrega un permiso a un rol"""
     role = get_role_by_id(role_id)
@@ -79,7 +83,8 @@ def add_permission(role_id):
     return redirect(url_for('role.index'))
 
 @role_bp.route('/<int:role_id>/remove-permission', methods=['POST'])
-@permission_required('role_update')
+@block_admin_maintenance
+@role_required([RolUsuario.ADMIN])
 def remove_permission(role_id):
     """Remueve un permiso de un rol"""
     role = get_role_by_id(role_id)

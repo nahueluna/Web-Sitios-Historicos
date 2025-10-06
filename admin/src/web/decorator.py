@@ -38,7 +38,7 @@ def system_admin_required(f):
         # 3. Verificar que sea un administrador del sistema
         # El método de arriba cumple la misma función con has_permission del usuario
         # Por claridad utilizo éste
-        if not user.system_admin:
+        if not user.is_system_admin():
             flash("No tienes permisos para acceder a esta página. Solo administradores del sistema.", "error")
             abort(403)
         
@@ -75,7 +75,7 @@ def require_feature(flag_name: str):
             user = get_usuario_by_email(session.get('user'))
             
             # System admins siempre tienen acceso
-            if user and user.is_system_admin():
+            if user and user.system_admin:
                 return f(*args, **kwargs)
             
             # Verificar si el feature no está habilitado
@@ -85,7 +85,7 @@ def require_feature(flag_name: str):
                 
                 return render_template(
                     'maintenance.html',
-                    message=flag.maintenance_message
+                    maintenance_message=flag.maintenance_message
                 ), 403  # 403 Forbidden: La funcionalidad existe pero está deshabilitada (feature flag OFF)
             
             return f(*args, **kwargs)
@@ -94,7 +94,7 @@ def require_feature(flag_name: str):
     return decorator
 
 
-def block_admin_maintenance():
+def block_admin_maintenance(f):
     """
     Bloquea el acceso al panel de administración cuando está en modo mantenimiento.
     
@@ -108,39 +108,37 @@ def block_admin_maintenance():
     
     Muestra mensaje de mantenimiento personalizado configurado en el flag.
     """
-    def decorator(f):
-        @wraps(f)
-        def decorated_function(*args, **kwargs):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
 
-            # Verificar si el modo mantenimiento de admin está ACTIVO (ON)
-            if is_active('admin_maintenance_mode'):
-                # Sistema en mantenimiento
-                
-                # Verificar si el usuario es System Admin (pueden acceder siempre)
-                user = get_usuario_by_email(session.get('user'))
-
-                if user and user.is_system_admin():
-                    # System Admin puede acceder durante mantenimiento
-                    return f(*args, **kwargs)
-
-                # Obtener el flag para mostrar el mensaje personalizado
-                flag = find_flag_by_name('admin_maintenance_mode')
-                
-                # Renderizar template de mantenimiento
-                return render_template(
-                    'maintenance.html',
-                    message=flag.maintenance_message
-                ), 503  # 503 Service Unavailable: El servicio está temporalmente en mantenimiento
+        # Verificar si el modo mantenimiento de admin está ACTIVO (ON)
+        if is_active('admin_maintenance_mode'):
+            # Sistema en mantenimiento
             
+            # Verificar si el usuario es System Admin (pueden acceder siempre)
+            user = get_usuario_by_email(session.get('user'))
+
+            if user and user.is_system_admin():
+                # System Admin puede acceder durante mantenimiento
+                return f(*args, **kwargs)
+
+            # Obtener el flag para mostrar el mensaje personalizado
+            flag = find_flag_by_name('admin_maintenance_mode')
             
-            # No se bloquean funcionalidades de admin y editor → Permitir acceso
-            return f(*args, **kwargs)
+            # Renderizar template de mantenimiento
+            return render_template(
+                'maintenance.html',
+                maintenance_message=flag.maintenance_message
+            ), 503  # 503 Service Unavailable: El servicio está temporalmente en mantenimiento
         
-        return decorated_function
-    return decorator
+        
+        # No se bloquean funcionalidades de admin y editor → Permitir acceso
+        return f(*args, **kwargs)
+    
+    return decorated_function
 
 
-def block_portal_maintenance():
+def block_portal_maintenance(f):
     """
     Bloquea el acceso al portal público cuando está en modo mantenimiento.
     
@@ -151,35 +149,33 @@ def block_portal_maintenance():
     - Si portal_maintenance_mode está OFF → Permite acceso
     - System Admins y roles exentos pueden acceder durante mantenimiento
     """
-    def decorator(f):
-        @wraps(f)
-        def decorated_function(*args, **kwargs):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
 
-            
-            # Verificar si el modo mantenimiento de portal está ACTIVO (ON)
-            if is_active('portal_maintenance_mode'):
-                # Portal en mantenimiento
-
-                user = get_usuario_by_email(session.get('user'))
-                if user and user.is_system_admin():
-                    # System Admin puede acceder durante mantenimiento
-                    return f(*args, **kwargs)
-                
-                
-                # Usuario NO tiene rol exento → Bloquear acceso
-                
-                # Obtener mensaje personalizado del flag
-                flag = find_flag_by_name('portal_maintenance_mode')
-
-                # Renderizar template de mantenimiento
-                return render_template(
-                    'maintenance.html',
-                    message=flag.maintenance_message
-                ), 503  # 503 Service Unavailable: El servicio está temporalmente en mantenimiento
-            
-            
-            # Portal operando normalmente → Permitir acceso
-            return f(*args, **kwargs)
         
-        return decorated_function
-    return decorator
+        # Verificar si el modo mantenimiento de portal está ACTIVO (ON)
+        if is_active('portal_maintenance_mode'):
+            # Portal en mantenimiento
+
+            user = get_usuario_by_email(session.get('user'))
+            if user and user.system_admin:
+                # System Admin puede acceder durante mantenimiento
+                return f(*args, **kwargs)
+            
+            
+            # Usuario NO tiene rol exento → Bloquear acceso
+            
+            # Obtener mensaje personalizado del flag
+            flag = find_flag_by_name('portal_maintenance_mode')
+
+            # Renderizar template de mantenimiento
+            return render_template(
+                'maintenance.html',
+                maintenance_message=flag.maintenance_message
+            ), 503  # 503 Service Unavailable: El servicio está temporalmente en mantenimiento
+        
+        
+        # Portal operando normalmente → Permitir acceso
+        return f(*args, **kwargs)
+    
+    return decorated_function

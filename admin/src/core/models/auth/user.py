@@ -67,6 +67,9 @@ class Usuario(Base):
             return self.role.name
         else:
             return "No Role"
+        
+    def is_system_admin(self) -> bool:
+        return self.system_admin
 
     def __repr__(self):
         return f'<User Email: {self.email} - Rol: {self.rol} - Fecha de Creación: {self.fecha_creacion} - Fecha de Actualización: {self.ultima_modificacion}>'

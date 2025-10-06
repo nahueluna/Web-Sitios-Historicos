@@ -15,6 +15,8 @@ import io, csv
 from datetime import datetime
 from flask import Response
 
+from web.decorator import block_admin_maintenance
+
 
 historic_sites_bp = Blueprint('historic_sites', __name__, url_prefix='/sitios-historicos')
 
@@ -134,30 +136,36 @@ def get_site(id):
 
 # RENDERING
 @historic_sites_bp.route('/admin/gestion-sitios')  # Renderiza html
+@block_admin_maintenance
 def render_admin_management(): 
     return render_template('/historic_sites/gestion_sitios.html')
 
 @historic_sites_bp.route('/admin/')  # Renderiza html
+@block_admin_maintenance
 @login_required
 def render_admin_sites(): 
     return render_template('/historic_sites/index.html')
 
 @historic_sites_bp.route('/admin/agregar-sitio') # 
+@block_admin_maintenance
 @role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
 def render_site_form(user): 
     return render_template('historic_sites/add_historic_site.html')
 
 @historic_sites_bp.route('/admin/editar-sitio/<int:id>') # 
+@block_admin_maintenance
 @role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
 def render_edite_site_form(user, id): 
     return render_template('historic_sites/edit_historic_site.html')
 
 @historic_sites_bp.route('/admin/categorias') # 
+@block_admin_maintenance
 @role_required([RolUsuario.ADMIN])
 def render_admin_categories(user): 
     return render_template('historic_sites/category/categories.html')
 
 @historic_sites_bp.route('/admin/categorias/agregar') # 
+@block_admin_maintenance
 @role_required([RolUsuario.ADMIN])
 def render_category_form(user): 
     return render_template('historic_sites/category/add_category.html')
@@ -165,6 +173,7 @@ def render_category_form(user):
 # RENDERING
 
 @historic_sites_bp.route('/add-site', methods=['POST']) # 
+@block_admin_maintenance
 def add_site(): 
     try:
         json = request.get_json()
@@ -197,6 +206,7 @@ def add_site():
         return jsonify({"error": str(e)}), 400
 
 @historic_sites_bp.route('/edit-site', methods=['PUT'])
+@block_admin_maintenance
 def edit_site(): 
     try:
         json = request.get_json()
@@ -224,6 +234,7 @@ def edit_site():
         return jsonify({"error": str(e)}), 400
 
 @historic_sites_bp.route('/delete-site', methods=['DELETE'])
+@block_admin_maintenance
 def delete_site(): 
     try:
         id = request.get_json()['id']

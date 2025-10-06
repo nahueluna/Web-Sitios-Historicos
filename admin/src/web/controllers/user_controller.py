@@ -1,20 +1,19 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from src.web.handlers.auth import role_required
+# Modelos
 from src.core.models.auth import RolUsuario
-from src.core.models.auth import (
-    crear_usuario,
-    actualizar_usuario,
-    eliminar_usuario,
-    get_usuario_by_id,
-    RolUsuario,
-    buscar_usuarios,
-    EmailExistente)
+# Servicios de usuario
+from src.core.models.auth import (crear_usuario, actualizar_usuario, eliminar_usuario, get_usuario_by_id, RolUsuario, buscar_usuarios, EmailExistente)
+# Decoradores de permisos y autenticación
+from src.web.handlers.auth import login_required, role_required
+# Decoradores para feature flags y mantenimiento ()
+from src.web.decorator import block_admin_maintenance
 
 bp_user = Blueprint("user", __name__, url_prefix="/usuarios")
 
 # Ruta raiz
 @bp_user.route("/")
 # @permission_required('user_index')
+@block_admin_maintenance
 @role_required([RolUsuario.ADMIN])
 def list_users(_session_user):
     email = request.args.get("email")
@@ -50,6 +49,7 @@ def list_users(_session_user):
 # Crear usuario
 @bp_user.route("/nuevo", methods=["GET", "POST"])
 # @permission_required('user_new')
+@block_admin_maintenance
 @role_required([RolUsuario.ADMIN])
 def new_user(_session_user):
     if request.method == "POST":
@@ -72,6 +72,7 @@ def new_user(_session_user):
 # Actualizar usuario
 @bp_user.route("/actualizar/<int:usuario_id>", methods=["GET", "POST"])
 # @permission_required('user_update')
+@block_admin_maintenance
 @role_required([RolUsuario.ADMIN])
 def update_user(_session_user, usuario_id):
     usuario = get_usuario_by_id(usuario_id)
@@ -110,6 +111,7 @@ def update_user(_session_user, usuario_id):
 # Eliminar usuario
 @bp_user.route("/eliminar/<int:usuario_id>", methods=["GET", "POST"])
 # @permission_required('user_destroy')
+@block_admin_maintenance
 @role_required([RolUsuario.ADMIN])
 def delete_user(_session_user, usuario_id):
     usuario = get_usuario_by_id(usuario_id)

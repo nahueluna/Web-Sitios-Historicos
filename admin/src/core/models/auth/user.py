@@ -26,7 +26,6 @@ class Usuario(Base):
     password: Mapped[str] = mapped_column(String(255), nullable=False)  # guardar hash, no plano
     activo: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     rol: Mapped[RolUsuario] = mapped_column(Enum(RolUsuario), default=RolUsuario.PUBLICO, nullable=False)
-    # Reemplazar por inserted_at
     fecha_creacion: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     role_id: Mapped[int] = mapped_column(ForeignKey('roles.id'), nullable=True)
     system_admin: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)

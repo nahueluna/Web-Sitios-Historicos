@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from core.models.auth.user import RolUsuario
+from src.core.models.auth.user import RolUsuario
 # Servicios
 from src.core.models.auth import (
     get_role_by_id, 
@@ -10,7 +10,7 @@ from src.core.models.auth import (
     get_all_permissions
 )
 # Decoradores y handlers
-from web.handlers.auth import role_required
+from src.web.handlers.auth import role_required
 from src.web.decorator import block_admin_maintenance
 
 role_bp = Blueprint('role', __name__, url_prefix='/roles')
@@ -18,7 +18,7 @@ role_bp = Blueprint('role', __name__, url_prefix='/roles')
 @role_bp.route('/', methods=['GET'])
 @block_admin_maintenance
 @role_required([RolUsuario.ADMIN])
-def index():
+def index(user):
     """Muestra la lista de roles con sus permisos asignados"""
     admin_role = get_role_by_name("admin")
     editor_role = get_role_by_name("editor")
@@ -55,7 +55,7 @@ def index():
 @role_bp.route('/<int:role_id>/add-permission', methods=['POST'])
 @block_admin_maintenance
 @role_required([RolUsuario.ADMIN])
-def add_permission(role_id):
+def add_permission(user, role_id):
     """Agrega un permiso a un rol"""
     role = get_role_by_id(role_id)
     if not role:
@@ -72,6 +72,10 @@ def add_permission(role_id):
         flash("Debe seleccionar un permiso", "error")
         return redirect(url_for('role.index'))
     
+    if permission_name in [perm.name for perm in get_permissions_by_role(role)]:
+        flash(f"El permiso '{permission_name}' ya está asignado al rol '{role.name}'", "warning")
+        return redirect(url_for('role.index'))
+
     try:
         assign_permission_to_role(role, permission_name)
         flash(f"Permiso '{permission_name}' agregado al rol '{role.name}' exitosamente", "success")
@@ -85,7 +89,7 @@ def add_permission(role_id):
 @role_bp.route('/<int:role_id>/remove-permission', methods=['POST'])
 @block_admin_maintenance
 @role_required([RolUsuario.ADMIN])
-def remove_permission(role_id):
+def remove_permission(user, role_id):
     """Remueve un permiso de un rol"""
     role = get_role_by_id(role_id)
     if not role:

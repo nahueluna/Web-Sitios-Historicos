@@ -1,0 +1,27 @@
+<!-- Modal for assigning permissions -->
+<div class="modal fade" id="asignPermissionModal" tabindex="-1" aria-labelledby="asignPermissionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="asignPermissionModalLabel">Asignar Permiso</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="assignPermissionForm" method="post">
+                    <div class="mb-3">
+                        <label for="roleSelect" class="form-label">Seleccionar Rol</label>
+                        <select class="form-select" id="roleSelect" name="role_id" required>
+                            <option value="{{ roles_permissions[1].id }}">Admin</option>
+                            <option value="{{ roles_permissions[2].id }}">Editor</option>
+                        </select>
+                    </div>
+                    <input type="hidden" id="permissionNameInput" name="permission_name" value="">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" form="assignPermissionForm" class="btn btn-primary">Asignar</button>
+            </div>
+        </div>
+    </div>
+</div>

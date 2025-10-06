@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from core.models.auth.user import RolUsuario
+from src.core.models.auth.user import RolUsuario
 # Servicios
 from src.core.models.auth import (
     get_role_by_id, 
@@ -10,7 +10,7 @@ from src.core.models.auth import (
     get_all_permissions
 )
 # Decoradores y handlers
-from web.handlers.auth import role_required
+from src.web.handlers.auth import role_required
 from src.web.decorator import block_admin_maintenance
 
 role_bp = Blueprint('role', __name__, url_prefix='/roles')

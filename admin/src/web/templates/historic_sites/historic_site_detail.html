@@ -190,11 +190,11 @@
         const prevBtn = document.getElementById("prev-btn");
 
         if (nextBtn) {
-            nextBtn.addEventListener("click", siguientePagina);
+            nextBtn.addEventListener("click", goToNextPage);
         }
 
         if (prevBtn) {
-            prevBtn.addEventListener("click", paginaAnterior);
+            prevBtn.addEventListener("click", goToPrevPage);
         }
 
         if (!siteId) {
@@ -227,7 +227,10 @@
                             <p><strong>Visible:</strong> ${json.historic_site.visible ? 'Sí' : 'No'}</p>
                         </div>
                         <div id="site-tags-container" class="mb-4">
-                            <!-- Etiquetas del sitio se cargarán aquí -->
+                            <strong>Etiquetas:</strong>
+                            <div id="site-tags-list" style="display:inline-block; margin-left:8px;">
+                                <!-- Etiquetas del sitio se cargarán aquí -->
+                            </div>
                         </div>
                         {% if is_editor_or_admin() %}
                         <div class="d-grid gap-2 d-md-flex justify-content-md-start">
@@ -245,6 +248,36 @@
                             </div>
                         {% endif %}
                     `;
+
+
+                fetch(`/sitios-historicos/tags/site-tags/${siteId}`, { method: 'GET' })
+                    .then(response => {
+                        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                        return response.json();
+                    })
+                    .then(tagsData => {
+                        const tagsList = document.getElementById('site-tags-list');
+                        if (!tagsList) return console.warn('No tags list element found');
+
+                        // Clear any placeholder content inside the tags list only
+                        tagsList.innerHTML = '';
+
+                        if (Array.isArray(tagsData) && tagsData.length > 0) {
+                            tagsData.forEach(tag => {
+                                const span = document.createElement('span');
+                                span.className = 'badge bg-info me-1 mb-1';
+                                span.textContent = tag.name || tag;
+                                tagsList.appendChild(span);
+                            });
+                        } else {
+                            tagsList.innerHTML = `<span class="text-muted">No hay etiquetas asignadas</span>`;
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Error al cargar etiquetas:', err);
+                        const tagsContainer = document.getElementById('site-tags-container');
+                        if (tagsContainer) tagsContainer.innerHTML = `<span class="text-danger">Error al cargar etiquetas</span>`;
+                    });
             })
             .catch(err => {
                 console.error("Error al cargar detalle:", err);
@@ -270,56 +303,6 @@
                 document.getElementById("logs-list").innerHTML =
                     "<p class='text-danger'>Error al cargar los registros.</p>";
             });
-        // Fetch site tags from the new endpoint
-        fetch(`/sitios-historicos/tags/site-tags/${siteId}`, { method: 'GET' })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(tagsData => {
-                console.log("Etiquetas recibidas:", tagsData);
-
-                // Find the description section where we'll insert the tags
-                const siteDetailContainer = document.getElementById("historic-site-detail");
-                const descriptionSection = siteDetailContainer.querySelector('.mb-4');
-
-                // Create tags display element
-                const tagsDiv = document.createElement('div');
-                tagsDiv.className = 'mb-4';
-
-                if (tagsData.length > 0) {
-                    tagsDiv.innerHTML = `
-                        <h5>Etiquetas del Sitio:</h5>
-                        <div id="site-tags-container">
-                            ${tagsData.map(tag =>
-                        `<span class="badge bg-info me-1 mb-1">${tag.name || tag}</span>`
-                    ).join('')}
-                        </div>
-                        `;
-                } else {
-                    tagsDiv.innerHTML = `
-                        <h5>Etiquetas del Sitio:</h5>
-                        <div id="site-tags-container">
-                            <span class="text-muted">No hay etiquetas asignadas</span>
-                        </div>
-                        `;
-                }
-
-                // Insert tags after the description section 
-                descriptionSection.after(tagsDiv);
-
-                // Now you can select the newly created element
-                const siteTagsContainer = document.getElementById("site-tags-container");
-                siteTagsContainer.appendChild(tagsDiv);
-                console.log("Elemento creado:", siteTagsContainer);
-
-            })
-            .catch(err => {
-                console.error("Error al cargar etiquetas:", err);
-            });
-
 
     });
 

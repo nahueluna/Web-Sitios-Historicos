@@ -24,9 +24,20 @@
     <input type="text" name="apellido" class="form-control" value="{{ user.apellido }}" required><br>
 
     <div class="form-check">
+        {% if user and (user.rol == RolUsuario.ADMIN or user.system_admin) %}
+        <input type="checkbox" name="activo" id="activo" class="form-check-input"
+               checked disabled>
+        <label class="form-check-label" for="activo">
+            Activo
+            <small class="text-muted">(Los administradores no pueden ser bloqueados)</small>
+        </label>
+        <!-- Campo oculto para mantener el valor activo=true -->
+        <input type="hidden" name="activo" value="on">
+        {% else %}
         <input type="checkbox" name="activo" id="activo" class="form-check-input"
                {% if user and user.activo %}checked{% endif %}>
         <label class="form-check-label" for="activo">Activo</label>
+        {% endif %}
     </div><br>
     {% endif %}
 

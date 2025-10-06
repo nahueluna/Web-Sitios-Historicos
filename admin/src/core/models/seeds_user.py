@@ -6,13 +6,14 @@ from src.core.models.auth import create_permission, assign_permission_to_role, h
 
 def run_seeds():
     print("Creación de roles")
-    role_user = Role(name="user")
-    role_editor = Role(name="editor")
     role_admin = Role(name="admin")
+    role_editor = Role(name="editor")
+    role_user = Role(name="user")
     
-    db.session.add(role_user)
     db.session.add(role_editor)
     db.session.add(role_admin)
+    db.session.add(role_user)
+    
     db.session.flush()  # Para obtener los IDs
     print("Roles de prueba creados.")
 

@@ -5,8 +5,8 @@
 {% block content %}
 <div class="container py-4">
     <div class="mb-4">
-        <h1 class="display-5 fw-bold">Feature Flags</h1>
-        <p class="text-muted">Administra las funcionalidades del sistema</p>
+        <h1 class="">Feature Flags</h1>
+        <p class="lead text-muted">Administra las funcionalidades del sistema</p>
     </div>
 
     <div class="card shadow-sm">
@@ -36,7 +36,7 @@
                                 <button 
                                     onclick="toggleFlag({{ flag.id }}, '{{ flag.name }}', {{ 'true' if flag.is_active else 'false' }})"
                                     class="btn btn-sm rounded-pill {% if flag.is_active %}btn-success{% else %}btn-danger{% endif %}">
-                                    {% if flag.is_active %}✓ Activado{% else %}✗ Desactivado{% endif %}
+                                    {% if flag.is_active %}Activado{% else %}Desactivado{% endif %}
                                 </button>
                             </td>
                             <td class="px-4 py-3">
@@ -49,7 +49,7 @@
                                 <button 
                                     onclick="openEditModal({{ flag.id }}, '{{ flag.name }}', '{{ flag.description or '' }}', '{{ flag.maintenance_message or '' }}', '{{ flag.inserted_at }}', '{{ flag.updated_at }}', '{{ flag.updated_by_email or 'N/A' }}')"
                                     class="btn btn-primary btn-sm">
-                                    📝 Editar
+                                    Editar
                                 </button>
                             </td>
                         </tr>

@@ -1,8 +1,13 @@
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import ForeignKey, String, Boolean, Enum, DateTime, func
 from src.core.database import Base
 from datetime import datetime, timezone
+from typing import TYPE_CHECKING
 import enum
+
+if TYPE_CHECKING:
+    from src.core.models.auth.role_permission import Role
+
 
 # Enumeración para los roles de usuario
 class RolUsuario(enum.Enum):
@@ -30,6 +35,9 @@ class Usuario(Base):
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
     )
+
+    # Relación con Role
+    role: Mapped["Role"] = relationship("Role", back_populates="users")
 
     def __repr__(self):
         return f'<User - Id: {self.id} - Email: {self.email} - Rol: {self.rol} - Inserted At: {self.inserted_at} - Updated At: {self.updated_at}>'
@@ -61,4 +69,4 @@ class Usuario(Base):
             return "No Role"
 
     def __repr__(self):
-        return f'<User - Alias: {self.alias} - Email: {self.email} - Rol: {self.rol} - Inserted At: {self.inserted_at} - Updated At: {self.updated_at}>'
+        return f'<User Email: {self.email} - Rol: {self.rol} - Fecha de Creación: {self.fecha_creacion} - Fecha de Actualización: {self.ultima_modificacion}>'

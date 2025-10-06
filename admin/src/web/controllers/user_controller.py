@@ -74,22 +74,37 @@ def new_user(_session_user):
 # @permission_required('user_update')
 @role_required([RolUsuario.ADMIN])
 def update_user(_session_user, usuario_id):
-    if request.method == "POST":
-        usuario = actualizar_usuario(
-            usuario_id,
-            email=request.form["email"],
-            nombre=request.form["nombre"],
-            apellido=request.form["apellido"],
-            rol=request.form["rol"],
-            activo="activo" in request.form
-        )
-        if not usuario:
-            return "Usuario no encontrado", 404
-        return redirect(url_for("user.list_users"))
-
     usuario = get_usuario_by_id(usuario_id)
     if not usuario:
-        return "Usuario no encontrado", 404
+        flash("Usuario no encontrado", "error")
+        return redirect(url_for("user.list_users"))
+    
+    # Verificar si es system admin
+    if usuario.system_admin:
+        flash("No se puede modificar un usuario System Admin", "error")
+        return redirect(url_for("user.list_users"))
+    
+    if request.method == "POST":
+        try:
+            usuario = actualizar_usuario(
+                usuario_id,
+                email=request.form["email"],
+                nombre=request.form["nombre"],
+                apellido=request.form["apellido"],
+                rol=request.form["rol"],
+                activo="activo" in request.form
+            )
+            if not usuario:
+                flash("Usuario no encontrado", "error")
+                return redirect(url_for("user.list_users"))
+            
+            flash("Usuario actualizado exitosamente", "success")
+            return redirect(url_for("user.list_users"))
+        except ValueError as e:
+            # Capturar el error de intentar bloquear un administrador
+            flash(str(e), "error")
+            return render_template("user_form.html", action="Actualizar", user=usuario, RolUsuario=RolUsuario)
+    
     return render_template("user_form.html", action="Actualizar", user=usuario, RolUsuario=RolUsuario)
 
 # Eliminar usuario
@@ -97,13 +112,23 @@ def update_user(_session_user, usuario_id):
 # @permission_required('user_destroy')
 @role_required([RolUsuario.ADMIN])
 def delete_user(_session_user, usuario_id):
-    if request.method == "POST":
-        usuario = eliminar_usuario(usuario_id)
-        if not usuario:
-            return "Usuario no encontrado", 404
-        return redirect(url_for("user.list_users"))
-
     usuario = get_usuario_by_id(usuario_id)
     if not usuario:
-        return "Usuario no encontrado", 404
+        flash("Usuario no encontrado", "error")
+        return redirect(url_for("user.list_users"))
+    
+    # Verificar si es system admin antes de mostrar el formulario
+    if usuario.system_admin:
+        flash("No se puede eliminar un usuario System Admin", "error")
+        return redirect(url_for("user.list_users"))
+    
+    if request.method == "POST":
+        try:
+            eliminar_usuario(usuario_id)
+            flash(f"Usuario {usuario.email} eliminado exitosamente", "success")
+            return redirect(url_for("user.list_users"))
+        except ValueError as e:
+            flash(str(e), "error")
+            return redirect(url_for("user.list_users"))
+    
     return render_template("user_confirm_delete.html", user=usuario)

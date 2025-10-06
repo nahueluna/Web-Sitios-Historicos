@@ -1,0 +1,164 @@
+{% extends "layout.html" %}
+
+{% block title %}Gestión de Roles y Permisos{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- La siguiente card se tiene que mostrar al lado de la card de arriba -->
+
+
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-role="admin" href="#">Admin</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-role="editor" href="#">Editor</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div id="admin-content">
+                        {% with role = roles_permissions[1] %}
+                        {% include 'role_permission/permissions_list.html' %}
+                        {% endwith %}
+                    </div>
+                    <div id="editor-content" style="display: none;">
+                        {% with role = roles_permissions[2] %}
+                        {% include 'role_permission/permissions_list.html' %}
+                        {% endwith %}
+                    </div>
+
+                    <!-- Modals for removing permissions -->
+                    {% for rp in roles_permissions %}
+                    {% if rp.name != 'Todos los Permisos' %}
+                    {% for perm in rp.permissions %}
+                    <div class="modal fade" id="removePermissionModal-{{ rp.id }}-{{ loop.index }}" tabindex="-1"
+                        aria-labelledby="removePermissionModalLabel-{{ rp.id }}-{{ loop.index }}" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="removePermissionModalLabel-{{ rp.id }}-{{ loop.index }}">Confirmar
+                                        eliminación
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    ¿Estás seguro de que deseas remover el permiso <strong>{{ perm }}</strong> del rol
+                                    <strong>{{
+                                        rp.name }}</strong>?
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">Cancelar</button>
+                                    <form action="{{ url_for('role.remove_permission', role_id=rp.id) }}" method="post"
+                                        style="display: inline;">
+                                        <input type="hidden" name="permission_name" value="{{ perm }}">
+                                        <button type="submit" class="btn btn-danger">Remover</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    {% endfor %}
+
+                    <!-- Modal for assigning permissions -->
+                    <div class="modal fade" id="asignPermissionModal" tabindex="-1" aria-labelledby="asignPermissionModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="asignPermissionModalLabel">Asignar Permiso</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="assignPermissionForm" method="post">
+                                        <div class="mb-3">
+                                            <label for="roleSelect" class="form-label">Seleccionar Rol</label>
+                                            <select class="form-select" id="roleSelect" name="role_id" required>
+                                                <option value="{{ roles_permissions[1].id }}">Admin</option>
+                                                <option value="{{ roles_permissions[2].id }}">Editor</option>
+                                            </select>
+                                        </div>
+                                        <input type="hidden" id="permissionNameInput" name="permission_name" value="">
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="submit" form="assignPermissionForm" class="btn btn-primary">Asignar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card text-center">
+                <div class="card-header">
+                    <h5>Todos los Permisos</h5>
+                </div>
+                <div class="card-body">
+                    {% with role = roles_permissions[0] %}
+                    {% include 'role_permission/all_permissions_list.html' %}
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    {% endblock %}
+
+    {% block scripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const tabs = document.querySelectorAll('.nav-link[data-role]');
+            const contents = {
+                admin: document.getElementById('admin-content'),
+                editor: document.getElementById('editor-content')
+            };
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    // Remove active class from all tabs
+                    tabs.forEach(t => t.classList.remove('active'));
+                    // Add active to clicked
+                    this.classList.add('active');
+                    // Hide all contents
+                    Object.values(contents).forEach(c => c.style.display = 'none');
+                    // Show selected
+                    const role = this.getAttribute('data-role');
+                    contents[role].style.display = 'block';
+                });
+            });
+
+            // Handle assign permission modal
+            const assignModal = document.getElementById('asignPermissionModal');
+            assignModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const permission = button.getAttribute('data-permission');
+                document.getElementById('permissionNameInput').value = permission;
+
+                const roleSelect = document.getElementById('roleSelect');
+                const form = document.getElementById('assignPermissionForm');
+
+                const updateAction = () => {
+                    const roleId = roleSelect.value;
+                    form.action = `/roles/${roleId}/add-permission`;
+                };
+
+                roleSelect.addEventListener('change', updateAction);
+                updateAction(); // Set initial action
+            });
+        });
+    </script>
+    {% endblock %}

@@ -47,15 +47,17 @@
                 <th>Rol</th>
                 <th>Activo</th>
                 <th>Fecha creación</th>
+                <th>Última modificación</th>
             </tr>
             {% for u in usuarios %}
-            <tr data-id="{{ u.id }}">
+            <tr data-id="{{ u.id }}" {% if u.system_admin %}class="table-secondary" style="cursor: not-allowed;" data-system-admin="true"{% endif %}>
                 <td>{{ u.email }}</td>
                 <td>{{ u.nombre }}</td>
                 <td>{{ u.apellido }}</td>
-                <td>{{ u.rol.value }}</td>
+                <td>{{ u.rol.value if u.rol else "N/A" }}</td>
                 <td>{{ "SI" if u.activo else "NO" }}</td>
                 <td>{{ u.fecha_creacion.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td>{{ u.ultima_modificacion.strftime('%Y-%m-%d %H:%M:%S') }}</td>
             </tr>
             {% endfor %}
         </table>
@@ -92,6 +94,12 @@
 
     document.querySelectorAll("#user-table tr[data-id]").forEach(row => {
         row.addEventListener("click", () => {
+            // No permitir seleccionar usuarios system_admin
+            if (row.dataset.systemAdmin === "true") {
+                alert("No se pueden realizar acciones sobre usuarios System Admin");
+                return;
+            }
+            
             // Quitar highlight previo
             if (selectedRow) {
                 selectedRow.classList.remove("table-primary");

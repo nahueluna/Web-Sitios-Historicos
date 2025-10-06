@@ -3,6 +3,8 @@ from typing import TYPE_CHECKING
 from sqlalchemy import String, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from src.core.models.auth.user import Usuario
+
 if TYPE_CHECKING:
     from src.core.models.auth.user import Usuario
     
@@ -17,6 +19,10 @@ class Role(Base):
     # Permite acceder a todas las asignaciones de permisos para este rol
     # Para obtener los permisos: [rp.permission for rp in role.role_permissions]
     role_permissions: Mapped[list["RolePermission"]] = relationship(back_populates="role")
+
+    # Un rol puede estar asignado a múltiples usuarios (One-to-Many con Usuario)
+    # Permite acceder a todos los usuarios que tienen este rol
+    users: Mapped[list["Usuario"]] = relationship("Usuario", back_populates="role")
 
     def __repr__(self):
         return f'<Role - Name: {self.name}>'

@@ -23,31 +23,35 @@ def hash_password(password: str) -> str:
 
 def check_user(email: str, password: str) -> Usuario | None:
     user = get_usuario_by_email(email)
-    
+
     # Usuario no existe
     if not user:
         return None
-    
+
+    # Usuario eliminado
+    if user.eliminado:
+        return None
+
     # Verificar contraseña
     if not bcrypt.check_password_hash(user.password, password):
         return None
-    
+
     # Usuario bloqueado (inactivo)
     if not user.activo:
         return None
-    
+
     # Todo correcto
     return user
 
 # Gestión de Usuarios
 def get_all_usuarios():
-    return db.session.query(Usuario).all()
+    return db.session.query(Usuario).filter_by(eliminado=False).all()
 
 def get_usuario_by_id(usuario_id: int):
-    return db.session.query(Usuario).filter_by(id=usuario_id).first()
+    return db.session.query(Usuario).filter_by(id=usuario_id, eliminado=False).first()
 
 def get_usuario_by_email(email: str):
-    return db.session.query(Usuario).filter_by(email=email).first()
+    return db.session.query(Usuario).filter_by(email=email, eliminado=False).first()
 
 def crear_usuario(email: str, nombre: str, apellido: str, rol: RolUsuario) -> tuple[Usuario, str]:
     """
@@ -112,17 +116,17 @@ def eliminar_usuario(usuario_id: int):
     usuario = get_usuario_by_id(usuario_id)
     if not usuario:
         return None
-    
+
     # No permitir eliminar usuarios system_admin
     if usuario.system_admin:
         raise ValueError("No se puede eliminar un usuario System Admin")
-    
-    db.session.delete(usuario)
+
+    usuario.eliminado = True;
     db.session.commit()
     return usuario
 
 def buscar_usuarios(email=None, activo=None, rol=None, orden="asc", pagina=1, por_pagina=10):
-    query = db.session.query(Usuario)
+    query = db.session.query(Usuario).filter(~Usuario.eliminado)
 
     if email:
         query = query.filter(Usuario.email.ilike(f"%{email}%"))

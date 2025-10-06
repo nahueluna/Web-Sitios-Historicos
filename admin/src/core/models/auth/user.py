@@ -23,8 +23,9 @@ class Usuario(Base):
     email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     nombre: Mapped[str] = mapped_column(String(50), nullable=False)
     apellido: Mapped[str] = mapped_column(String(50), nullable=False)
-    password: Mapped[str] = mapped_column(String(255), nullable=False)  # guardar hash, no plano
+    password: Mapped[str] = mapped_column(String(255), nullable=False)
     activo: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    eliminado: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     rol: Mapped[RolUsuario] = mapped_column(Enum(RolUsuario), default=RolUsuario.PUBLICO, nullable=False)
     # Reemplazar por inserted_at
     fecha_creacion: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -47,17 +48,17 @@ class Usuario(Base):
         if self.system_admin:
             print(f"User {self.nombre} is a system admin and has all permissions.")
             return True
-        
+
         # Si no tiene rol asignado, no tiene permisos
         if not self.role_id or not self.role:
             print(f"User {self.id} has no role assigned")
             return False
-        
+
         # Verificar si el rol tiene el permiso
         if self.role.has_permission(permission_name):
             print(f"User {self.nombre} with role {self.role.nombre} has permission: {permission_name}")
             return True
-            
+
         return False
 
     def get_name_role(self) -> str:

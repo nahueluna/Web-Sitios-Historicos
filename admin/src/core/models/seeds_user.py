@@ -76,7 +76,8 @@ def run_seeds():
         password= hash_password("sys_admin123"),
         system_admin=True,  
         role_id=None,  # System admin no necesita rol específico
-        rol=None
+        rol=None,
+        eliminado=False
     )
     
     # Administrador (asignado al rol admin)
@@ -86,7 +87,8 @@ def run_seeds():
         apellido="User",
         password=hash_password("admin123"),
         role_id=role_admin.id,
-        rol= RolUsuario.ADMIN
+        rol= RolUsuario.ADMIN,
+        eliminado=False
     )
     
     # Editor (asignado al rol editor)
@@ -96,7 +98,8 @@ def run_seeds():
         apellido="User",
         password=hash_password("editor123"),
         role_id=role_editor.id,
-        rol= RolUsuario.EDITOR
+        rol= RolUsuario.EDITOR,
+        eliminado=False
     )
     
     # Usuario público (asignado al rol user)
@@ -106,8 +109,8 @@ def run_seeds():
         apellido="User",
         password=hash_password("user123"),
         role_id=role_user.id,
-        rol= RolUsuario.PUBLICO
-        
+        rol= RolUsuario.PUBLICO,
+        eliminado=False
     )
     
     # Guardar usuarios

@@ -15,11 +15,8 @@ import io, csv
 from datetime import datetime
 from flask import Response
 
-<<<<<<< HEAD
-=======
 from src.web.decorator import block_admin_maintenance
 
->>>>>>> feature/feature-flags
 
 historic_sites_bp = Blueprint('historic_sites', __name__, url_prefix='/sitios-historicos')
 

@@ -4,19 +4,19 @@ from src.core.models.auth.user import RolUsuario
 from src.web.decorator import block_admin_maintenance
 from src.web.handlers.auth import role_required
 
-from flask import Blueprint, render_template, request, jsonify
+from flask import request, jsonify
 from sqlalchemy.exc import SQLAlchemyError
 
 from core.models.historic_sites import list_historic_sites_with_filters
 from src.web.controllers.historic_sites import historic_sites_bp
 from web.controllers.helpers.tags import handle_db_error
-from web.controllers.helpers.tags import remove_accents
 from datetime import datetime
 
 
 @historic_sites_bp.get('/search')
 @block_admin_maintenance
-def get_historic_sites():
+@role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
+def get_historic_sites(_user):
     params = request.args.to_dict()
     per_page = 25
 
@@ -25,11 +25,6 @@ def get_historic_sites():
         if tags:
             tags = tags.split(',')
             params['tags'] = tags
-
-        province = params.pop('province')
-        if province:
-            province = remove_accents(province)
-            params['province'] = province
 
         date_from = params.pop('date_from')
         date_to = params.pop('date_to')

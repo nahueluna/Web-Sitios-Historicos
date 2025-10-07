@@ -160,18 +160,17 @@
         </div>
     </form>
 
-    <div id="exportButtonContainer"></div>
-
-    <div>
-        <p id="result-number" class="lead"></p>
+    <div id="result-count-and-csv" class="d-flex justify-content-between align-items-center mb-2">
+        <p id="result-number" class="lead mb-0"></p>
+        <div id="export-button-section"></div>
     </div>
-
-    <div class="row">
-        <div class="col-12">
+    <div class="row mt-3">
+        <div class="col-12" style="max-width: 90vw; margin: 0 auto;">
             <div id="historic-sites-list" class="row g-3 h-100 align-content-start"
                 style="overflow-y: auto; max-height: 60vh;"></div>
         </div>
     </div>
+
 </div>
 
 <div id="flash-container" class="position-fixed bottom-0 start-0 p-3" style="z-index: 1080;"></div>
@@ -181,6 +180,8 @@
     <ul class="pagination"></ul>
 </nav>
 
+<!-- div para window.alert -->
+<div id="flash-container" class="position-fixed bottom-0 start-0 p-3" style="z-index: 1080;"></div>
 
 <style>
     /* Estilos para Choice.js */
@@ -211,8 +212,28 @@
 <!-- Bootstrap Select JS -->
 <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 
-<script>
 
+<script>
+    window.alert = function (message, type = "info") {
+        const container = document.getElementById("flash-container");
+        const alerta = document.createElement("div");
+
+        alerta.className = `alert alert-${type} alert-dismissible fade show`;
+        alerta.role = "alert";
+        alerta.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+        container.appendChild(alerta);
+
+        // Se cierra solo después de 3 segundos
+        setTimeout(() => {
+            alerta.remove();
+        }, 3000);
+    };
+</script>
+<script>
     renderHistoricSites = (data) => {
         const container = document.getElementById("historic-sites-list");
         container.innerHTML = "";
@@ -269,7 +290,9 @@
                 exportButton.textContent = "Exportar CSV";
             }
         };
-        buttonContainer.appendChild(exportButton);
+        const exportButtonSection = document.getElementById("export-button-section");
+        exportButtonSection.innerHTML = "";
+        exportButtonSection.appendChild(exportButton);
         {% endif %}
 
         data.sites.forEach(hs => {
@@ -375,6 +398,10 @@
                         msg = 'El formato de los filtros enviados es inválido';
                 }
 
+                // Elimina conteo de resultados ante error
+                document.getElementById("result-number").innerText = "";
+
+                // Muestra mensaje de error
                 document.getElementById("historic-sites-list").innerHTML = `
             <div class="col-12">
               <div class="alert alert-danger text-center">

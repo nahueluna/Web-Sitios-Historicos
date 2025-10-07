@@ -26,14 +26,14 @@ historic_sites_bp = Blueprint('historic_sites', __name__, url_prefix='/sitios-hi
 @historic_sites_bp.route('/explore') # Renderiza html
 @block_admin_maintenance
 @role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
-def render_index(user):
+def render_index(_user):
     tags = get_all_tags()
     return render_template('/historic_sites/index.html', tags=tags)
 
 @historic_sites_bp.route('/detalle/<int:id>') # Renderiza html
 @block_admin_maintenance
 @role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
-def render_detail(user, id): 
+def render_detail(user, id):
     return render_template('historic_sites/historic_site_detail.html')
 # RENDERING
 
@@ -252,10 +252,10 @@ def edit_site(user):
 @historic_sites_bp.route('/delete-site', methods=['DELETE'])
 @block_admin_maintenance
 @role_required([RolUsuario.ADMIN])
-def delete_site():
+def delete_site(user):
     try:
         id = request.get_json()['id']
-        delete_histoirc_site(hs_id=int(id))
+        delete_histoirc_site(hs_id=int(id), user_id=user.id)
 
         return jsonify({}), 201
     except Exception as e:

@@ -1,0 +1,104 @@
+{% extends "layout.html" %}
+
+{% block title %}Gestión de Roles y Permisos{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- La siguiente card se tiene que mostrar al lado de la card de arriba -->
+
+
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-role="admin" href="#">Admin</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-role="editor" href="#">Editor</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div id="admin-content">
+                        {% with role = roles_permissions[1] %}
+                        {% include 'role_permission/permissions_list.html' %}
+                        {% endwith %}
+                    </div>
+                    <div id="editor-content" style="display: none;">
+                        {% with role = roles_permissions[2] %}
+                        {% include 'role_permission/permissions_list.html' %}
+                        {% endwith %}
+                    </div>
+
+{% include 'role_permission/remove_permission_modals.html' %}
+
+{% include 'role_permission/assign_permission_modal.html' %}
+
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card text-center">
+                <div class="card-header">
+                    <h5>Todos los Permisos</h5>
+                </div>
+                <div class="card-body">
+                    {% with role = roles_permissions[0] %}
+                    {% include 'role_permission/all_permissions_list.html' %}
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    {% endblock %}
+
+    {% block scripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const tabs = document.querySelectorAll('.nav-link[data-role]');
+            const contents = {
+                admin: document.getElementById('admin-content'),
+                editor: document.getElementById('editor-content')
+            };
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    // Remove active class from all tabs
+                    tabs.forEach(t => t.classList.remove('active'));
+                    // Add active to clicked
+                    this.classList.add('active');
+                    // Hide all contents
+                    Object.values(contents).forEach(c => c.style.display = 'none');
+                    // Show selected
+                    const role = this.getAttribute('data-role');
+                    contents[role].style.display = 'block';
+                });
+            });
+
+            // Handle assign permission modal
+            const assignModal = document.getElementById('asignPermissionModal');
+            assignModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const permission = button.getAttribute('data-permission');
+                document.getElementById('permissionNameInput').value = permission;
+
+                const roleSelect = document.getElementById('roleSelect');
+                const form = document.getElementById('assignPermissionForm');
+
+                const updateAction = () => {
+                    const roleId = roleSelect.value;
+                    form.action = `/roles/${roleId}/add-permission`;
+                };
+
+                roleSelect.addEventListener('change', updateAction);
+                updateAction(); // Set initial action
+            });
+        });
+    </script>
+    {% endblock %}

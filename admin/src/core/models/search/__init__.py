@@ -45,9 +45,9 @@ def remove_tag(tag_id):
     return False
 
 def tag_has_association_with_site(tag_id):
-    from src.core.models.historic_sites.historic_sites import historic_sites_tags
+    from src.core.models.historic_site_tags.hs_tags import HistoricSitesTags
 
-    association = db.session.query(historic_sites_tags).filter(historic_sites_tags.c.tag_id == tag_id).first()
+    association = db.session.query(HistoricSitesTags).filter(HistoricSitesTags.tag_id == tag_id).first()
     return association is not None
 
 def get_all_tags():

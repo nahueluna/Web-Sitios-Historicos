@@ -1,0 +1,26 @@
+<div class="col">
+    <div class="card">
+        <div style="max-height: 400px; overflow-y: auto;">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Nombre del Permiso</th>
+                        <th scope="col">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for perm in role.permissions %}
+                    <tr>
+                        <th scope="row">{{ loop.index }}</th>
+                        <td>{{ perm }}</td>
+                        <td>
+                            <button type="button" class="btn btn-outline-primary btn-sm assign-permission-btn" data-bs-toggle="modal" data-bs-target="#asignPermissionModal" data-permission="{{ perm }}">Asignar</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -5,6 +5,13 @@ from src.core.models.auth import RolUsuario, get_usuario_by_email
 def is_authenticated():
     return session.get("user") is not None
 
+def is_system_admin():
+    """Verifica si el usuario autenticado es un administrador del sistema"""
+    if not is_authenticated():
+        return False
+    user = get_usuario_by_email(session.get("user"))
+    return user and user.system_admin
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -32,10 +39,25 @@ def role_required(roles: list[RolUsuario]):
                 abort(500)
 
             # 3. Verificar rol
-            if user.rol not in roles:
+            if (user.rol not in roles) and (not user.system_admin):
                 abort(403)
 
             # 4. Pasar usuario a la vista
             return f(user, *args, **kwargs)
         return decorated_function
     return decorator
+
+### FUNCIONES QUE NECESITA JUANI
+def is_editor_or_admin():
+    if not is_authenticated():
+        return False
+    user = get_usuario_by_email(session.get("user"))
+    return user.rol in [RolUsuario.ADMIN, RolUsuario.EDITOR]
+
+def is_admin():
+    if not is_authenticated():
+        return False
+    user = get_usuario_by_email(session.get("user"))
+    return user.rol == RolUsuario.ADMIN
+
+### FUNCIONES QUE NECESITA JUANI

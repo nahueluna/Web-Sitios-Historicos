@@ -1,8 +1,7 @@
 
 from src.core.database import Base
-from src.core.models.search.tags import Tag
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import DateTime, ForeignKey, Table, Column
+from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import DateTime, ForeignKey
 from datetime import datetime, timezone
 
 class HistoricSites(Base):
@@ -44,6 +43,7 @@ class HistoricSites(Base):
             "latitude": self.latitude,
             "longitude": self.longitude,
             "status": self.status_id,
+            "registration_date": (self.registration_date).strftime('%Y-%m-%d'),
             "inauguration_year": (self.inauguration_year).strftime('%Y-%m-%d'),
             "category": self.category_id,
             "visible": self.visible,

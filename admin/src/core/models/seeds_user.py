@@ -1,18 +1,19 @@
-from src.core.models.auth.user import Usuario as User
+from src.core.models.auth.user import Usuario, RolUsuario
 from src.core.models.auth.role_permission import Role, Permission, RolePermission
 from src.core.database import db
-from src.core.models.auth import create_permission, assign_permission_to_role
+from src.core.models.auth import create_permission, assign_permission_to_role, hash_password
 
 
 def run_seeds():
     print("Creación de roles")
-    role_user = Role(name="user")
-    role_editor = Role(name="editor")
     role_admin = Role(name="admin")
+    role_editor = Role(name="editor")
+    role_user = Role(name="user")
     
-    db.session.add(role_user)
     db.session.add(role_editor)
     db.session.add(role_admin)
+    db.session.add(role_user)
+    
     db.session.flush()  # Para obtener los IDs
     print("Roles de prueba creados.")
 
@@ -68,40 +69,48 @@ def run_seeds():
 
     print("Creación de usuarios")
     # System admin con acceso completo (sin rol específico con system_admin=True)
-    sys_admin = User(
+    sys_admin = Usuario(
         email="sys_admin@example.com", 
         nombre="System",
         apellido="Admin",
-        password="sys_admin123",
+        password= hash_password("sys_admin123"),
         system_admin=True,  
-        role_id=None  # System admin no necesita rol específico
+        role_id=None,  # System admin no necesita rol específico
+        rol=None,
+        eliminado=False
     )
     
     # Administrador (asignado al rol admin)
-    admin = User(
+    admin = Usuario(
         email="admin@example.com", 
         nombre="Admin",
         apellido="User",
-        password="admin123",
+        password=hash_password("admin123"),
         role_id=role_admin.id,
+        rol= RolUsuario.ADMIN,
+        eliminado=False
     )
     
     # Editor (asignado al rol editor)
-    editor = User(
+    editor = Usuario(
         email="editor@example.com", 
         nombre="Editor",
         apellido="User",
-        password="editor123",
+        password=hash_password("editor123"),
         role_id=role_editor.id,
+        rol= RolUsuario.EDITOR,
+        eliminado=False
     )
     
     # Usuario público (asignado al rol user)
-    user = User(
+    user = Usuario(
         email="user@example.com", 
         nombre="Public",
         apellido="User",
-        password="user123",
+        password=hash_password("user123"),
         role_id=role_user.id,
+        rol= RolUsuario.PUBLICO,
+        eliminado=False
     )
     
     # Guardar usuarios

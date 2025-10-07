@@ -3,16 +3,16 @@ from flask import render_template, redirect, url_for
 from flask_session import Session
 from src.web.controllers.tags import tags_bp
 from src.web.handlers import error
-from src.web.handlers.auth import is_authenticated
+from src.web.handlers.auth import is_authenticated, is_system_admin, is_admin, is_editor_or_admin
 from src.web.controllers.user_controller import bp_user
 from src.web.controllers.advanced_search import advanced_search_bp
 from src.web.config import config
 from src.core import database
 from src.web.controllers.historic_sites import historic_sites_bp
 from src.web.controllers.historic_sites import render_index
-from src.web.controllers.role_controller import role_bp
-from src.web.controllers.user_controller import bp_user
+from src.web.controllers.role_permission import role_bp
 from src.web.controllers.auth import bp_auth
+from src.web.controllers.feature_flag import feature_flag_bp
 from src.core.bcrypt import bcrypt
 
 
@@ -59,14 +59,20 @@ def create_app(env='development', static_folder='../../static'):
     app.register_error_handler(500, error.internal_server_error)
     app.register_error_handler(405, error.method_not_allowed)
 
-    # Registrar funcion global
+    # Registrar funciones globales para templates
     app.jinja_env.globals['is_authenticated'] = is_authenticated
+    app.jinja_env.globals['is_system_admin'] = is_system_admin
+
+    ## Funciones globales que usa juani
+    app.jinja_env.globals['is_admin'] = is_admin
+    app.jinja_env.globals['is_editor_or_admin'] = is_editor_or_admin
 
     app.register_blueprint(advanced_search_bp)
     app.register_blueprint(tags_bp)
     app.register_blueprint(bp_user)
     app.register_blueprint(role_bp)
     app.register_blueprint(bp_auth)
+    app.register_blueprint(feature_flag_bp)
 
     @app.cli.command("reset-db")
     def reset_db():

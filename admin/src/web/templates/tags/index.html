@@ -81,7 +81,7 @@
 </div>
 
 <!-- Pagination -->
-<nav aria-label="Paginación usuarios" class="mt-3">
+<nav aria-label="Paginación etiquetas" class="mt-3">
     <ul class="pagination">
         {% if page > 1 %}
         <li class="page-item">
@@ -97,6 +97,8 @@
     </ul>
 </nav>
 
+{% endblock %}
+{% block scripts %}
     <script>
         let selectedRow = null;
         let selectedTagId = null;

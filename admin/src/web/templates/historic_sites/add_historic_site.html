@@ -217,7 +217,7 @@
                 .then(data => {
                     alert("Sitio agregado con éxito. Redigiriendo...");
                     setTimeout(() => {
-                        window.location.href = "{{ url_for('historic_sites.render_admin_sites') }}";
+                        window.location.href = "{{ url_for('historic_sites.render_index') }}";
                     }, 2500);
                 }).catch(error => {
                     alert('Error al crear la categoría: ' + error.message);

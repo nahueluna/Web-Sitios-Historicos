@@ -14,7 +14,7 @@ def list_all_historic_sites():
         HistoricSites
     ).filter(
         HistoricSites.delete == False
-    ).all()
+    ).order_by(HistoricSites.site_name).all()
 
 # Solo sitios visibles con su categoría y estado
 def list_visible_historic_sites(): 
@@ -105,3 +105,60 @@ def delete_histoirc_site(hs_id: int, user_id: int):
 
     db.session.commit()
     return hs_model
+
+def list_historic_sites_with_filters(q='', city='', province='', tags=None, status='', date_from='', date_to='', visible='false', order_by='site_name', order_dir='asc', page=1, per_page=25):
+    query = db.session.query(
+        HistoricSites
+    ).filter(
+        HistoricSites.delete == False
+    )
+
+    if q:
+        query = query.filter(
+            HistoricSites.site_name.ilike(f'%{q}%') |
+            HistoricSites.short_description.ilike(f'%{q}%')
+        )
+
+    if city:
+        query = query.filter(HistoricSites.city.ilike(f'%{city}%'))
+
+    if province:
+        query = query.filter(HistoricSites.province.ilike(f'{province}'))
+
+    if tags:
+        query = (query.join(HistoricSitesTags, HistoricSites.id == HistoricSitesTags.site_id)
+                 .filter(HistoricSitesTags.tag_id.in_(tags)))
+
+    if status:
+        query = (query.join(HistoricSitesStates, HistoricSites.status_id == HistoricSitesStates.id)
+                 .filter(HistoricSitesStates.state == status))
+
+    if date_from:
+        try:
+            date_from_parsed = datetime.strptime(date_from, '%Y-%m-%d')
+            query = query.filter(HistoricSites.registration_date >= date_from_parsed)
+        except ValueError:
+            pass
+
+    if date_to:
+        try:
+            date_to_parsed = datetime.strptime(date_to, '%Y-%m-%d')
+            query = query.filter(HistoricSites.registration_date <= date_to_parsed)
+        except ValueError:
+            pass
+
+    if visible.lower() == 'true':
+        query = query.filter(HistoricSites.visible == True)
+
+    if order_by in ['site_name', 'city', 'registration_date']:
+        order_column = getattr(HistoricSites, order_by)
+        if order_dir == 'desc':
+            order_column = order_column.desc()
+        else:
+            order_column = order_column.asc()
+        query = query.order_by(order_column)
+
+    total = query.count()
+    sites = query.offset((int(page) - 1) * int(per_page)).limit(int(per_page)).all()
+
+    return sites, total

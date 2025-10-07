@@ -2,72 +2,218 @@
 
 {% block title %}Sitios Históricos{% endblock %}
 
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+{%  endblock %}
+
 {% block content %}
-<div class="container-fluid vh-100 d-flex flex-column py-4">
+<div class="container-fluid d-flex flex-column py-4">
     <div class="row mb-3">
         <div class="col-12">
-            <h2 class="text-center mb-0">Listado de Sitios Históricos</h2>
+            <h2 class="display-6 fw-bold text-primary">Listado de Sitios Históricos</h2>
         </div>
     </div>
-    <div class="row flex-grow-1">
-        <div class="col-12 h-100">
-            <div id="historic-sites-list" class="row g-3 h-100 align-content-start" style="overflow-y: auto;"></div>
+
+<!-- Search bar and filters -->
+<form id="filters-form" class="row g-2 mb-4 align-items-center">
+
+    <div class="row g-2 align-items-center mb-2 flex-wrap">
+        <div class="col-12 col-md-auto">
+            <label for="hs-search" class="visually-hidden"></label>
+            <input type="search" class="form-control" id="hs-search" name="q" placeholder="Buscar sitio histórico..." value="{{ request.args.get('q', '') }}" autofocus>
+        </div>
+
+        <div class="col-12 col-md-auto">
+            <button type="submit" class="btn btn-primary">Buscar</button>
+        </div>
+
+        <div class="col-12 col-md-auto">
+            <label for="city" class="visually-hidden">Ciudad</label>
+            <input type="text" class="form-control" id="city" name="city" placeholder="Ciudad" value="{{ request.args.get('city', '') }}">
+        </div>
+
+        <div class="col-12 col-md-auto" style="min-width: 220px;">
+            <label for="province" class="visually-hidden">Provincia</label>
+            <select class="form-select" id="province" name="province" >
+                <option value="">Provincia</option>
+                <option value="Buenos Aires" {% if request.args.get('province') == 'Buenos Aires' %}selected{% endif %}>Buenos Aires</option>
+                <option value="Catamarca" {% if request.args.get('province') == 'Catamarca' %}selected{% endif %}>Catamarca</option>
+                <option value="Chaco" {% if request.args.get('province') == 'Chaco' %}selected{% endif %}>Chaco</option>
+                <option value="Chubut" {% if request.args.get('province') == 'Chubut' %}selected{% endif %}>Chubut</option>
+                <option value="Córdoba" {% if request.args.get('province') == 'Córdoba' %}selected{% endif %}>Córdoba</option>
+                <option value="Corrientes" {% if request.args.get('province') == 'Corrientes' %}selected{% endif %}>Corrientes</option>
+                <option value="Entre Ríos" {% if request.args.get('province') == 'Entre Ríos' %}selected{% endif %}>Entre Ríos</option>
+                <option value="Formosa" {% if request.args.get('province') == 'Formosa' %}selected{% endif %}>Formosa</option>
+                <option value="Jujuy" {% if request.args.get('province') == 'Jujuy' %}selected{% endif %}>Jujuy</option>
+                <option value="La Pampa" {% if request.args.get('province') == 'La Pampa' %}selected{% endif %}>La Pampa</option>
+                <option value="La Rioja" {% if request.args.get('province') == 'La Rioja' %}selected{% endif %}>La Rioja</option>
+                <option value="Mendoza" {% if request.args.get('province') == 'Mendoza' %}selected{% endif %}>Mendoza</option>
+                <option value="Misiones" {% if request.args.get('province') == 'Misiones' %}selected{% endif %}>Misiones</option>
+                <option value="Neuquén" {% if request.args.get('province') == 'Neuquén' %}selected{% endif %}>Neuquén</option>
+                <option value="Río Negro" {% if request.args.get('province') == 'Río Negro' %}selected{% endif %}>Río Negro</option>
+                <option value="Salta" {% if request.args.get('province') == 'Salta' %}selected{% endif %}>Salta</option>
+                <option value="San Juan" {% if request.args.get('province') == 'San Juan' %}selected{% endif %}>San Juan</option>
+                <option value="San Luis" {% if request.args.get('province') == 'San Luis' %}selected{% endif %}>San Luis</option>
+                <option value="Santa Cruz" {% if request.args.get('province') == 'Santa Cruz' %}selected{% endif %}>Santa Cruz</option>
+                <option value="Santa Fe" {% if request.args.get('province') == 'Santa Fe' %}selected{% endif %}>Santa Fe</option>
+                <option value="Santiago del Estero" {% if request.args.get('province') == 'Santiago del Estero' %}selected{% endif %}>Santiago del Estero</option>
+                <option value="Tierra del Fuego" {% if request.args.get('province') == 'Tierra del Fuego' %}selected{% endif %}>Tierra del Fuego</option>
+                <option value="Tucumán" {% if request.args.get('province') == 'Tucumán' %}selected{% endif %}>Tucumán</option>
+            </select>
+        </div>
+
+        <div class="col-12 col-md-auto" style="min-width: 220px; max-width: 300px;">
+            <label for="tags" class="visually-hidden">Tags</label>
+            <select class="form-select" id="tags" name="tags" multiple>
+                {% for tag in tags %}
+                    <option value="{{ tag.id }}" {% if tag.id|string in request.args.getlist('tags') %}selected{% endif %}>{{ tag.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-12 col-md-auto">
+            <button type="submit" class="btn btn-success">Aplicar filtros</button>
+        </div>
+    </div>
+
+    <div class="row g-2 align-items-center mb-2 flex-wrap">
+
+    <div class="col-12 col-md-auto">
+        <label for="status" class="visually-hidden">Estado de conservación</label>
+        <select class="form-select" id="status" name="status">
+            <option value="">Estado de conservación</option>
+            <option value="Bueno" {% if request.args.get('status') == 'Bueno' %}selected{% endif %}>Bueno</option>
+            <option value="Regular" {% if request.args.get('status') == 'Regular' %}selected{% endif %}>Regular</option>
+            <option value="Malo" {% if request.args.get('status') == 'Malo' %}selected{% endif %}>Malo</option>
+        </select>
+    </div>
+
+        <div class="col-12 col-md-auto">
+            <label for="date_from" class="visually-hidden">Desde</label>
+            <input type="date" class="form-control" id="date_from" name="date_from" value="{{ request.args.get('date_from', '') }}">
+        </div>
+        <div class="col-12 col-md-auto">
+            <label for="date_to" class="visually-hidden">Hasta</label>
+            <input type="date" class="form-control" id="date_to" name="date_to" value="{{ request.args.get('date_to', '') }}">
+        </div>
+
+        <div class="col-12 col-md-auto">
+            <label for="order_by" class="visually-hidden">Ordenar por:</label>
+            <select name="order_by" class="form-select" id="order_by">
+                <option value="site_name" {% if request.args.get('order_by') == 'site_name' %}selected{% endif %}>Nombre</option>
+                <option value="city" {% if request.args.get('order_by') == 'city' %}selected{% endif %}>Ciudad</option>
+                <option value="registration_date" {% if request.args.get('order_by') == 'registration_date' %}selected{% endif %}>Fecha de registro</option>
+            </select>
+        </div>
+        <div class="col-12 col-md-auto">
+            <label for="order_dir" class="visually-hidden"></label>
+            <select name="order_dir" class="form-select" id="order_dir">
+                <option value="asc" {% if request.args.get('order_dir', 'asc') == 'asc' %}selected{% endif %}>Ascendente</option>
+                <option value="desc" {% if request.args.get('order_dir', 'asc') == 'desc' %}selected{% endif %}>Descendente</option>
+            </select>
+        </div>
+
+        <div class="col-12 col-md-auto form-check align-self-center">
+            <label class="form-check-label" for="visible">Solo visibles</label>
+            <input class="form-check-input" type="checkbox" id="visible" name="visible" value="true" {% if request.args.get('visible') %}checked{% endif %}>
+        </div>
+
+        <div class="col-12 col-md-auto">
+            <button type="button" id="clear-filters" class="btn btn-secondary">Limpiar filtros</button>
+        </div>
+    </div>
+</form>
+
+<div>
+    <p id="result-number" class="lead"></p>
+</div>
+
+    <div class="row">
+        <div class="col-12">
+            <div id="historic-sites-list" class="row g-3 h-100 align-content-start" style="overflow-y: auto; max-height: 60vh;"></div>
         </div>
     </div>
 </div>
+
 <div id="flash-container" class="position-fixed bottom-0 start-0 p-3" style="z-index: 1080;"></div>
+
+
+<nav aria-label="Paginación sitios históricos" class="mt-3" id="pagination-nav">
+    <ul class="pagination"></ul>
+</nav>
+
+
+<style>
+    /* Estilos para Choice.js */
+    .choices__list--multiple, .choices__inner {
+        max-height: 38px;
+        min-height: 38px;
+        overflow-y: auto;
+        border-radius: 0.375rem;
+        background: #ffffff;
+    }
+
+    .choices__list--single {
+        max-height: 38px;
+        overflow-y: auto;
+        border-radius: 0.375rem;
+    }
+</style>
+
 {% endblock %}
 
 {% block scripts %}
+
+<!-- jQuery (required for Bootstrap Select) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Bootstrap JS (required for dropdowns) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Bootstrap Select JS -->
+<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+
 <script>
-    window.alert = function(message, type = "info") {
-        const container = document.getElementById("flash-container");
-        const alerta = document.createElement("div");
 
-        alerta.className = `alert alert-${type} alert-dismissible fade show`;
-        alerta.role = "alert";
-        alerta.innerHTML = `
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        `;
+    renderHistoricSites = (data) => {
+        const container = document.getElementById("historic-sites-list");
+                container.innerHTML = "";
 
-        container.appendChild(alerta);
+                if (data.total === 0) {
+                    document.getElementById("result-number").innerText = '';
 
-        // Se cierra solo después de 3 segundos
-        setTimeout(() => {
-            alerta.remove();
-        }, 3000);
-    };
-</script>
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        fetch("/sitios-historicos/get-all")
-            .then(response => response.json())
-            .then(data => {
-                const container = document.getElementById("historic-sites-list");
-
-                if (data.length === 0) {
                     container.innerHTML = `
                         <div class="col-12">
                             <div class="alert alert-warning text-center">
-                                No hay sitios históricos registrados.
+                                No se encontraron resultados
                             </div>
                         </div>`;
                     return;
                 }
 
-                data.forEach(hs => {
-                    const block = document.createElement("div");
-                    block.className = "col-md-6 col-lg-4"; // responsive grid
+                if (data.total === 1) {
+                    document.getElementById("result-number").innerText = `Se encontró 1 resultado.`;
+                }
+                else {
+                    document.getElementById("result-number").innerText = `Se encontraron ${data.total} resultados.`;
+                }
 
+                data.sites.forEach(hs => {
+                    const block = document.createElement("div");
+                    block.className = "col-md-6 col-lg-4";
                     block.innerHTML = `
                         <div class="card h-100 shadow-sm">
                             <div class="card-body">
                                 <h5 class="card-title">${hs.site_name}</h5>
                                 <p class="card-text"><strong>Descripción corta:</strong> ${hs.short_description}</p>
                                 <p class="card-text"><strong>Ciudad:</strong> ${hs.city}, <strong>Provincia:</strong> ${hs.province}</p>
-                                <p class="card-text"><strong>Estado de conservación:</strong> ${hs.status_id}</p>
-                                <p class="card-text"><strong>Año de inauguración:</strong> ${hs.inauguration_year}</p>
+                                <p class="card-text"><strong>Estado de conservación:</strong> ${hs.status}</p>
+                                <p class="card-text"><strong>Fecha de registro:</strong> ${hs.registration_date}</p>
+                                <p class="card.text"><strong>Visibilidad:</strong> ${hs.visible ? 'Visible' : 'No Visible'}</p>
+                                <p class="card-text badge bg-info rounded-pill fs-6">${
+                                    hs.tags && hs.tags.length
+                                        ? hs.tags.map(tag => tag).join(', ')
+                                        : 'Sin etiquetas'
+                                }</p>
                             </div>
                             <div class="card-footer text-end">
                                 <a href="/sitios-historicos/detalle/${hs.id}" class="btn btn-sm btn-primary">
@@ -78,16 +224,158 @@
                     `;
                     container.appendChild(block);
                 });
-            })
-            .catch(err => {
-                console.error("Error al cargar los sitios históricos:", err);
-                document.getElementById("historic-sites-list").innerHTML = `
-                    <div class="col-12">
-                        <div class="alert alert-danger text-center">
-                            Error al cargar los datos.
-                        </div>
-                    </div>`;
+    }
+
+    // Se encarga de mostrar la paginación y agregar listeners a los links de páginas para responder un cambio de página
+    function renderPagination(page, per_page, total) {
+        const pagination = document.querySelector('.pagination');
+        pagination.innerHTML = '';
+
+        if (page > 1) {
+            pagination.innerHTML += `<li class="page-item">
+                <a class="page-link" href="#" data-page="${page-1}">Anterior</a>
+            </li>`;
+        }
+        pagination.innerHTML += `<li class="page-item disabled"><span class="page-link">Página ${page}</span></li>`;
+        if (total > page * per_page) {
+            pagination.innerHTML += `<li class="page-item">
+                <a class="page-link" href="#" data-page="${page+1}">Siguiente</a>
+            </li>`;
+        }
+
+        // Agregar listener para los links de páginas
+        pagination.querySelectorAll('a[data-page]').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                fetchSites(parseInt(this.dataset.page));
             });
+        });
+    }
+
+    // Fetch que obtiene los sitios históricos según filtros, ordenammientos y página
+    function fetchSites(page = 1) {
+        // Toma los filtros y ordenamientos aplicados en el form y forma los query parameters de vuelta
+        const form = document.getElementById('filters-form');
+        const formData = new FormData(form);
+        const params = new URLSearchParams();
+        for (const [key, value] of formData.entries()) params.append(key, value);
+
+        const tags = formData.getAll('tags');
+        params.delete('tags'); // Elimina cualquier valor previo de 'tags'
+        params.append('tags', tags.length > 0 ? tags.join(',') : '');
+
+        // Verifica si el checkbox no fue presionado
+        if (!form.visible.checked) {
+            params.delete('visible');
+        }
+
+        params.append('page', page.toString());
+
+        fetch(`/sitios-historicos/search?${params.toString()}`)
+        .then(response => {
+          if (!response.ok) {
+              // Convierte la respuesta a JSON para obtener el mensaje de error
+              return response.json().then(errData => {
+              throw { status: response.status, message: errData.error };
+            }).catch((e) => {
+                // Captura el error en caso de que la respuesta no pueda ser convertida a JSON
+                throw { status: response.status, message: e.message || 'Error ' + response.status };
+            });
+          }
+          return response.json();
+        })
+        .then(data => {
+            // Muestra los sitios históricos
+            renderHistoricSites(data);
+
+            // Muestra la paginación y agrega listener para hacer fetch de sitios ante cambios de página
+            renderPagination(data.page || 1, data.per_page || 25, data.total || 0);
+            window.history.replaceState({}, '', `/sitios-historicos/explore?${params.toString()}`);
+        })
+        .catch(error => {
+          let msg = 'Ocurrió un error al cargar los sitios históricos.';
+
+          if (error.status === 400 && error.message) {
+              error.message.includes("date") ?
+                  msg = 'La fecha de fin no puede ser anterior a la fecha de inicio.' :
+                  msg = 'El formato de los filtros enviados es inválido';
+          }
+
+          document.getElementById("historic-sites-list").innerHTML = `
+            <div class="col-12">
+              <div class="alert alert-danger text-center">
+                ${msg}
+              </div>
+            </div>`;
+        });
+    }
+
+    // Visualización de sitios históricos según filtros al apretar Buscar
+    document.getElementById("filters-form").addEventListener('submit', function (event) {
+        event.preventDefault();
+        fetchSites(1);
     })
+
+    // Visualización inicial de todos los sitios históricos al cargar la página
+    document.addEventListener("DOMContentLoaded", function () {
+        let page = {{ request.args.get('page', 1) }};
+        fetchSites(page);
+    })
+
+    document.getElementById("clear-filters").addEventListener('click', function () {
+        const form = document.getElementById('filters-form');
+        form.reset();
+
+        // Destruir y reinicializar Choices.js para los selects
+        const tagsElement = document.getElementById('tags');
+        if (tagsElement.choices) {
+            tagsElement.choices.destroy();
+        }
+        new Choices(tagsElement, {
+            removeItemButton: true,
+            searchEnabled: true,
+            placeholderValue: 'Etiquetas',
+            noResultsText: 'No se encontraron resultados'
+        });
+
+        const provinceElement = document.getElementById('province');
+        if (provinceElement.choices) {
+            provinceElement.choices.destroy();
+        }
+        new Choices(provinceElement, {
+            searchEnabled: true,
+            shouldSort: false,
+            itemSelectText: '',
+            noResultsText: 'No se encontraron resultados',
+            placeholderValue: 'Provincia'
+        });
+
+        fetchSites(1);
+    });
+
+    // Configura Choices.js para el select de tags
+    document.addEventListener('DOMContentLoaded', function() {
+        // Resetear las elecciones en Choices.js
+        const tagsChoices = document.querySelector('#tags').choices;
+        if (tagsChoices) tagsChoices.clearStore();
+
+        const provinceChoices = document.querySelector('#province').choices;
+        if (provinceChoices) provinceChoices.clearStore();
+
+        new Choices('#tags', {
+            removeItemButton: true,
+            searchEnabled: true,
+            placeholderValue: 'Etiquetas',
+            noResultsText: 'No se encontraron resultados'
+        });
+
+        new Choices('#province', {
+            searchEnabled: true,
+            shouldSort: false,
+            itemSelectText: '',
+            noResultsText: 'No se encontraron resultados',
+            placeholderValue: 'Provincia'
+        });
+    });
 </script>
 {% endblock %}

@@ -13,12 +13,14 @@ import pickle
 
 historic_sites_bp = Blueprint('historic_sites', __name__, url_prefix='/sitios-historicos')
 
-# -- USUAIROS -- #
+# -- USUARIOS -- #
 
 # RENDERING
-@historic_sites_bp.route('/') # Renderiza html
+@historic_sites_bp.route('/explore') # Renderiza html
 @login_required
-def render_index(): return render_template('/historic_sites/index.html')
+def render_index():
+    tags = get_all_tags()
+    return render_template('/historic_sites/index.html', tags=tags)
 
 @historic_sites_bp.route('/detalle/<int:id>') # Renderiza html
 @login_required
@@ -34,7 +36,7 @@ def render_detail(id):
 def get_all(): 
     # PREGUNTAR SESION PARA MOSTRATR TODOS O SOLO VISIBLES
     json = [x.json() for x in list_all_historic_sites()]
-    return jsonify(json), 201
+    return jsonify(json), 200
 
 @historic_sites_bp.route('/get-site/<int:id>', methods=['GET']) # Retorna un sitio historico específico por ID
 def get_site(id):
@@ -45,7 +47,7 @@ def get_site(id):
         "category": hs[1].category,
         "state": hs[2].state,
     }
-    return jsonify(response), 201
+    return jsonify(response), 200
 
 # -- USUAIROS -- #
 
@@ -59,7 +61,7 @@ def render_admin_management(user):
     is_admin = user.rol == RolUsuario.ADMIN
     return render_template('/historic_sites/gestion_sitios.html', is_admin=is_admin)
 
-@historic_sites_bp.route('/admin/')  # Renderiza html
+@historic_sites_bp.route('/admin/test')  # Renderiza html
 @login_required
 def render_admin_sites(): 
     # PREGUNTAR SI TIENE PERMISIOS
@@ -162,7 +164,7 @@ def delete_site():
 # -- AUXILIARES -- #
 @historic_sites_bp.route('/category/get-all', methods=['GET']) # Retorna todas las categorias de sitios historicos de la BD
 def get_all_cateorie():
-    return jsonify([x.json() for x in list_historic_sites_categorie()]), 201 
+    return jsonify([x.json() for x in list_historic_sites_categorie()]), 200
 
 @historic_sites_bp.route('/category/add-category', methods=['POST'])
 def admin_add_category(): 
@@ -172,7 +174,7 @@ def admin_add_category():
 
 @historic_sites_bp.route('/state/get-all', methods=['GET']) # Retorna todas los estados de sitios historicos de la BD
 def get_all_states():
-    return jsonify([x.json() for x in list_states()]), 201 
+    return jsonify([x.json() for x in list_states()]), 200
 
 @historic_sites_bp.route('/logs/get-all/<int:id>', methods=['GET']) # Retorna todas los estados de sitios historicos de la BD
 def get_all_logs(id):
@@ -188,18 +190,18 @@ def get_all_logs(id):
             }
         )
     
-    return jsonify(response), 201 
+    return jsonify(response), 200
 
 @historic_sites_bp.route('/tags/get-all', methods = ['GET'])
 def __get_all_tags():
     tags = get_all_tags()
 
-    return jsonify([x.json() for x in tags]), 201
+    return jsonify([x.json() for x in tags]), 200
 
 @historic_sites_bp.route('/tags/site-tags/<int:id>', methods = ['GET'])
 def __get_all_tags_by_site(id):
     list = get_tags_by_site(id)
-    return jsonify([x.json() for x in list]), 201
+    return jsonify([x.json() for x in list]), 200
 
 def __validator__(json: dict):
     # Validaciones individuales

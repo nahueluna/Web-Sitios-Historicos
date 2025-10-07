@@ -22,7 +22,12 @@ def get_tag_by_id(tag_id):
 def create_tag(**kwargs):
     tag = Tag(**kwargs)
     db.session.add(tag)
-    db.session.commit()
+
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        raise e
 
     return tag
 

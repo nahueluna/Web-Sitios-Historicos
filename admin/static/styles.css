@@ -203,8 +203,9 @@ footer {
 }
 
 .nav-pills .nav-link.active:hover {
-  background-color: #adb5bd !important;
-  border-color: #adb5bd !important;
+    background-color: #adb5bd !important;
+    border-color: #adb5bd !important;
+}
 
 .add-btn {
   display: inline-block;

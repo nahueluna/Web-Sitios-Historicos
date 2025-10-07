@@ -1,10 +1,10 @@
 from flask import Blueprint, render_template, request, Response, redirect, flash, abort
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from src.web.decorator import block_admin_maintenance
 
+from src.core.models.search import create_tag, list_tags, update_tag_name, get_tag_by_id, remove_tag, tag_has_association_with_site
 from src.web.controllers.helpers.tags import verify_tag_and_generate_slug, handle_db_error
 from src.web.handlers.auth import role_required
-from src.web.decorator import block_admin_maintenance
-from src.core.models.search import create_tag, list_tags, update_tag_name, get_tag_by_id, remove_tag, tag_has_association_with_site
 from src.core.models.auth.user import RolUsuario
 
 tags_bp = Blueprint('tags', __name__, url_prefix='/etiquetas')

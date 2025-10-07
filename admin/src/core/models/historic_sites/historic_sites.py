@@ -1,6 +1,6 @@
 
 from src.core.database import Base
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import DateTime, ForeignKey
 from datetime import datetime, timezone
 
@@ -31,6 +31,12 @@ class HistoricSites(Base):
 
     delete: Mapped[bool] = mapped_column(nullable=False, default=False)
 
+    # Relacion con tabla de tags
+    tags = relationship("Tag", secondary="historic_sites_tags", back_populates="historic_sites")
+
+    # Relacion con tabla de estados
+    status = relationship("HistoricSitesStates", back_populates="historic_sites")
+
 
     def json(self):
         return {
@@ -42,9 +48,10 @@ class HistoricSites(Base):
             "province": self.province,
             "latitude": self.latitude,
             "longitude": self.longitude,
-            "status": self.status_id,
-            "registration_date": (self.registration_date).strftime('%Y-%m-%d'),
             "inauguration_year": (self.inauguration_year).strftime('%Y-%m-%d'),
+            "registration_date": self.registration_date.strftime('%d-%m-%Y'),
             "category": self.category_id,
             "visible": self.visible,
+            "tags": [tag.name for tag in self.tags],
+            "status": self.status.state
         }

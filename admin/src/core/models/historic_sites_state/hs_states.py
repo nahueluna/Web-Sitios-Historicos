@@ -8,8 +8,7 @@ class HistoricSitesStates(Base):
 
     state: Mapped[str] = mapped_column(nullable=False)
 
-    # Relación inversa
-    #sites = relationship("HistoricSites", back_populates="status_rel")
+    historic_sites = relationship("HistoricSites", back_populates="status")
 
     def __repr__(self): return f"{self.state}"
 

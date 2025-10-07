@@ -53,9 +53,7 @@
         <div class="mb-3">
             <label for="province" class="form-label">Provincia:</label>
             <select id="province" name="province" class="form-select" required>
-                <option value="">Seleccione una provincia</option>
                 <option value="Buenos Aires">Buenos Aires</option>
-                <option value="Ciudad Autónoma de Buenos Aires">Ciudad Autónoma de Buenos Aires</option>
                 <option value="Catamarca">Catamarca</option>
                 <option value="Chaco">Chaco</option>
                 <option value="Chubut">Chubut</option>
@@ -76,7 +74,7 @@
                 <option value="Santa Cruz">Santa Cruz</option>
                 <option value="Santa Fe">Santa Fe</option>
                 <option value="Santiago del Estero">Santiago del Estero</option>
-                <option value="Tierra del Fuego, Antártida e Islas del Atlántico Sur">Tierra del Fuego, Antártida e Islas del Atlántico Sur</option>
+                <option value="Tierra del Fuego">Tierra del Fuego</option>
                 <option value="Tucumán">Tucumán</option>
             </select>
         </div>
@@ -232,6 +230,9 @@
 
                 category = historicSiteData['historic_site']['category'];
                 state = historicSiteData['historic_site']['status'];
+
+                console.log("debug:", historicSiteData['historic_site']);
+                console.log("state=", state);
 
                 return Promise.all([
                     fetch("/sitios-historicos/state/get-all").then(res => res.json()),

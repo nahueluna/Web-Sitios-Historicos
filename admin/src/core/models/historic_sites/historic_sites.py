@@ -53,5 +53,6 @@ class HistoricSites(Base):
             "category": self.category_id,
             "visible": self.visible,
             "tags": [tag.name for tag in self.tags],
-            "status": self.status.state
+            "status": self.status.state,
+            "status_id": self.status_id
         }

@@ -64,9 +64,6 @@ def require_feature(flag_name: str):
     - Si flag está ON → Permite acceso
     - System admins siempre tienen acceso
     
-    Args:
-        flag_name: Nombre del feature flag
-    
     """
     def decorator(f):
         @wraps(f)

@@ -24,19 +24,21 @@ historic_sites_bp = Blueprint('historic_sites', __name__, url_prefix='/sitios-hi
 
 # RENDERING
 @historic_sites_bp.route('/explore') # Renderiza html
+@block_admin_maintenance
 @role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
 def render_index(user):
     tags = get_all_tags()
     return render_template('/historic_sites/index.html', tags=tags)
 
 @historic_sites_bp.route('/detalle/<int:id>') # Renderiza html
+@block_admin_maintenance
 @role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
 def render_detail(user, id): 
     return render_template('historic_sites/historic_site_detail.html')
 # RENDERING
 
 @historic_sites_bp.route('/get-all', methods=['GET']) # Retorna todos los sitios historicos de la BD
-@role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
+@block_admin_maintenance
 @role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
 def get_all(user):
     json = [x.json() for x in list_all_historic_sites()]
@@ -125,6 +127,7 @@ def export_sites(user):
 
 
 @historic_sites_bp.route('/get-site/<int:id>', methods=['GET']) # Retorna un sitio historico específico por ID
+@block_admin_maintenance
 @role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
 def get_site(user, id):
     hs = get_historic_site(int(id))

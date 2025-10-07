@@ -5,7 +5,7 @@
 {% block head %}
 {{ super() }}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
-{%  endblock %}
+{% endblock %}
 
 {% block content %}
 <div class="container-fluid d-flex flex-column py-4">
@@ -15,123 +15,161 @@
         </div>
     </div>
 
-<!-- Search bar and filters -->
-<form id="filters-form" class="row g-2 mb-4 align-items-center">
+    <!-- Search bar and filters -->
+    <form id="filters-form" class="row g-2 mb-4 align-items-center">
 
-    <div class="row g-2 align-items-center mb-2 flex-wrap">
-        <div class="col-12 col-md-auto">
-            <label for="hs-search" class="visually-hidden"></label>
-            <input type="search" class="form-control" id="hs-search" name="q" placeholder="Buscar sitio histórico..." value="{{ request.args.get('q', '') }}" autofocus>
+        <div class="row g-2 align-items-center mb-2 flex-wrap">
+            <div class="col-12 col-md-auto">
+                <label for="hs-search" class="visually-hidden"></label>
+                <input type="search" class="form-control" id="hs-search" name="q"
+                    placeholder="Buscar sitio histórico..." value="{{ request.args.get('q', '') }}" autofocus>
+            </div>
+
+            <div class="col-12 col-md-auto">
+                <button type="submit" class="btn btn-primary">Buscar</button>
+            </div>
+
+            <div class="col-12 col-md-auto">
+                <label for="city" class="visually-hidden">Ciudad</label>
+                <input type="text" class="form-control" id="city" name="city" placeholder="Ciudad"
+                    value="{{ request.args.get('city', '') }}">
+            </div>
+
+            <div class="col-12 col-md-auto" style="min-width: 220px;">
+                <label for="province" class="visually-hidden">Provincia</label>
+                <select class="form-select" id="province" name="province">
+                    <option value="">Provincia</option>
+                    <option value="Buenos Aires" {% if request.args.get('province')=='Buenos Aires' %}selected{% endif
+                        %}>Buenos Aires</option>
+                    <option value="Catamarca" {% if request.args.get('province')=='Catamarca' %}selected{% endif %}>
+                        Catamarca</option>
+                    <option value="Chaco" {% if request.args.get('province')=='Chaco' %}selected{% endif %}>Chaco
+                    </option>
+                    <option value="Chubut" {% if request.args.get('province')=='Chubut' %}selected{% endif %}>Chubut
+                    </option>
+                    <option value="Córdoba" {% if request.args.get('province')=='Córdoba' %}selected{% endif %}>Córdoba
+                    </option>
+                    <option value="Corrientes" {% if request.args.get('province')=='Corrientes' %}selected{% endif %}>
+                        Corrientes</option>
+                    <option value="Entre Ríos" {% if request.args.get('province')=='Entre Ríos' %}selected{% endif %}>
+                        Entre Ríos</option>
+                    <option value="Formosa" {% if request.args.get('province')=='Formosa' %}selected{% endif %}>Formosa
+                    </option>
+                    <option value="Jujuy" {% if request.args.get('province')=='Jujuy' %}selected{% endif %}>Jujuy
+                    </option>
+                    <option value="La Pampa" {% if request.args.get('province')=='La Pampa' %}selected{% endif %}>La
+                        Pampa</option>
+                    <option value="La Rioja" {% if request.args.get('province')=='La Rioja' %}selected{% endif %}>La
+                        Rioja</option>
+                    <option value="Mendoza" {% if request.args.get('province')=='Mendoza' %}selected{% endif %}>Mendoza
+                    </option>
+                    <option value="Misiones" {% if request.args.get('province')=='Misiones' %}selected{% endif %}>
+                        Misiones</option>
+                    <option value="Neuquén" {% if request.args.get('province')=='Neuquén' %}selected{% endif %}>Neuquén
+                    </option>
+                    <option value="Río Negro" {% if request.args.get('province')=='Río Negro' %}selected{% endif %}>Río
+                        Negro</option>
+                    <option value="Salta" {% if request.args.get('province')=='Salta' %}selected{% endif %}>Salta
+                    </option>
+                    <option value="San Juan" {% if request.args.get('province')=='San Juan' %}selected{% endif %}>San
+                        Juan</option>
+                    <option value="San Luis" {% if request.args.get('province')=='San Luis' %}selected{% endif %}>San
+                        Luis</option>
+                    <option value="Santa Cruz" {% if request.args.get('province')=='Santa Cruz' %}selected{% endif %}>
+                        Santa Cruz</option>
+                    <option value="Santa Fe" {% if request.args.get('province')=='Santa Fe' %}selected{% endif %}>Santa
+                        Fe</option>
+                    <option value="Santiago del Estero" {% if request.args.get('province')=='Santiago del Estero'
+                        %}selected{% endif %}>Santiago del Estero</option>
+                    <option value="Tierra del Fuego" {% if request.args.get('province')=='Tierra del Fuego' %}selected{%
+                        endif %}>Tierra del Fuego</option>
+                    <option value="Tucumán" {% if request.args.get('province')=='Tucumán' %}selected{% endif %}>Tucumán
+                    </option>
+                </select>
+            </div>
+
+            <div class="col-12 col-md-auto" style="min-width: 220px; max-width: 300px;">
+                <label for="tags" class="visually-hidden">Tags</label>
+                <select class="form-select" id="tags" name="tags" multiple>
+                    {% for tag in tags %}
+                    <option value="{{ tag.id }}" {% if tag.id|string in request.args.getlist('tags') %}selected{% endif
+                        %}>{{ tag.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-12 col-md-auto">
+                <button type="submit" class="btn btn-success">Aplicar filtros</button>
+            </div>
         </div>
 
-        <div class="col-12 col-md-auto">
-            <button type="submit" class="btn btn-primary">Buscar</button>
-        </div>
+        <div class="row g-2 align-items-center mb-2 flex-wrap">
 
-        <div class="col-12 col-md-auto">
-            <label for="city" class="visually-hidden">Ciudad</label>
-            <input type="text" class="form-control" id="city" name="city" placeholder="Ciudad" value="{{ request.args.get('city', '') }}">
-        </div>
+            <div class="col-12 col-md-auto">
+                <label for="status" class="visually-hidden">Estado de conservación</label>
+                <select class="form-select" id="status" name="status">
+                    <option value="">Estado de conservación</option>
+                    <option value="Bueno" {% if request.args.get('status')=='Bueno' %}selected{% endif %}>Bueno</option>
+                    <option value="Regular" {% if request.args.get('status')=='Regular' %}selected{% endif %}>Regular
+                    </option>
+                    <option value="Malo" {% if request.args.get('status')=='Malo' %}selected{% endif %}>Malo</option>
+                </select>
+            </div>
 
-        <div class="col-12 col-md-auto" style="min-width: 220px;">
-            <label for="province" class="visually-hidden">Provincia</label>
-            <select class="form-select" id="province" name="province" >
-                <option value="">Provincia</option>
-                <option value="Buenos Aires" {% if request.args.get('province') == 'Buenos Aires' %}selected{% endif %}>Buenos Aires</option>
-                <option value="Catamarca" {% if request.args.get('province') == 'Catamarca' %}selected{% endif %}>Catamarca</option>
-                <option value="Chaco" {% if request.args.get('province') == 'Chaco' %}selected{% endif %}>Chaco</option>
-                <option value="Chubut" {% if request.args.get('province') == 'Chubut' %}selected{% endif %}>Chubut</option>
-                <option value="Córdoba" {% if request.args.get('province') == 'Córdoba' %}selected{% endif %}>Córdoba</option>
-                <option value="Corrientes" {% if request.args.get('province') == 'Corrientes' %}selected{% endif %}>Corrientes</option>
-                <option value="Entre Ríos" {% if request.args.get('province') == 'Entre Ríos' %}selected{% endif %}>Entre Ríos</option>
-                <option value="Formosa" {% if request.args.get('province') == 'Formosa' %}selected{% endif %}>Formosa</option>
-                <option value="Jujuy" {% if request.args.get('province') == 'Jujuy' %}selected{% endif %}>Jujuy</option>
-                <option value="La Pampa" {% if request.args.get('province') == 'La Pampa' %}selected{% endif %}>La Pampa</option>
-                <option value="La Rioja" {% if request.args.get('province') == 'La Rioja' %}selected{% endif %}>La Rioja</option>
-                <option value="Mendoza" {% if request.args.get('province') == 'Mendoza' %}selected{% endif %}>Mendoza</option>
-                <option value="Misiones" {% if request.args.get('province') == 'Misiones' %}selected{% endif %}>Misiones</option>
-                <option value="Neuquén" {% if request.args.get('province') == 'Neuquén' %}selected{% endif %}>Neuquén</option>
-                <option value="Río Negro" {% if request.args.get('province') == 'Río Negro' %}selected{% endif %}>Río Negro</option>
-                <option value="Salta" {% if request.args.get('province') == 'Salta' %}selected{% endif %}>Salta</option>
-                <option value="San Juan" {% if request.args.get('province') == 'San Juan' %}selected{% endif %}>San Juan</option>
-                <option value="San Luis" {% if request.args.get('province') == 'San Luis' %}selected{% endif %}>San Luis</option>
-                <option value="Santa Cruz" {% if request.args.get('province') == 'Santa Cruz' %}selected{% endif %}>Santa Cruz</option>
-                <option value="Santa Fe" {% if request.args.get('province') == 'Santa Fe' %}selected{% endif %}>Santa Fe</option>
-                <option value="Santiago del Estero" {% if request.args.get('province') == 'Santiago del Estero' %}selected{% endif %}>Santiago del Estero</option>
-                <option value="Tierra del Fuego" {% if request.args.get('province') == 'Tierra del Fuego' %}selected{% endif %}>Tierra del Fuego</option>
-                <option value="Tucumán" {% if request.args.get('province') == 'Tucumán' %}selected{% endif %}>Tucumán</option>
-            </select>
-        </div>
+            <div class="col-12 col-md-auto">
+                <label for="date_from" class="visually-hidden">Desde</label>
+                <input type="date" class="form-control" id="date_from" name="date_from"
+                    value="{{ request.args.get('date_from', '') }}">
+            </div>
+            <div class="col-12 col-md-auto">
+                <label for="date_to" class="visually-hidden">Hasta</label>
+                <input type="date" class="form-control" id="date_to" name="date_to"
+                    value="{{ request.args.get('date_to', '') }}">
+            </div>
 
-        <div class="col-12 col-md-auto" style="min-width: 220px; max-width: 300px;">
-            <label for="tags" class="visually-hidden">Tags</label>
-            <select class="form-select" id="tags" name="tags" multiple>
-                {% for tag in tags %}
-                    <option value="{{ tag.id }}" {% if tag.id|string in request.args.getlist('tags') %}selected{% endif %}>{{ tag.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
+            <div class="col-12 col-md-auto">
+                <label for="order_by" class="visually-hidden">Ordenar por:</label>
+                <select name="order_by" class="form-select" id="order_by">
+                    <option value="site_name" {% if request.args.get('order_by')=='site_name' %}selected{% endif %}>
+                        Nombre</option>
+                    <option value="city" {% if request.args.get('order_by')=='city' %}selected{% endif %}>Ciudad
+                    </option>
+                    <option value="registration_date" {% if request.args.get('order_by')=='registration_date'
+                        %}selected{% endif %}>Fecha de registro</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-auto">
+                <label for="order_dir" class="visually-hidden"></label>
+                <select name="order_dir" class="form-select" id="order_dir">
+                    <option value="asc" {% if request.args.get('order_dir', 'asc' )=='asc' %}selected{% endif %}>
+                        Ascendente</option>
+                    <option value="desc" {% if request.args.get('order_dir', 'asc' )=='desc' %}selected{% endif %}>
+                        Descendente</option>
+                </select>
+            </div>
 
-        <div class="col-12 col-md-auto">
-            <button type="submit" class="btn btn-success">Aplicar filtros</button>
+            <div class="col-12 col-md-auto form-check align-self-center">
+                <label class="form-check-label" for="visible">Solo visibles</label>
+                <input class="form-check-input" type="checkbox" id="visible" name="visible" value="true" {% if
+                    request.args.get('visible') %}checked{% endif %}>
+            </div>
+
+            <div class="col-12 col-md-auto">
+                <button type="button" id="clear-filters" class="btn btn-secondary">Limpiar filtros</button>
+            </div>
         </div>
+    </form>
+
+    <div id="exportButtonContainer"></div>
+
+    <div>
+        <p id="result-number" class="lead"></p>
     </div>
-
-    <div class="row g-2 align-items-center mb-2 flex-wrap">
-
-    <div class="col-12 col-md-auto">
-        <label for="status" class="visually-hidden">Estado de conservación</label>
-        <select class="form-select" id="status" name="status">
-            <option value="">Estado de conservación</option>
-            <option value="Bueno" {% if request.args.get('status') == 'Bueno' %}selected{% endif %}>Bueno</option>
-            <option value="Regular" {% if request.args.get('status') == 'Regular' %}selected{% endif %}>Regular</option>
-            <option value="Malo" {% if request.args.get('status') == 'Malo' %}selected{% endif %}>Malo</option>
-        </select>
-    </div>
-
-        <div class="col-12 col-md-auto">
-            <label for="date_from" class="visually-hidden">Desde</label>
-            <input type="date" class="form-control" id="date_from" name="date_from" value="{{ request.args.get('date_from', '') }}">
-        </div>
-        <div class="col-12 col-md-auto">
-            <label for="date_to" class="visually-hidden">Hasta</label>
-            <input type="date" class="form-control" id="date_to" name="date_to" value="{{ request.args.get('date_to', '') }}">
-        </div>
-
-        <div class="col-12 col-md-auto">
-            <label for="order_by" class="visually-hidden">Ordenar por:</label>
-            <select name="order_by" class="form-select" id="order_by">
-                <option value="site_name" {% if request.args.get('order_by') == 'site_name' %}selected{% endif %}>Nombre</option>
-                <option value="city" {% if request.args.get('order_by') == 'city' %}selected{% endif %}>Ciudad</option>
-                <option value="registration_date" {% if request.args.get('order_by') == 'registration_date' %}selected{% endif %}>Fecha de registro</option>
-            </select>
-        </div>
-        <div class="col-12 col-md-auto">
-            <label for="order_dir" class="visually-hidden"></label>
-            <select name="order_dir" class="form-select" id="order_dir">
-                <option value="asc" {% if request.args.get('order_dir', 'asc') == 'asc' %}selected{% endif %}>Ascendente</option>
-                <option value="desc" {% if request.args.get('order_dir', 'asc') == 'desc' %}selected{% endif %}>Descendente</option>
-            </select>
-        </div>
-
-        <div class="col-12 col-md-auto form-check align-self-center">
-            <label class="form-check-label" for="visible">Solo visibles</label>
-            <input class="form-check-input" type="checkbox" id="visible" name="visible" value="true" {% if request.args.get('visible') %}checked{% endif %}>
-        </div>
-
-        <div class="col-12 col-md-auto">
-            <button type="button" id="clear-filters" class="btn btn-secondary">Limpiar filtros</button>
-        </div>
-    </div>
-</form>
-
-<div>
-    <p id="result-number" class="lead"></p>
-</div>
 
     <div class="row">
         <div class="col-12">
-            <div id="historic-sites-list" class="row g-3 h-100 align-content-start" style="overflow-y: auto; max-height: 60vh;"></div>
+            <div id="historic-sites-list" class="row g-3 h-100 align-content-start"
+                style="overflow-y: auto; max-height: 60vh;"></div>
         </div>
     </div>
 </div>
@@ -146,7 +184,8 @@
 
 <style>
     /* Estilos para Choice.js */
-    .choices__list--multiple, .choices__inner {
+    .choices__list--multiple,
+    .choices__inner {
         max-height: 38px;
         min-height: 38px;
         overflow-y: auto;
@@ -176,66 +215,67 @@
 
     renderHistoricSites = (data) => {
         const container = document.getElementById("historic-sites-list");
-                container.innerHTML = "";
+        container.innerHTML = "";
 
-                if (data.total === 0) {
-                    document.getElementById("result-number").innerText = '';
+        if (data.total === 0) {
+            document.getElementById("result-number").innerText = '';
 
-                    container.innerHTML = `
+            container.innerHTML = `
                         <div class="col-12">
                             <div class="alert alert-warning text-center">
                                 No se encontraron resultados
                             </div>
                         </div>`;
-                    return;
-                }
+            return;
+        }
 
-                if (data.total === 1) {
-                    document.getElementById("result-number").innerText = `Se encontró 1 resultado.`;
-                }
-                else {
-                    document.getElementById("result-number").innerText = `Se encontraron ${data.total} resultados.`;
-                }
+        if (data.total === 1) {
+            document.getElementById("result-number").innerText = `Se encontró 1 resultado.`;
+        }
+        else {
+            document.getElementById("result-number").innerText = `Se encontraron ${data.total} resultados.`;
+        }
 
-                {% if is_admin() %}
-                const exportButton = document.createElement("button");
-                exportButton.textContent = "Exportar CSV";
-                exportButton.style.margin = "10px 0";
-                exportButton.className = "btn btn-success";
-                exportButton.onclick = async () => {
-                    try {
-                        exportButton.disabled = true;
-                        exportButton.textContent = "Exportando...";
+        {% if is_admin() %}
+        const buttonContainer = document.getElementById("exportButtonContainer");
+        const exportButton = document.createElement("button");
+        exportButton.textContent = "Exportar CSV";
+        exportButton.style.margin = "10px 0";
+        exportButton.className = "btn btn-success";
+        exportButton.onclick = async () => {
+            try {
+                exportButton.disabled = true;
+                exportButton.textContent = "Exportando...";
 
-                        const response = await fetch("/sitios-historicos/admin/export-sites");
+                const response = await fetch("/sitios-historicos/admin/export-sites");
 
-                        if (!response.ok) {
-                            if (response.status === 403) {
-                                throw new Error("No tienes permisos para exportar datos");
-                            } else if (response.status === 401) {
-                                throw new Error("Debes iniciar sesión para exportar datos");
-                            } else {
-                                throw new Error(`Error del servidor: ${response.status}`);
-                            }
-                        }
-
-                        window.location.href = "/sitios-historicos/admin/export-sites";
-                        window.alert("CSV exportado exitosamente", "success");
-                    } catch (error) {
-                        console.error("Error al exportar CSV:", error);
-                        window.alert(error.message, "danger");
-                    } finally {
-                        exportButton.disabled = false;
-                        exportButton.textContent = "Exportar CSV";
+                if (!response.ok) {
+                    if (response.status === 403) {
+                        throw new Error("No tienes permisos para exportar datos");
+                    } else if (response.status === 401) {
+                        throw new Error("Debes iniciar sesión para exportar datos");
+                    } else {
+                        throw new Error(`Error del servidor: ${response.status}`);
                     }
-                };
-                container.appendChild(exportButton);
-                {% endif %}
+                }
 
-                data.sites.forEach(hs => {
-                    const block = document.createElement("div");
-                    block.className = "col-md-6 col-lg-4";
-                    block.innerHTML = `
+                window.location.href = "/sitios-historicos/admin/export-sites";
+                window.alert("CSV exportado exitosamente", "success");
+            } catch (error) {
+                console.error("Error al exportar CSV:", error);
+                window.alert(error.message, "danger");
+            } finally {
+                exportButton.disabled = false;
+                exportButton.textContent = "Exportar CSV";
+            }
+        };
+        buttonContainer.appendChild(exportButton);
+        {% endif %}
+
+        data.sites.forEach(hs => {
+            const block = document.createElement("div");
+            block.className = "col-md-6 col-lg-4";
+            block.innerHTML = `
                         <div class="card h-100 shadow-sm">
                             <div class="card-body">
                                 <h5 class="card-title">${hs.site_name}</h5>
@@ -244,11 +284,10 @@
                                 <p class="card-text"><strong>Estado de conservación:</strong> ${hs.status}</p>
                                 <p class="card-text"><strong>Fecha de registro:</strong> ${hs.registration_date}</p>
                                 <p class="card.text"><strong>Visibilidad:</strong> ${hs.visible ? 'Visible' : 'No Visible'}</p>
-                                <p class="card-text badge bg-info rounded-pill fs-6">${
-                                    hs.tags && hs.tags.length
-                                        ? hs.tags.map(tag => tag).join(', ')
-                                        : 'Sin etiquetas'
-                                }</p>
+                                <p class="card-text badge bg-info rounded-pill fs-6">${hs.tags && hs.tags.length
+                    ? hs.tags.map(tag => tag).join(', ')
+                    : 'Sin etiquetas'
+                }</p>
                             </div>
                             <div class="card-footer text-end">
                                 <a href="/sitios-historicos/detalle/${hs.id}" class="btn btn-sm btn-primary">
@@ -257,8 +296,8 @@
                             </div>
                         </div>
                     `;
-                    container.appendChild(block);
-                });
+            container.appendChild(block);
+        });
     }
 
     // Se encarga de mostrar la paginación y agregar listeners a los links de páginas para responder un cambio de página
@@ -268,19 +307,19 @@
 
         if (page > 1) {
             pagination.innerHTML += `<li class="page-item">
-                <a class="page-link" href="#" data-page="${page-1}">Anterior</a>
+                <a class="page-link" href="#" data-page="${page - 1}">Anterior</a>
             </li>`;
         }
         pagination.innerHTML += `<li class="page-item disabled"><span class="page-link">Página ${page}</span></li>`;
         if (total > page * per_page) {
             pagination.innerHTML += `<li class="page-item">
-                <a class="page-link" href="#" data-page="${page+1}">Siguiente</a>
+                <a class="page-link" href="#" data-page="${page + 1}">Siguiente</a>
             </li>`;
         }
 
         // Agregar listener para los links de páginas
         pagination.querySelectorAll('a[data-page]').forEach(link => {
-            link.addEventListener('click', function(e) {
+            link.addEventListener('click', function (e) {
                 e.preventDefault();
                 fetchSites(parseInt(this.dataset.page));
             });
@@ -307,42 +346,42 @@
         params.append('page', page.toString());
 
         fetch(`/sitios-historicos/search?${params.toString()}`)
-        .then(response => {
-          if (!response.ok) {
-              // Convierte la respuesta a JSON para obtener el mensaje de error
-              return response.json().then(errData => {
-              throw { status: response.status, message: errData.error };
-            }).catch((e) => {
-                // Captura el error en caso de que la respuesta no pueda ser convertida a JSON
-                throw { status: response.status, message: e.message || 'Error ' + response.status };
-            });
-          }
-          return response.json();
-        })
-        .then(data => {
-            // Muestra los sitios históricos
-            renderHistoricSites(data);
+            .then(response => {
+                if (!response.ok) {
+                    // Convierte la respuesta a JSON para obtener el mensaje de error
+                    return response.json().then(errData => {
+                        throw { status: response.status, message: errData.error };
+                    }).catch((e) => {
+                        // Captura el error en caso de que la respuesta no pueda ser convertida a JSON
+                        throw { status: response.status, message: e.message || 'Error ' + response.status };
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Muestra los sitios históricos
+                renderHistoricSites(data);
 
-            // Muestra la paginación y agrega listener para hacer fetch de sitios ante cambios de página
-            renderPagination(data.page || 1, data.per_page || 25, data.total || 0);
-            window.history.replaceState({}, '', `/sitios-historicos/explore?${params.toString()}`);
-        })
-        .catch(error => {
-          let msg = 'Ocurrió un error al cargar los sitios históricos.';
+                // Muestra la paginación y agrega listener para hacer fetch de sitios ante cambios de página
+                renderPagination(data.page || 1, data.per_page || 25, data.total || 0);
+                window.history.replaceState({}, '', `/sitios-historicos/explore?${params.toString()}`);
+            })
+            .catch(error => {
+                let msg = 'Ocurrió un error al cargar los sitios históricos.';
 
-          if (error.status === 400 && error.message) {
-              error.message.includes("date") ?
-                  msg = 'La fecha de fin no puede ser anterior a la fecha de inicio.' :
-                  msg = 'El formato de los filtros enviados es inválido';
-          }
+                if (error.status === 400 && error.message) {
+                    error.message.includes("date") ?
+                        msg = 'La fecha de fin no puede ser anterior a la fecha de inicio.' :
+                        msg = 'El formato de los filtros enviados es inválido';
+                }
 
-          document.getElementById("historic-sites-list").innerHTML = `
+                document.getElementById("historic-sites-list").innerHTML = `
             <div class="col-12">
               <div class="alert alert-danger text-center">
                 ${msg}
               </div>
             </div>`;
-        });
+            });
     }
 
     // Visualización de sitios históricos según filtros al apretar Buscar
@@ -353,8 +392,9 @@
 
     // Visualización inicial de todos los sitios históricos al cargar la página
     document.addEventListener("DOMContentLoaded", function () {
-        let page = {{ request.args.get('page', 1) }};
-        fetchSites(page);
+        let page = {{ request.args.get('page', 1)
+    }};
+    fetchSites(page);
     })
 
     document.getElementById("clear-filters").addEventListener('click', function () {
@@ -389,7 +429,7 @@
     });
 
     // Configura Choices.js para el select de tags
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         // Resetear las elecciones en Choices.js
         const tagsChoices = document.querySelector('#tags').choices;
         if (tagsChoices) tagsChoices.clearStore();

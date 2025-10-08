@@ -159,6 +159,10 @@ def list_historic_sites_with_filters(q='', city='', province='', tags=None, stat
         query = query.order_by(order_column)
 
     total = query.count()
-    sites = query.offset((int(page) - 1) * int(per_page)).limit(int(per_page)).all()
+
+    if not page is None:
+        sites = query.offset((int(page) - 1) * int(per_page)).limit(int(per_page)).all()
+    else:
+        sites = query.all()
 
     return sites, total

@@ -53,39 +53,15 @@ def export_sites(user):
     # Obtener parámetros de la query string
     params = request.args.to_dict()
     
+    # Pasar page como None para que no aplique valor por default/reemplazar actual
+    params['page'] = None  
+    params['per_page'] = None
+    
     try:
-        # Procesar parámetros igual que en advanced_search
-        if params:
-            # Procesar tags si existen
-            tags = params.pop('tags', None)
-            if tags:
-                tags = tags.split(',')
-                params['tags'] = tags
-            
-            # Procesar fechas
-            date_from = params.pop('date_from', None)
-            date_to = params.pop('date_to', None)
-            
-            if date_from:
-                params['date_from'] = date_from
-            if date_to:
-                params['date_to'] = date_to
-            
-            # Remover parámetros de paginación para obtener todos los resultados
-            params.pop('page', None)
-            params.pop('per_page', None)
-            
-            # Usar la función de filtros
-            (sites, total) = list_historic_sites_with_filters(**params)
-            data = [x.json() for x in sites]
-            print(f"Filtros aplicados: {len(data)} de {total} sitios")
-        else:
-            # Sin filtros, tirar error 400
-            return jsonify({
-            "error": "No se recibieron filtros"
-        }), 400
+        (sites, total) = list_historic_sites_with_filters(**params)
+        data = [x.json() for x in sites]
     except Exception as e:
-        print(f"Error aplicando filtros: {e}")
+        print(f"Error obteniendo sitios: {e}")
         return jsonify({
             "error": "Error aplicando filtros"
         }), 500

@@ -162,12 +162,13 @@
 
     <div id="result-count-and-csv" class="d-flex justify-content-between align-items-center mb-2">
         <p id="result-number" class="lead mb-0"></p>
-        <div id="export-button-section"></div>
+        <div id="export-button-section" style="{{ 'display: block;' if is_admin() else 'display: none;' }}">
+            <button class="btn btn-success" style="margin: 10px 0px;">Exportar CSV</button>
+        </div>
     </div>
     <div class="row mt-3">
         <div class="col-12" style="max-width: 90vw; margin: 0 auto;">
-            <div id="historic-sites-list" class="row g-3 h-100 align-content-start"
-                style="overflow-y: auto; max-height: 60vh;"></div>
+            <div id="historic-sites-list" class="row g-3 align-content-start"></div>
         </div>
     </div>
 
@@ -207,12 +208,41 @@
 
 <!-- jQuery (required for Bootstrap Select) -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<!-- Bootstrap JS (required for dropdowns) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <!-- Bootstrap Select JS -->
 <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 
+<script>
+    // Declarar como variable global explícita
+    window.exportButton = document.querySelector("#export-button-section button");
+    window.exportButton.style.display = "none";
+    window.exportButton.onclick = async () => {
+        try {
+            window.exportButton.disabled = true;
+            window.exportButton.textContent = "Exportando...";
 
+            const response = await fetch("/sitios-historicos/admin/export-sites");
+
+            if (!response.ok) {
+                if (response.status === 403) {
+                    throw new Error("No tienes permisos para exportar datos");
+                } else if (response.status === 401) {
+                    throw new Error("Debes iniciar sesión para exportar datos");
+                } else {
+                    throw new Error(`Error del servidor: ${response.status}`);
+                }
+            }
+
+            window.location.href = "/sitios-historicos/admin/export-sites";
+            window.alert("CSV exportado exitosamente", "success");
+        } catch (error) {
+            console.error("Error al exportar CSV:", error);
+            window.alert(error.message, "danger");
+        } finally {
+            window.exportButton.disabled = false;
+            window.exportButton.textContent = "Exportar CSV";
+        }
+    };
+</script>
 <script>
     window.alert = function (message, type = "info") {
         const container = document.getElementById("flash-container");
@@ -239,6 +269,8 @@
         container.innerHTML = "";
 
         if (data.total === 0) {
+            window.exportButton.style.display = "none";
+
             document.getElementById("result-number").innerText = '';
 
             container.innerHTML = `
@@ -250,50 +282,16 @@
             return;
         }
 
+        {% if is_admin() %}
+        window.exportButton.style.display = "inline-block";
+        {% endif %}
+
         if (data.total === 1) {
             document.getElementById("result-number").innerText = `Se encontró 1 resultado.`;
         }
         else {
             document.getElementById("result-number").innerText = `Se encontraron ${data.total} resultados.`;
         }
-
-        {% if is_admin() %}
-        const buttonContainer = document.getElementById("exportButtonContainer");
-        const exportButton = document.createElement("button");
-        exportButton.textContent = "Exportar CSV";
-        exportButton.style.margin = "10px 0";
-        exportButton.className = "btn btn-success";
-        exportButton.onclick = async () => {
-            try {
-                exportButton.disabled = true;
-                exportButton.textContent = "Exportando...";
-
-                const response = await fetch("/sitios-historicos/admin/export-sites");
-
-                if (!response.ok) {
-                    if (response.status === 403) {
-                        throw new Error("No tienes permisos para exportar datos");
-                    } else if (response.status === 401) {
-                        throw new Error("Debes iniciar sesión para exportar datos");
-                    } else {
-                        throw new Error(`Error del servidor: ${response.status}`);
-                    }
-                }
-
-                window.location.href = "/sitios-historicos/admin/export-sites";
-                window.alert("CSV exportado exitosamente", "success");
-            } catch (error) {
-                console.error("Error al exportar CSV:", error);
-                window.alert(error.message, "danger");
-            } finally {
-                exportButton.disabled = false;
-                exportButton.textContent = "Exportar CSV";
-            }
-        };
-        const exportButtonSection = document.getElementById("export-button-section");
-        exportButtonSection.innerHTML = "";
-        exportButtonSection.appendChild(exportButton);
-        {% endif %}
 
         data.sites.forEach(hs => {
             const block = document.createElement("div");
@@ -390,6 +388,7 @@
                 window.history.replaceState({}, '', `/sitios-historicos/explore?${params.toString()}`);
             })
             .catch(error => {
+                console.log('Error fetching historic sites:', error);
                 let msg = 'Ocurrió un error al cargar los sitios históricos.';
 
                 if (error.status === 400 && error.message) {

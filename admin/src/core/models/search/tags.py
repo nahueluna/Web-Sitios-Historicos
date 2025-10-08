@@ -1,6 +1,6 @@
 from _datetime import datetime, timezone
 from sqlalchemy import String, DateTime
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.core.database import Base
 
 
@@ -21,6 +21,8 @@ class Tag(Base):
         default=lambda: datetime.now(timezone.utc),
         onupdate=datetime.now(timezone.utc)
     )
+
+    historic_sites = relationship("HistoricSites", secondary="historic_sites_tags", back_populates="tags")
 
     def __repr__(self):
        return f"<Tag(id={self.id}, name={self.name}, slug={self.slug}"

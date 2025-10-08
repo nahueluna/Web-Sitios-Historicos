@@ -320,7 +320,7 @@
                             window.location.href = '/sitios-historicos/admin/';
                         }, 2500);
                     } else {
-                        response.json().then(data => alert(data.error || 'Error al eliminar'));
+                        response.json().then(data => alert(data.error || 'Error al eliminar', 'danger'));
                     }
                 });
         }

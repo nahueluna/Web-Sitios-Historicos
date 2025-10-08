@@ -39,6 +39,7 @@ def seed_db():
     from src.core.models.auth.seeds import seed_usuarios
     print("🌱 Seeding database with initial data...")
     seed_usuarios()
+    seed_db_sites()
     print("✅ Database seeding complete.")
 
 
@@ -48,3 +49,11 @@ def seed_db_user():
     run_seeds()
     print("✅ User database seeding complete.")
 
+def seed_db_sites():
+    from src.core.models.historic_sites.seeds import seed_historic_sites
+    from src.core.models.search.seeds import seed_tags, seed_historic_sites_tags
+    print("🌱 Seeding database with historic sites data...")
+    seed_tags()
+    seed_historic_sites()
+    seed_historic_sites_tags()
+    print("✅ Historic sites database seeding complete.")

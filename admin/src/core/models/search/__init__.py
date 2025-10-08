@@ -22,7 +22,12 @@ def get_tag_by_id(tag_id):
 def create_tag(**kwargs):
     tag = Tag(**kwargs)
     db.session.add(tag)
-    db.session.commit()
+
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        raise e
 
     return tag
 
@@ -31,7 +36,13 @@ def update_tag_name(tag_id, new_name, new_slug):
     if tag:
         tag.name = new_name
         tag.slug = new_slug
-        db.session.commit()
+
+        try:
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise e
+
     return tag
 
 def remove_tag(tag_id):

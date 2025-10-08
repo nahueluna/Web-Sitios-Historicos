@@ -217,22 +217,26 @@
     window.exportButton.style.display = "none";
     window.exportButton.onclick = async () => {
         try {
+
             window.exportButton.disabled = true;
             window.exportButton.textContent = "Exportando...";
 
-            const response = await fetch("/sitios-historicos/admin/export-sites");
+            const response = await fetch(`/sitios-historicos/admin/export-sites?${window.params.toString()}`);
 
             if (!response.ok) {
                 if (response.status === 403) {
                     throw new Error("No tienes permisos para exportar datos");
                 } else if (response.status === 401) {
                     throw new Error("Debes iniciar sesión para exportar datos");
+                }
+                else if (response.status === 400) {
+                    throw new Error("No hay datos para exportar");
                 } else {
-                    throw new Error(`Error del servidor: ${response.status}`);
+                    throw new Error(`Error del servidor`);
                 }
             }
 
-            window.location.href = "/sitios-historicos/admin/export-sites";
+            window.location.href = `/sitios-historicos/admin/export-sites?${params.toString()}`;
             window.alert("CSV exportado exitosamente", "success");
         } catch (error) {
             console.error("Error al exportar CSV:", error);
@@ -365,6 +369,8 @@
         }
 
         params.append('page', page.toString());
+
+        window.params = params;
 
         fetch(`/sitios-historicos/search?${params.toString()}`)
             .then(response => {

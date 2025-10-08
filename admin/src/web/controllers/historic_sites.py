@@ -8,6 +8,7 @@ from src.core.models.historic_site_tags import get_tags_by_site
 from src.core.models.search import get_all_tags
 from flask import Blueprint, render_template, request, jsonify, session
 from src.core.models.historic_sites import delete_histoirc_site, get_historic_site, list_all_historic_sites, list_visible_historic_sites, add_historic_site, edit_historic_site
+from core.models.historic_sites import list_historic_sites_with_filters
 from src.core.models.historic_sites_categorie import delete_category, list_historic_sites_categorie, add_category
 from src.core.models.historic_sites_state import list_states
 from src.core.models.historic_sites_logs import get_logs_per_hs
@@ -49,7 +50,45 @@ def get_all(user):
 @historic_sites_bp.route('/admin/export-sites', methods=['GET'])
 @role_required([RolUsuario.ADMIN])
 def export_sites(user):
-    data = [x.json() for x in list_all_historic_sites()]
+    # Obtener parámetros de la query string
+    params = request.args.to_dict()
+    
+    try:
+        # Procesar parámetros igual que en advanced_search
+        if params:
+            # Procesar tags si existen
+            tags = params.pop('tags', None)
+            if tags:
+                tags = tags.split(',')
+                params['tags'] = tags
+            
+            # Procesar fechas
+            date_from = params.pop('date_from', None)
+            date_to = params.pop('date_to', None)
+            
+            if date_from:
+                params['date_from'] = date_from
+            if date_to:
+                params['date_to'] = date_to
+            
+            # Remover parámetros de paginación para obtener todos los resultados
+            params.pop('page', None)
+            params.pop('per_page', None)
+            
+            # Usar la función de filtros
+            (sites, total) = list_historic_sites_with_filters(**params)
+            data = [x.json() for x in sites]
+            print(f"Filtros aplicados: {len(data)} de {total} sitios")
+        else:
+            # Sin filtros, tirar error 400
+            return jsonify({
+            "error": "No se recibieron filtros"
+        }), 400
+    except Exception as e:
+        print(f"Error aplicando filtros: {e}")
+        return jsonify({
+            "error": "Error aplicando filtros"
+        }), 500
 
     # Devolver si no hay sitios
     if len(data) == 0:

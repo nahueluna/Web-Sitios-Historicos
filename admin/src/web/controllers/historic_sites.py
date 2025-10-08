@@ -58,6 +58,10 @@ def export_sites(user):
     params['per_page'] = None
     
     try:
+        tags = params.pop('tags')
+        if tags:
+            tags = tags.split(',')
+            params['tags'] = tags
         (sites, total) = list_historic_sites_with_filters(**params)
         data = [x.json() for x in sites]
     except Exception as e:

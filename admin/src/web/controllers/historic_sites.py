@@ -183,14 +183,15 @@ def get_site(user, id):
 
 # RENDERING
 @historic_sites_bp.route('/admin/gestion-sitios')  # Renderiza html
+@role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
 @block_admin_maintenance
-def render_admin_management():
+def render_admin_management(_user):
     return render_template('/historic_sites/gestion_sitios.html')
 
 @historic_sites_bp.route('/admin/')  # Renderiza html
+@role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
 @block_admin_maintenance
-@login_required
-def render_admin_sites():
+def render_admin_sites(_user):
     tags = get_all_tags()
     return render_template('/historic_sites/index.html', tags=tags)
 

@@ -13,8 +13,8 @@ bp_user = Blueprint("user", __name__, url_prefix="/usuarios")
 # Ruta raiz
 @bp_user.route("/")
 # @permission_required('user_index')
-@block_admin_maintenance
 @role_required([RolUsuario.ADMIN])
+@block_admin_maintenance
 def list_users(_session_user):
     email = request.args.get("email")
     activo = request.args.get("activo")

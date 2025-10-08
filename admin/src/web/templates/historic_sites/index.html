@@ -103,7 +103,39 @@
             </div>
         </div>
 
-        <div class="row g-2 align-items-center mb-2 flex-wrap">
+        <div class="row g-2 align-items-end mb-2 flex-wrap">
+
+            <div class="col-12 col-md-auto">
+                <label for="date_from" class="mb-0">Desde</label>
+                <input type="date" class="form-control" id="date_from" name="date_from"
+                    value="{{ request.args.get('date_from', '') }}">
+            </div>
+            <div class="col-12 col-md-auto">
+                <label for="date_to" class="mb-0">Hasta</label>
+                <input type="date" class="form-control" id="date_to" name="date_to"
+                    value="{{ request.args.get('date_to', '') }}">
+            </div>
+
+            <div class="col-12 col-md-auto">
+                <label for="order_by" class="mb-0">Ordenar por:</label>
+                <select name="order_by" class="form-select" id="order_by">
+                    <option value="site_name" {% if request.args.get('order_by')=='site_name' %}selected{% endif %}>
+                        Nombre</option>
+                    <option value="city" {% if request.args.get('order_by')=='city' %}selected{% endif %}>Ciudad
+                    </option>
+                    <option value="registration_date" {% if request.args.get('order_by')=='registration_date'
+                        %}selected{% endif %}>Fecha de registro</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-auto">
+                <label for="order_dir" class="visually-hidden">Dirección</label>
+                <select name="order_dir" class="form-select" id="order_dir">
+                    <option value="asc" {% if request.args.get('order_dir', 'asc' )=='asc' %}selected{% endif %}>
+                        Ascendente</option>
+                    <option value="desc" {% if request.args.get('order_dir', 'asc' )=='desc' %}selected{% endif %}>
+                        Descendente</option>
+                </select>
+            </div>
 
             <div class="col-12 col-md-auto">
                 <label for="status" class="visually-hidden">Estado de conservación</label>
@@ -116,39 +148,7 @@
                 </select>
             </div>
 
-            <div class="col-12 col-md-auto">
-                <label for="date_from" class="visually-hidden">Desde</label>
-                <input type="date" class="form-control" id="date_from" name="date_from"
-                    value="{{ request.args.get('date_from', '') }}">
-            </div>
-            <div class="col-12 col-md-auto">
-                <label for="date_to" class="visually-hidden">Hasta</label>
-                <input type="date" class="form-control" id="date_to" name="date_to"
-                    value="{{ request.args.get('date_to', '') }}">
-            </div>
-
-            <div class="col-12 col-md-auto">
-                <label for="order_by" class="visually-hidden">Ordenar por:</label>
-                <select name="order_by" class="form-select" id="order_by">
-                    <option value="site_name" {% if request.args.get('order_by')=='site_name' %}selected{% endif %}>
-                        Nombre</option>
-                    <option value="city" {% if request.args.get('order_by')=='city' %}selected{% endif %}>Ciudad
-                    </option>
-                    <option value="registration_date" {% if request.args.get('order_by')=='registration_date'
-                        %}selected{% endif %}>Fecha de registro</option>
-                </select>
-            </div>
-            <div class="col-12 col-md-auto">
-                <label for="order_dir" class="visually-hidden"></label>
-                <select name="order_dir" class="form-select" id="order_dir">
-                    <option value="asc" {% if request.args.get('order_dir', 'asc' )=='asc' %}selected{% endif %}>
-                        Ascendente</option>
-                    <option value="desc" {% if request.args.get('order_dir', 'asc' )=='desc' %}selected{% endif %}>
-                        Descendente</option>
-                </select>
-            </div>
-
-            <div class="col-12 col-md-auto form-check align-self-center">
+            <div class="col-12 col-md-auto form-check">
                 <label class="form-check-label" for="visible">Solo visibles</label>
                 <input class="form-check-input" type="checkbox" id="visible" name="visible" value="true" {% if
                     request.args.get('visible') %}checked{% endif %}>
@@ -432,6 +432,26 @@
     document.getElementById("clear-filters").addEventListener('click', function () {
         const form = document.getElementById('filters-form');
         form.reset();
+
+        // Reestablecer manualmente los valores de los inputs y selects
+        form.querySelectorAll('input[type="search"], input[type="text"], input[type="date"]').forEach(input => {
+            input.value = '';
+        });
+        form.querySelectorAll('select').forEach(select => {
+            select.selectedIndex = 0;
+        });
+        form.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.checked = false;
+        });
+
+        // Limpiar selección múltiple de tags
+        const tagsSelect = form.querySelector('#tags');
+        for (const option of tagsSelect.options) {
+            option.selected = false;
+        }
+        if (tagsSelect.choices) {
+            tagsSelect.choices.removeActiveItems();
+        }
 
         // Destruir y reinicializar Choices.js para los selects
         const tagsElement = document.getElementById('tags');

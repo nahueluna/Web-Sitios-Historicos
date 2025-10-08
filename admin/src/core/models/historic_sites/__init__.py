@@ -158,10 +158,10 @@ def list_historic_sites_with_filters(q='', city='', province='', tags=None, stat
             order_column = order_column.asc()
         query = query.order_by(order_column)
 
-    total = query.count()
+    total = query.group_by(HistoricSites.id).count()
 
     if not page is None:
-        sites = query.offset((int(page) - 1) * int(per_page)).limit(int(per_page)).all()
+        sites = query.group_by(HistoricSites.id).offset((int(page) - 1) * int(per_page)).limit(int(per_page)).all()
     else:
         sites = query.all()
 

@@ -52,12 +52,12 @@ def is_editor_or_admin():
     if not is_authenticated():
         return False
     user = get_usuario_by_email(session.get("user"))
-    return user.rol in [RolUsuario.ADMIN, RolUsuario.EDITOR]
+    return user.rol in [RolUsuario.ADMIN, RolUsuario.EDITOR] or user.system_admin
 
 def is_admin():
     if not is_authenticated():
         return False
     user = get_usuario_by_email(session.get("user"))
-    return user.rol == RolUsuario.ADMIN
+    return user.rol == RolUsuario.ADMIN or user.system_admin
 
 ### FUNCIONES QUE NECESITA JUANI

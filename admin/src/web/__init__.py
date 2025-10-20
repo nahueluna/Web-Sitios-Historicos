@@ -15,6 +15,7 @@ import src.web.controllers.advanced_search
 from src.web.controllers.auth import bp_auth
 from src.web.controllers.feature_flag import feature_flag_bp
 from src.core.bcrypt import bcrypt
+from flask_cors import CORS
 
 
 session = Session()
@@ -28,6 +29,12 @@ def create_app(env='development', static_folder='../../static'):
     session.init_app(app)
 
     bcrypt.init_app(app)
+
+    ## Necesario para el OAuth2 con Google
+    CORS(app, origins=["http://localhost:5173"], supports_credentials=True)  # URL de tu frontend Vue
+    app.secret_key = "dev_secret_key"  # Deberia ser un valor seguro en producción
+    app.config["SESSION_COOKIE_SAMESITE"] = "None"
+    app.config["SESSION_COOKIE_SECURE"] = False
 
     @app.route('/')
     def home():  # return render_index()
@@ -72,6 +79,7 @@ def create_app(env='development', static_folder='../../static'):
     app.register_blueprint(role_bp)
     app.register_blueprint(bp_auth)
     app.register_blueprint(feature_flag_bp)
+
 
     @app.cli.command("reset-db")
     def reset_db():

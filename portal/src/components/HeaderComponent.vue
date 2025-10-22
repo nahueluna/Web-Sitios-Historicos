@@ -1,18 +1,20 @@
 <template>
-    <div class="wrapper">
-        <nav>
+    <div class="header">
+        <div >
             <RouterLink to="/">Home</RouterLink>
-            <div v-if="!isAuthenticated">
-                <RouterLink to="/login">Iniciar Sesión</RouterLink>
-            </div>
             <br>
-            <div v-if="isAuthenticated">
-                <RouterLink to="/profile">{{ user.name }}</RouterLink>
-            </div>
-            <div v-if="isAuthenticated">
-                <GoogleLogout />
-            </div>
-        </nav>
+            <RouterLink to="/privado">Privado</RouterLink>
+        </div>
+        <br>
+        <div v-if="!isAuthenticated" >
+            <GoogleLogin />
+        </div>
+        <div v-else>
+            <img :src="user.picture" alt="Foto de perfil" width="30" height="30"/>
+            <RouterLink  to="/perfil">{{ user.name }}</RouterLink>
+            <br><br>
+            <GoogleLogout />
+        </div>  
     </div>
 </template>
 

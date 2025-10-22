@@ -1,12 +1,16 @@
 <template>
-    <header>
-        <HeaderComponent />
-    </header>
-    <main>
-        <LoginContent />
-    </main>
+    <div>
+        <h1>Iniciar Sesión</h1>
+        <p>Por favor, inicia sesión con tu cuenta de Google para acceder a todas las funcionalidades.</p>
+        <br><br>
+        <GoogleLogin />
+        <br><br>
+        <p>volver al <RouterLink to="/">Menu Principal</RouterLink>
+        </p>
+    </div>
 </template>
+
 <script setup>
-import HeaderComponent from '@/components/HeaderComponent.vue'
-import LoginContent from '@/components/contents/LoginContent.vue'
+import GoogleLogin from '@/components/google/GoogleLoginComponent.vue'
+import { RouterLink } from 'vue-router'
 </script>

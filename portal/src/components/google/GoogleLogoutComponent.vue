@@ -10,6 +10,5 @@ const sessionStore = useSessionStore()
 const logout = () => {
   googleLogout();
   sessionStore.logout();
-  console.log("Logout successful!");
 }
 </script>

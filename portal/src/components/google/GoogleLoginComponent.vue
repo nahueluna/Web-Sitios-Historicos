@@ -6,7 +6,13 @@ const sessionStore = useSessionStore()
 // Se llama cuando el login es exitoso
 const callback = (response) => {
   
-  const userData = decodeCredential(response.credential)
+  const user = decodeCredential(response.credential)
+  const userData = {
+    name: user.name,
+    email: user.email,
+    picture: user.picture,
+    sub: user.sub
+  }
   sessionStore.login(userData)
 }
 </script>

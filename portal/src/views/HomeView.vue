@@ -1,13 +1,15 @@
-<script setup>
-import HeaderComponent from '@/components/HeaderComponent.vue'
-import HomeComponent from '@/components/contents/HomeContent.vue';
-</script>
+
 
 <template>
-  <header>
-    <HeaderComponent />
-  </header>
-  <main>
-    <HomeComponent />
-  </main>
+    <div>
+        <h1>Home</h1>
+        <p>Bienvenido a la página de inicio.</p>
+    </div>
+    <div>
+      <p>Se deberian mostrar los sitios historicos</p>
+    </div>
 </template>
+
+<script setup>
+
+</script>

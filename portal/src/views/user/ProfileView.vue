@@ -9,7 +9,7 @@
             <h2>Información de la Sesión</h2>
             <ul>
                 <li><strong>Correo Electrónico:</strong> {{ user.email }}</li>
-                <li><strong>Nombre Completo:</strong> {{ user.name }}</li>
+                <li><strong>Nombre Completo:</strong> {{ user.name }} {{ user.lastname }}</li>
             </ul>
         </div>
         <br>

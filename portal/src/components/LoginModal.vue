@@ -14,7 +14,7 @@
 
 <script setup>
 import {  watchEffect } from 'vue'
-import { useLoginModalStore } from '@/stores/LoginModal'
+import { useLoginModalStore } from '@/stores/LoginModalStore'
 import { useSessionStore } from '@/stores/sessionStore'
 import GoogleLogin from '@/components/google/GoogleLoginComponent.vue'
 import { RouterLink } from 'vue-router'
@@ -37,23 +37,37 @@ watchEffect(() => {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.45);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 1200;
   padding: 1rem;
 }
 
 .modal {
-  background: white;
-  color: #0f1724;
+  background: var(--app-bg, #ffffff);
+  color: var(--text-color, #0f1724);
   max-width: 520px;
   width: 100%;
   border-radius: 12px;
   padding: 1.25rem;
-  box-shadow: 0 8px 30px rgba(2,6,23,0.2);
+  box-shadow: 0 10px 40px rgba(2, 6, 23, 0.25);
   position: relative;
+  max-height: 35vh; /* ensure modal never exceeds viewport */
+  overflow: auto; /* allow inner scrolling */
+  display: flex;
+  flex-direction: column;
+}
+
+.modal h2 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.25rem;
+}
+
+.modal p {
+  margin: 0 0 0.75rem 0;
+  color: var(--muted, #6b7280);
 }
 
 .modal-close {
@@ -64,10 +78,17 @@ watchEffect(() => {
   background: transparent;
   font-size: 1.25rem;
   cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+}
+
+.modal-close:focus {
+  outline: 2px solid var(--brand, #0ea5a4);
+  outline-offset: 2px;
 }
 
 .modal-body {
-  margin: 1rem 0;
+  margin: 0.75rem 0 1rem 0;
   display: flex;
   justify-content: center;
 }
@@ -77,7 +98,11 @@ watchEffect(() => {
   margin-top: 0.5rem;
 }
 
+/* Make sure the Google button is prominent on small screens */
 @media (max-width: 560px) {
-  .modal { max-width: 100%; padding: 0.75rem; }
+  .modal { max-width: 100%; padding: 0.85rem; }
+  .modal h2 { font-size: 1.1rem; }
+  .modal-body { margin: 0.6rem 0; }
 }
+
 </style>

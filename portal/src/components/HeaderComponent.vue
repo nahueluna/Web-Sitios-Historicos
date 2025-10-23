@@ -1,21 +1,22 @@
 <template>
-    <div class="header">
-        <div >
-            <RouterLink to="/">Home</RouterLink>
-            <br>
-            <RouterLink to="/privado">Privado</RouterLink>
+    <nav class="header d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-3">
+            <RouterLink to="/" class="navbar-brand text-white">Home</RouterLink>
+            <RouterLink to="/privado" class="nav-link text-white">Privado</RouterLink>
         </div>
-        <br>
-        <div v-if="!isAuthenticated" >
-            <GoogleLogin />
+
+        <div>
+            <div v-if="!isAuthenticated">
+                <GoogleLogin />
+            </div>
+            <div v-else class="d-flex align-items-center gap-2">
+                <RouterLink to="/mis-reseñas" class="nav-link text-white">Mis Reseñas</RouterLink>
+                <img :src="user.picture" alt="Foto de perfil" width="30" height="30" class="rounded-circle"/>
+                <RouterLink to="/perfil" class="nav-link text-white">{{ user.name }}</RouterLink>
+                <GoogleLogout />
+            </div>
         </div>
-        <div v-else>
-            <img :src="user.picture" alt="Foto de perfil" width="30" height="30"/>
-            <RouterLink  to="/perfil">{{ user.name }}</RouterLink>
-            <br><br>
-            <GoogleLogout />
-        </div>  
-    </div>
+    </nav>
 </template>
 
 <script setup>

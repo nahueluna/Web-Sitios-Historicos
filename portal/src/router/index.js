@@ -1,8 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '@/views/HomeView.vue'
-import ProfileView from '@/views/ProfileView.vue'
+import ProfileView from '@/views/user/ProfileView.vue'
 import { useSessionStore } from '@/stores/sessionStore'
-import { useLoginModalStore } from '@/stores/LoginModal'
+import { useLoginModalStore } from '@/stores/LoginModalStore'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -31,7 +31,12 @@ const router = createRouter({
       component: () => import('@/views/PrivateView.vue'),
       meta: { requiresAuth: true }
     },
-
+    {
+      path: "/mis-reseñas",
+      name: "reviews",
+      component: () => import('@/views/user/ReviewsView.vue'),
+      meta: { requiresAuth: true }
+    }
   ],
 })
 
@@ -47,7 +52,7 @@ router.beforeEach((to, from, next) => {
   }
 
   if (requiresAuth && !sessionStore.isAuthenticated()) {
-    // alert("Debe iniciar sesión para acceder a este recurso.");
+    //alert("Debe iniciar sesión para acceder a este recurso.");
     sessionStore.redirect_uri = to.fullPath;
     loginModalStore.openLoginModal();
     next(false);

@@ -1,35 +1,66 @@
 @import './base.css';
 
+/* Integration with Bootstrap - keep project customizations after the import */
+
 #app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+  width: 100%;
+  margin: 0;
+  padding: 0.5rem 1rem; /* reduce vertical padding to avoid tiny overflow */
   font-weight: normal;
+  box-sizing: border-box;
+}
+
+/* Design tokens used across components (if you later use SCSS, map them to bootstrap variables) */
+:root {
+  --brand: #0ea5a4; /* accent */
+  --muted: #6b7280;
 }
 
 a,
 .green {
   text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
+  color: var(--brand);
+  transition: 0.2s;
   padding: 3px;
 }
 
 @media (hover: hover) {
   a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
+    background-color: rgba(14,165,164,0.12);
   }
+}
+
+/* Header/footer bridge to Bootstrap utilities */
+.header {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(90deg, #0f1724, rgba(15,23,36,0.9));
+  color: #f8fafc;
+}
+
+.site-footer {
+  width: 100%;
+  padding: 1rem 0;
+  background: #fafafa;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+main {
+  width: 100%;
+  overflow: auto; /* let main scroll internally instead of the whole page */
 }
 
 @media (min-width: 1024px) {
-  body {
-    display: flex;
-    place-items: center;
-  }
-
-  #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
-  }
+  /* no additional width-limiting styles on large screens */
 }
+

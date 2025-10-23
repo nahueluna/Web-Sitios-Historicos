@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { useLoginModalStore } from "@/stores/LoginModal";
+import { useLoginModalStore } from "@/stores/LoginModalStore";
 import router from '@/router'
 
 export const useSessionStore = defineStore('session', {
@@ -21,7 +21,7 @@ export const useSessionStore = defineStore('session', {
       sessionStorage.clear()
 
       // No limpia el historial del router
-      router.replace()
+      router.replace("/")
     },
     isAuthenticated() {
       return this.user !== null;

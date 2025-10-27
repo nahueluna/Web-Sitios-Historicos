@@ -19,6 +19,21 @@
 
     <!-- Featured Sections -->
     <div class="container py-5">
+      <!-- Favorites Section - Only visible when logged in -->
+      <template v-if="isAuthenticated">
+        <FeaturedSection
+          section-id="favorites"
+          title="Tus Favoritos"
+          description="Sitios que has guardado para después"
+          sort-by="favorites"
+          :show-if-empty="false"
+          :require-auth="true"
+        />
+
+        <hr class="my-5" />
+
+      </template>
+
       <!-- Top Rated Section -->
       <FeaturedSection
         section-id="top-rated"
@@ -46,19 +61,6 @@
         description="Nuevos lugares por descubrir"
         sort-by="recently-added"
       />
-
-      <!-- Favorites Section - Only visible when logged in -->
-      <template v-if="isAuthenticated">
-        <hr class="my-5" />
-        <FeaturedSection
-          section-id="favorites"
-          title="Tus Favoritos"
-          description="Sitios que has guardado para después"
-          sort-by="favorites"
-          :show-if-empty="false"
-          :require-auth="true"
-        />
-      </template>
     </div>
   </div>
 </template>

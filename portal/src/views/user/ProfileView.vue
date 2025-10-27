@@ -14,17 +14,32 @@
         </div>
         <br>
         <div>
-        
-            <h3><RouterLink to="/mis-reseñas">Ver todas mis reseñas</RouterLink></h3>
-            <br>
-            <div>
+            <div v-if="reviews.length === 0">
+                <h3>No has escrito ninguna reseña aún.</h3>
+            </div>
+            <div v-else>
+                <h3>
+                    <RouterLink to="/mis-reseñas">Ver todas mis reseñas</RouterLink>
+                </h3>
+                <br>
                 <div v-for="review in reviews">
                     <ReviewComponent :review="review" />
                     <br>
                 </div>
             </div>
-            
-            <!--<RouterLink to="/favoritos">Favoritos</RouterLink>-->
+            <div v-if="favorites.length === 0">
+                <h3>No has agregado ningún favorito aún.</h3>
+            </div>
+            <div v-else>
+                <h3>
+                    <RouterLink to="/mis-favoritos">Ver todos mis favoritos</RouterLink>
+                </h3>
+                <br>
+                <div v-for="favorite in favorites">
+                    <FavoriteComponent :favorite="favorite" />
+                    <br>
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -33,16 +48,15 @@
 import { RouterLink } from 'vue-router'
 import { useSessionStore } from "@/stores/sessionStore"
 import { useReviewsStore } from '@/stores/reviewsStore'
+import { useFavoritesStore } from '@/stores/favoriteStore'
 import ReviewComponent from '@/components/ReviewComponent.vue'
-import { onMounted } from 'vue'
+import FavoriteComponent from '@/components/FavoriteComponent.vue'
 const sessionStore = useSessionStore()
 const reviewsStore = useReviewsStore()
+const favoritesStore = useFavoritesStore()
 
 const user = sessionStore.user
-const reviews = reviewsStore.reviews.slice(0,5)
-
-//onMounted(() => {
-//    review.value = reviewsStore.getReviews(5)
-//})
+const reviews = reviewsStore.reviews.slice(0, 3)
+const favorites = favoritesStore.favorites.slice(0, 3)
 
 </script>

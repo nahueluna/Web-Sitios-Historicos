@@ -1,23 +1,28 @@
 <template>
   <section class="featured-section">
     <!-- Header -->
+    <!-- d-flex: display flexbox, justify-content-between: espacio entre elementos, align-items-start: alinea al inicio verticalmente, mb-4: margen inferior 4 -->
     <div class="d-flex justify-content-between align-items-start mb-4">
       <div>
         <h2 class="h3 fw-bold mb-1">{{ title }}</h2>
         <p v-if="description" class="text-muted mb-0">{{ description }}</p>
       </div>
+      <!-- d-none d-md-flex: oculto en móvil, flex en tablet+, align-items-center: centra verticalmente -->
       <router-link
         v-if="!loading && sites.length > 0"
         :to="{ name: 'sites', query: { sort: sortBy } }"
         class="btn btn-outline-secondary d-none d-md-flex align-items-center"
       >
         Ver todos
+        <!-- ms-2: margen izquierdo 2 -->
         <i class="bi bi-arrow-right ms-2"></i>
       </router-link>
     </div>
 
     <!-- Loading State -->
+    <!-- row: fila flexbox, g-3: gap 3 -->
     <div v-if="loading" class="row g-3">
+      <!-- col-12 col-md-6 col-lg-4: columnas responsivas (12 en móvil, 6 en tablet, 4 en desktop) -->
       <div v-for="i in 3" :key="i" class="col-12 col-md-6 col-lg-4">
         <div class="card">
           <div class="placeholder-glow">
@@ -37,11 +42,13 @@
 
     <!-- Error State -->
     <div v-else-if="error" class="alert alert-danger" role="alert">
+      <!-- me-2: margen derecho 2 -->
       <i class="bi bi-exclamation-triangle me-2"></i>
       {{ error }}
     </div>
 
     <!-- Empty State -->
+    <!-- text-center: texto centrado, py-5: padding vertical 5 -->
     <div v-else-if="sites.length === 0 && showIfEmpty" class="text-center py-5">
       <i class="bi bi-inbox display-1 text-muted"></i>
       <h4 class="mt-3">No se encontraron sitios</h4>
@@ -51,6 +58,7 @@
     <!-- Sites Grid/Carousel -->
     <div v-else-if="sites.length > 0">
       <!-- Mobile: Carousel -->
+      <!-- d-md-none: visible solo en móvil -->
       <div class="d-md-none">
         <div :id="`carousel-${sectionId}`" class="carousel slide" data-bs-ride="false">
           <div class="carousel-inner">
@@ -60,6 +68,7 @@
               class="carousel-item"
               :class="{ active: index === 0 }"
             >
+              <!-- px-2: padding horizontal 2 -->
               <div class="px-2">
                 <SiteCard :site="site" />
               </div>
@@ -72,6 +81,7 @@
             data-bs-slide="prev"
           >
             <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <!-- visually-hidden: oculto visualmente pero accesible para lectores de pantalla -->
             <span class="visually-hidden">Anterior</span>
           </button>
           <button
@@ -87,13 +97,16 @@
       </div>
 
       <!-- Desktop: Grid -->
+      <!-- row: fila flexbox, g-4: gap 4, d-none d-md-flex: oculto en móvil, flex en tablet+ -->
       <div class="row g-4 d-none d-md-flex">
+        <!-- col-md-6 col-lg-4: 6 columnas en tablet, 4 en desktop -->
         <div v-for="site in sites" :key="site.id" class="col-md-6 col-lg-4">
           <SiteCard :site="site" />
         </div>
       </div>
 
       <!-- Mobile View All Button -->
+      <!-- d-md-none: visible solo en móvil, text-center: texto centrado, mt-4: margen superior 4 -->
       <div class="d-md-none text-center mt-4">
         <router-link
           :to="{ name: 'sites', query: { sort: sortBy } }"
@@ -165,14 +178,18 @@ onMounted(async () => {
 
 <style scoped>
 .featured-section {
+  /* margin-bottom: margen inferior de 3rem */
   margin-bottom: 3rem;
 }
 
 .carousel-control-prev,
 .carousel-control-next {
+  /* width/height: dimensiones de los controles */
   width: 40px;
   height: 40px;
+  /* top: posiciona al 50% desde arriba */
   top: 50%;
+  /* transform: traslada hacia arriba 50% de su altura para centrar verticalmente */
   transform: translateY(-50%);
   background-color: rgba(0, 0, 0, 0.5);
   border-radius: 50%;
@@ -180,10 +197,12 @@ onMounted(async () => {
 }
 
 .carousel-control-prev {
+  /* left: posiciona 20px a la izquierda del contenedor */
   left: -20px;
 }
 
 .carousel-control-next {
+  /* right: posiciona 20px a la derecha del contenedor */
   right: -20px;
 }
 

@@ -13,6 +13,7 @@ const MOCK_SITES: Site[] = [
     visitCount: 25420,
     createdAt: "2024-01-15T10:00:00Z",
     description: "Sede del Poder Ejecutivo Nacional y símbolo histórico de la República Argentina",
+    isFavorite: true, // Marcado como favorito
   },
   {
     id: "2",
@@ -25,6 +26,7 @@ const MOCK_SITES: Site[] = [
     visitCount: 18350,
     createdAt: "2024-02-20T14:30:00Z",
     description: "Edificio colonial que fue sede del gobierno durante la época virreinal",
+    isFavorite: false,
   },
   {
     id: "3",
@@ -37,6 +39,7 @@ const MOCK_SITES: Site[] = [
     visitCount: 22870,
     createdAt: "2024-03-10T09:15:00Z",
     description: "Patrimonio de la Humanidad UNESCO, antigua misión jesuítica guaraní",
+    isFavorite: true, // Marcado como favorito
   },
   {
     id: "4",
@@ -49,6 +52,7 @@ const MOCK_SITES: Site[] = [
     visitCount: 20200,
     createdAt: "2024-01-25T11:45:00Z",
     description: "Valle montañoso con 10.000 años de historia, Patrimonio de la Humanidad",
+    isFavorite: true, // Marcado como favorito
   },
   {
     id: "5",
@@ -61,6 +65,7 @@ const MOCK_SITES: Site[] = [
     visitCount: 16900,
     createdAt: "2024-02-05T16:20:00Z",
     description: "Conjunto de edificios históricos jesuitas, Patrimonio de la Humanidad UNESCO",
+    isFavorite: false,
   },
   {
     id: "6",
@@ -73,6 +78,7 @@ const MOCK_SITES: Site[] = [
     visitCount: 14650,
     createdAt: "2024-03-15T13:00:00Z",
     description: "Arte rupestre con más de 9.000 años de antigüedad, Patrimonio de la Humanidad",
+    isFavorite: false,
   },
 ]
 

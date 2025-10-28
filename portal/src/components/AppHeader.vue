@@ -19,7 +19,7 @@
       </button>
 
       <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto">
+        <ul class="navbar-nav me-auto">
           <li class="nav-item">
             <router-link to="/" class="nav-link">Inicio</router-link>
           </li>
@@ -30,13 +30,37 @@
             <router-link to="/about" class="nav-link">Acerca de</router-link>
           </li>
         </ul>
+
+        <div class="d-flex">
+          <div v-if="!isAuthenticated" class="me-2">
+            <GoogleLogin />
+          </div>
+          <div v-else class="d-flex align-items-center gap-2">
+            <router-link to="/profile" class="nav-link">
+              <img :src="user.picture" alt="Perfil" width="30" height="30" class="rounded-circle">
+            </router-link>
+            <GoogleLogout />
+          </div>
+        </div>
       </div>
     </div>
   </nav>
 </template>
 
 <script setup>
-// No additional script needed, as router-link is used
+import { ref, watchEffect } from 'vue'
+import { useSessionStore } from '@/stores/sessionStore'
+import GoogleLogin from './google/GoogleLoginComponent.vue'
+import GoogleLogout from './google/GoogleLogoutComponent.vue'
+
+const sessionStore = useSessionStore()
+const isAuthenticated = ref(sessionStore.isAuthenticated())
+const user = ref(sessionStore.user)
+
+watchEffect(() => {
+  isAuthenticated.value = sessionStore.isAuthenticated()
+  user.value = sessionStore.user
+})
 </script>
 
 <style scoped>

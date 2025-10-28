@@ -66,13 +66,18 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watchEffect } from 'vue'
+import { useSessionStore } from '@/stores/sessionStore'
 import HeroSearch from '../components/HeroSearch.vue'
 import FeaturedSection from '../components/FeaturedSection.vue'
 
-// TODO: Implementar lógica de autenticación
-// Por ahora, simular estado de autenticación
-const isAuthenticated = ref(false)
+const sessionStore = useSessionStore()
+const isAuthenticated = ref(sessionStore.isAuthenticated())
+
+// Observar cambios en la autenticación
+watchEffect(() => {
+  isAuthenticated.value = sessionStore.isAuthenticated()
+})
 </script>
 
 <style scoped>

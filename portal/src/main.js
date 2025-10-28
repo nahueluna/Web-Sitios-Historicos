@@ -1,9 +1,14 @@
 import './assets/main.css'
 
+// Import custom styles
+import './styles/custom.css'
+
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import vue3GoogleLogin from 'vue3-google-login'
 
+
+import vue3GoogleLogin from 'vue3-google-login'
 
 import App from './App.vue'
 import router from './router'
@@ -22,5 +27,10 @@ app.use(BootstrapVueNext.BootstrapVueNext)
 app.use(vue3GoogleLogin, {
   clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID
 })
+
+app.use(vue3GoogleLogin, {
+  clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+})
+
 
 app.mount('#app')

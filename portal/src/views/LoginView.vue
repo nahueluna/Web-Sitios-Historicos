@@ -1,16 +1,22 @@
 <template>
-    <div>
-        <h1>Iniciar Sesión</h1>
-        <p>Por favor, inicia sesión con tu cuenta de Google para acceder a todas las funcionalidades.</p>
-        <br><br>
-        <GoogleLogin />
-        <br><br>
-        <p>volver al <RouterLink to="/">Menu Principal</RouterLink>
-        </p>
-    </div>
+  <button @click="logout">Cerrar Sesión</button>
 </template>
 
 <script setup>
-import GoogleLogin from '@/components/google/GoogleLoginComponent.vue'
-import { RouterLink } from 'vue-router'
+import { googleLogout } from 'vue3-google-login';
+import { useSessionStore } from "@/stores/sessionStore"
+import api from '@/service/api';
+const sessionStore = useSessionStore()
+
+const logout = () => {
+  googleLogout();
+  api.post('/google/logout')
+    .then((response) => {
+      console.log(response.data.message);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+  sessionStore.logout();
+}
 </script>

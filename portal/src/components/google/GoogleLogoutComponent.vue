@@ -1,5 +1,8 @@
 <template>
-  <button @click="logout">Cerrar Sesión</button>
+  <button @click="logout" class="btn btn-outline-danger">
+    <i class="bi bi-box-arrow-right me-2"></i>
+    Cerrar Sesión
+  </button>
 </template>
 
 <script setup>

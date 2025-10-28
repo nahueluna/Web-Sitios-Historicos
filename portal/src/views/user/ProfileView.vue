@@ -27,7 +27,7 @@
           </div>
           <div v-else>
             <h3 class="h4 mb-3">
-              <router-link to="/mis-reseñas" class="text-decoration-none">Mis Reseñas Recientes</router-link>
+              <router-link to="/reviews" class="text-decoration-none">Mis Reseñas Recientes</router-link>
             </h3>
             <div class="row g-3">
               <div v-for="review in reviews" :key="review.id" class="col-md-6">
@@ -42,7 +42,7 @@
           </div>
           <div v-else>
             <h3 class="h4 mb-3 mt-4">
-              <router-link to="/mis-favoritos" class="text-decoration-none">Mis Favoritos Recientes</router-link>
+              <router-link to="/favorites" class="text-decoration-none">Mis Favoritos Recientes</router-link>
             </h3>
             <div class="row g-3">
               <div v-for="favorite in favorites" :key="favorite.id" class="col-md-6">

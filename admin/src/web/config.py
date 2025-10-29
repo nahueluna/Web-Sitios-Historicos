@@ -14,6 +14,14 @@ class Config:
     }
 
 class ProductionConfig(Config):
+
+    # Minio
+    MINIO_SERVER = environ.get("MINIO_SERVER")
+    MINIO_ACCESS_KEY = environ.get("MINIO_ACCESS_KEY")
+    MINIO_SECRET_KEY = environ.get("MINIO_SECRET_KEY")
+    MINIO_SECURE = True
+    MINIO_BUCKET = "grupo03"
+
     SQLALCHEMY_ENGINES = {
         'default': environ.get("DATABASE_URL")}
 
@@ -25,6 +33,13 @@ class DevelopmentConfig(Config):
     DB_PORT = environ.get("DB_PORT", "5432")
     DB_NAME = environ.get("DB_NAME", "grupo03")
     DB_SCHEME = environ.get("DB_SCHEME", "postgresql+psycopg2")
+
+    # Minio
+    MINIO_SERVER = "localhost:9000"
+    MINIO_ACCESS_KEY = environ.get("MINIO_ACCESS_KEY_DEV", "minioadmin")
+    MINIO_SECRET_KEY = environ.get("MINIO_SECRET_KEY_DEV", "minioadmin")
+    MINIO_SECURE = False
+    MINIO_BUCKET = "grupo03"
 
     SQLALCHEMY_ENGINES = {
         'default': f"{DB_SCHEME}://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"

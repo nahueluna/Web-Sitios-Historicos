@@ -15,6 +15,7 @@ import src.web.controllers.advanced_search
 from src.web.controllers.auth import bp_auth
 from src.web.controllers.feature_flag import feature_flag_bp
 from src.core.bcrypt import bcrypt
+from src.web.storage import storage
 
 
 session = Session()
@@ -28,6 +29,10 @@ def create_app(env='development', static_folder='../../static'):
     session.init_app(app)
 
     bcrypt.init_app(app)
+
+    # Inicializar Storage
+    storage.init_app(app)
+
 
     @app.route('/')
     def home():  # return render_index()

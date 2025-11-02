@@ -6,8 +6,8 @@ from src.core.database import Base
 
 class ReviewStatus(enum.Enum):
     PENDING = "Pendiente"
-    APPROVED = "Aprobado"
-    REJECTED = "Rechazado"
+    APPROVED = "Aprobada"
+    REJECTED = "Rechazada"
 
 class Review(Base):
     __tablename__ = "reviews"
@@ -27,13 +27,13 @@ class Review(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,
         default=lambda: datetime.now(timezone.utc),
-        onupdate=datetime.now(timezone.utc)
+        onupdate=lambda: datetime.now(timezone.utc)
     )
     historic_site_id: Mapped[int] = mapped_column(ForeignKey("historic_sites.id"), nullable=False)
-    historic_site = relationship("HistoricSites", back_populates="reviews")
+    historic_site = relationship("HistoricSites", backref="reviews")
     user_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"), nullable=False)
-    user = relationship("Usuario", back_populates="reviews")
-    rejection_reason = Mapped[str] = mapped_column(String(200), nullable=True)
+    user = relationship("Usuario", backref="reviews")
+    rejection_reason: Mapped[str] = mapped_column(String(200), nullable=True)
 
 
     def json(self):
@@ -41,12 +41,19 @@ class Review(Base):
             "id": self.id,
             "content": self.content,
             "rating": self.rating,
-            "inserted_at": self.inserted_at.isoformat(),
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-            "historic_site": self.historic_site.json(),
+            "status": {
+                "name": self.status.name,
+                "value": self.status.value,
+            },
+            "inserted_at": self.inserted_at.strftime('%d-%m-%Y'),
+            "updated_at": self.updated_at.strftime('%Y-%m-%d'),
+            "historic_site": {
+                "id": self.historic_site_id,
+                "name": self.historic_site.site_name,
+            },
             "user": {
-                "user_id": self.user.id,
-                "user_email": self.user.email,
+                "id": self.user.id,
+                "email": self.user.email,
             },
             "rejection_reason": self.rejection_reason if self.rejection_reason else None,
         }

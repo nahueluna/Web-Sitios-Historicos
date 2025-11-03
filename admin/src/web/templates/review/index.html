@@ -130,7 +130,7 @@
         <form method="POST" id="reject-form" class="w-100">
           <input type="hidden" name="_method" value="PUT">
           <label id="rejection-reason-label" for="rejection-reason" class="form-label">Indique el motivo del rechazo</label>
-          <textarea id="rejection-reason" name="rejection-reason" class="form-control" required minlength="1" maxlength="200" rows="4" aria-describedby="rejection-reason-help" autofocus></textarea>
+          <textarea id="rejection-reason" name="rejection_reason" class="form-control" required minlength="1" maxlength="200" rows="4" aria-describedby="rejection-reason-help" autofocus></textarea>
           <div id="rejection-reason-help" class="form-text">Máx. 200 caracteres.</div>
           <div class="d-flex justify-content-end gap-2 mt-3">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -208,7 +208,7 @@
                             </div>
                             <div class="card-footer text-end">
                                 <div id="card-footer-buttons" class="d-flex justify-content-end gap-2">
-                                    <a href="#" class="btn btn-secondary">
+                                    <a href="/admin/reviews/detail/${r.id}" class="btn btn-secondary">
                                         Ver Detalle
                                     </a>
                                 </div>
@@ -226,7 +226,7 @@
                                 <input type="hidden" name="_method" value="PUT">
                                 <button class="btn btn-primary" type="submit">Aprobar</button>
                             </form>
-                            <button class="btn btn-danger" id="btn-delete" data-bs-toggle="modal" data-bs-target="#reject-modal" data-review-id="${r.id}">Rechazar</button>
+                            <button class="btn btn-danger" id="reject-btn" data-bs-toggle="modal" data-bs-target="#reject-modal" data-review-id="${r.id}">Rechazar</button>
                         </div>
                         `);
                     }

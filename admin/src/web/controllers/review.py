@@ -1,15 +1,12 @@
-from datetime import datetime
+from flask import Blueprint, render_template, request, redirect, flash, abort, jsonify, url_for
+from sqlalchemy.exc import SQLAlchemyError
 
-from flask import Blueprint, render_template, request, Response, redirect, flash, abort, jsonify, url_for
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-
-from core.models.review import get_specific_review, update_review_status
-from src.core.models.auth import get_usuario_by_email
+from core.models.review import get_specific_review, update_review_status, remove_review
 from src.core.models.review.review import ReviewStatus
 from src.web.decorator import block_admin_maintenance
 
 from src.core.models.review import list_reviews_with_filters
-from src.web.controllers.helpers.tags import verify_tag_and_generate_slug, handle_db_error
+from src.web.controllers.helpers.tags import handle_db_error
 from src.web.handlers.auth import role_required
 from src.core.models.auth.user import RolUsuario
 from src.web.controllers.helpers.time import date_is_greater_than
@@ -86,6 +83,14 @@ def get_reviews(_user):
             ReviewStatus=ReviewStatus
         )
 
+@review_bp.get('/detail/<int:review_id>')
+@block_admin_maintenance
+@role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
+def render_detail(_user, review_id):
+    review = get_specific_review(int(review_id))
+    return render_template('review/review_detail.html', r=review, ReviewStatus=ReviewStatus)
+
+
 @review_bp.post('/approve/<int:review_id>')
 @block_admin_maintenance
 @role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
@@ -109,7 +114,7 @@ def approve_review(_user, review_id):
             )
 
         flash("Reseña aprobada exitosamente.", "success")
-        return redirect(url_for('review.render_index'))
+        return redirect(request.referrer or url_for('review.render_index'))
     else:
         abort(405)
 
@@ -119,7 +124,7 @@ def approve_review(_user, review_id):
 def reject_review(_user, review_id):
     if request.form.get('_method') == "PUT":
         review = get_specific_review(review_id)
-        rejection_reason = request.form.get('rejection-reason', None)
+        rejection_reason = request.form.get('rejection_reason', None)
 
         if review.status != ReviewStatus.PENDING:
             flash("Solo una reseña pendiente puede rechazarse.", "warning")
@@ -141,6 +146,20 @@ def reject_review(_user, review_id):
             )
 
         flash("Reseña rechazada exitosamente.", "success")
+        return redirect(request.referrer or url_for('review.render_index'))
+    else:
+        abort(405)
+
+@review_bp.post('/delete/<int:review_id>')
+@block_admin_maintenance
+@role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
+def delete_review(_user, review_id):
+    if request.form.get('_method') == "DELETE":
+        if remove_review(review_id):
+            flash("Reseña eliminada exitosamente.", "success")
+        else:
+            flash("Ocurrió un error al intentar eliminar la reseña. Intente nuevamente.", "danger")
+
         return redirect(url_for('review.render_index'))
     else:
         abort(405)

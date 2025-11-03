@@ -13,6 +13,7 @@ from src.web.controllers.role_permission import role_bp
 from src.web.controllers.user_controller import bp_user
 from src.web.controllers.google_login import bp_google_auth
 import src.web.controllers.advanced_search
+from src.web.controllers.review import review_bp
 from src.web.controllers.auth import bp_auth
 from src.web.controllers.feature_flag import feature_flag_bp
 from src.core.bcrypt import bcrypt
@@ -82,6 +83,7 @@ def create_app(env='development', static_folder='../../static'):
     app.register_blueprint(feature_flag_bp)
     app.register_blueprint(bp_google_auth)
 
+    app.register_blueprint(review_bp)
 
     @app.cli.command("reset-db")
     def reset_db():

@@ -19,7 +19,7 @@ class Tag(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,
         default=lambda: datetime.now(timezone.utc),
-        onupdate=datetime.now(timezone.utc)
+        onupdate=lambda: datetime.now(timezone.utc)
     )
 
     historic_sites = relationship("HistoricSites", secondary="historic_sites_tags", back_populates="tags")

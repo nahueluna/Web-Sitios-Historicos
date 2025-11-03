@@ -18,6 +18,7 @@ def reset_db():
     from src.core.models.auth.user import Usuario # noqa: F401
     from src.core.models.auth.role_permission import Role, Permission, RolePermission # noqa: F
     from src.core.models.feature_flag import initialize_default_flags # noqa: F401
+    from src.core.models.review import Review # noqa: F401
     
 
     print("Resetting database...")
@@ -40,6 +41,7 @@ def seed_db():
     print("🌱 Seeding database with initial data...")
     seed_usuarios()
     seed_db_sites()
+    seed_db_reviews()
     print("✅ Database seeding complete.")
 
 
@@ -57,3 +59,9 @@ def seed_db_sites():
     seed_historic_sites()
     seed_historic_sites_tags()
     print("✅ Historic sites database seeding complete.")
+
+def seed_db_reviews():
+    from src.core.models.review.seeds import seed_reviews
+    print("🌱 Seeding database with reviews data...")
+    seed_reviews()
+    print("✅ Reviews database seeding complete.")

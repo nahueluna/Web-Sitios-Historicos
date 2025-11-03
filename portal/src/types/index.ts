@@ -24,3 +24,12 @@ export interface FeaturedSitesResponse {
   sites: Site[]
   total: number
 }
+
+export interface Review {
+  id: string
+  siteId: string
+  userId: string
+  text: string
+  rating: number
+  createdAt: string
+}

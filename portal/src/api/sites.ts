@@ -1,7 +1,7 @@
 import type { Site, SortOption, FeaturedSitesResponse } from "../types"
 
 // Mock data for demonstration - Historic sites from Argentina
-const MOCK_SITES: Site[] = [
+export const MOCK_SITES: Site[] = [
   {
     id: "1",
     name: "Casa Rosada",

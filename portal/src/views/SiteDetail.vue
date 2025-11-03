@@ -53,10 +53,41 @@
                   <i class="bi bi-heart"></i>
                   Agregar a Favoritos
                 </button>
+                <button class="btn btn-success" @click="showReviewForm = true">
+                  <i class="bi bi-star"></i>
+                  Escribir Reseña
+                </button>
                 <router-link to="/sites" class="btn btn-outline-secondary">
                   <i class="bi bi-arrow-left"></i>
                   Volver a Sitios
                 </router-link>
+              </div>
+
+              <!-- Reviews Section -->
+              <div class="mt-5">
+                <h3 class="mb-4">Reseñas</h3>
+                <div v-if="siteReviews.length === 0" class="alert alert-info">
+                  <i class="bi bi-chat-square-text me-2"></i>
+                  No hay reseñas para este sitio aún. ¡Sé el primero en escribir una!
+                </div>
+                <div v-else class="row g-3">
+                  <div v-for="review in siteReviews" :key="review.id" class="col-md-6">
+                    <div class="card">
+                      <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                          <div>
+                            <strong>{{ review.userName || 'Usuario' }}</strong>
+                            <div class="text-warning">
+                              <i v-for="i in 5" :key="i" :class="i <= review.rating ? 'bi bi-star-fill' : 'bi bi-star'"></i>
+                            </div>
+                          </div>
+                          <small class="text-muted">{{ formatDate(review.createdAt) }}</small>
+                        </div>
+                        <p class="card-text">{{ review.text }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -73,17 +104,35 @@
         </router-link>
       </div>
     </div>
+
+    <!-- Review Form Modal -->
+    <ReviewForm
+      v-if="showReviewForm && site"
+      :site-id="site.id"
+      @close="showReviewForm = false"
+      @review-added="onReviewAdded"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { fetchSiteBySlug, trackSiteVisit } from '../api/sites'
+import { useReviewsStore } from '@/stores/reviewsStore'
+import ReviewForm from '@/components/ReviewForm.vue'
 
 const route = useRoute()
 const site = ref(null)
 const loading = ref(true)
+const showReviewForm = ref(false)
+
+const reviewsStore = useReviewsStore()
+
+const siteReviews = computed(() => {
+  if (!site.value) return []
+  return reviewsStore.reviews.filter(review => review.siteId === site.value.id)
+})
 
 onMounted(async () => {
   const slug = route.params.slug
@@ -93,6 +142,7 @@ onMounted(async () => {
 
     if (site.value) {
       await trackSiteVisit(site.value.id)
+      await reviewsStore.fetchReviewsBySite(site.value.id)
     }
   } catch (err) {
     console.error('[SiteDetail] Error loading site:', err)
@@ -100,6 +150,17 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+const formatDate = (dateString) => {
+  return new Date(dateString).toLocaleDateString('es-ES')
+}
+
+const onReviewAdded = () => {
+  // Refresh reviews
+  if (site.value) {
+    reviewsStore.fetchReviewsBySite(site.value.id)
+  }
+}
 </script>
 
 <style scoped>

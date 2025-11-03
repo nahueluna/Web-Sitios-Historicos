@@ -1,54 +1,86 @@
 import { defineStore } from "pinia";
+import api from "@/service/api";
+import { MOCK_SITES } from "@/api/sites";
 
 export const useReviewsStore = defineStore('reviews', {
   state: () => ({
-    reviews: [
-        {
-            historicalSites: { name: "Sitio Histórico A" },
-            text: "Una experiencia maravillosa, muy educativa.",
-            rating: 5
-        },
-        {
-            historicalSites: { name: "Sitio Histórico B" },
-            text: "Interesante pero un poco desorganizado.",
-            rating: 3
-        },
-        {
-            historicalSites: { name: "Sitio Histórico C" },
-            text: "No cumplió con mis expectativas.",
-            rating: 2
-        },
-        { 
-            historicalSites: { name: "Sitio Histórico D" },
-            text: "Excelente conservación y guías muy amables.",
-            rating: 4
-        },
-        {
-            historicalSites: { name: "Sitio Histórico E" },
-            text: "Un lugar fascinante lleno de historia.",
-            rating: 5
-        },
-        { 
-            historicalSites: { name: "Sitio Histórico F" },
-            text: "Demasiado turístico, perdió su encanto.",
-            rating: 2
-        },
-        {
-            historicalSites: { name: "Sitio Histórico G" },
-            text: "Una joya escondida, vale la pena visitarlo.",
-            rating: 4
-        }
-    ],
+    reviews: [],
+    loading: false,
   }),
   actions: {
-    addReview(review) {
-      this.reviews.push(review);
+    async fetchReviews() {
+      this.loading = true;
+      try {
+        const response = await api.get('/reviews');
+        this.reviews = response.data.map(review => ({
+          ...review,
+          siteName: this.getSiteName(review.siteId),
+          userName: this.getUserName(review.userId)
+        }));
+      } catch (error) {
+        console.error('Error fetching reviews:', error);
+      } finally {
+        this.loading = false;
+      }
     },
-    removeReview(reviewId) {
-      this.reviews = this.reviews.filter(review => review.id !== reviewId);
+    async addReview(reviewData) {
+      try {
+        const response = await api.post('/reviews', reviewData);
+        const reviewWithSiteName = {
+          ...response.data,
+          siteName: this.getSiteName(response.data.siteId),
+          userName: this.getUserName(response.data.userId)
+        };
+        this.reviews.push(reviewWithSiteName);
+      } catch (error) {
+        console.error('Error adding review:', error);
+        throw error;
+      }
     },
-    getReviews(count) {
-      return this.reviews.slice(0, count);
+    async removeReview(reviewId) {
+      try {
+        await api.delete(`/reviews/${reviewId}`);
+        this.reviews = this.reviews.filter(review => review.id !== reviewId);
+      } catch (error) {
+        console.error('Error removing review:', error);
+        throw error;
+      }
+    },
+    async fetchReviewsBySite(siteId) {
+      try {
+        const response = await api.get(`/sites/${siteId}/reviews`);
+        const reviewsWithSiteName = response.data.map(review => ({
+          ...review,
+          siteName: this.getSiteName(review.siteId),
+          userName: this.getUserName(review.userId)
+        }));
+        // Add to store if not already present
+        reviewsWithSiteName.forEach(review => {
+          if (!this.reviews.find(r => r.id === review.id)) {
+            this.reviews.push(review);
+          }
+        });
+        return reviewsWithSiteName;
+      } catch (error) {
+        console.error('Error fetching reviews by site:', error);
+        return [];
+      }
+    },
+    getReviewsByUser(userId) {
+      return this.reviews.filter(review => review.userId === userId);
+    },
+    getSiteName(siteId) {
+      const site = MOCK_SITES.find(s => s.id === siteId);
+      return site ? site.name : 'Sitio Desconocido';
+    },
+    getUserName(userId) {
+      // Mock user names - in real app, this would come from user service
+      const mockUsers = {
+        'user1': 'Juan Pérez',
+        'user2': 'María García',
+        'user3': 'Carlos López'
+      };
+      return mockUsers[userId] || 'Usuario Anónimo';
     }
   },
 });

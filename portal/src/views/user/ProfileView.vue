@@ -84,12 +84,11 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useSessionStore } from "@/stores/sessionStore"
 import { useReviewsStore } from '@/stores/reviewsStore'
 import ReviewComponent from '@/components/ReviewComponent.vue'
-import SiteCard from '@/components/SiteCard.vue'
 import GoogleLogout from '@/components/google/GoogleLogoutComponent.vue'
 import FeaturedSection from '@/components/FeaturedSection.vue'
 
@@ -97,7 +96,10 @@ const sessionStore = useSessionStore()
 const reviewsStore = useReviewsStore()
 
 const user = sessionStore.user
-const reviews = reviewsStore.reviews.slice(0, 3)
+const reviews = computed(() => {
+  if (!sessionStore.user) return []
+  return reviewsStore.getReviewsByUser(sessionStore.user.id).slice(0, 3)
+})
 
 
 </script>

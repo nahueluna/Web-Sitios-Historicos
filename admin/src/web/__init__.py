@@ -14,6 +14,7 @@ from src.web.controllers.user_controller import bp_user
 import src.web.controllers.advanced_search
 from src.web.controllers.auth import bp_auth
 from src.web.controllers.feature_flag import feature_flag_bp
+from src.web.controllers.public_api import public_api_bp  # Blueprint público
 from src.core.bcrypt import bcrypt
 
 
@@ -72,6 +73,7 @@ def create_app(env='development', static_folder='../../static'):
     app.register_blueprint(role_bp)
     app.register_blueprint(bp_auth)
     app.register_blueprint(feature_flag_bp)
+    app.register_blueprint(public_api_bp)  # Blueprint público sin autenticación
 
     @app.cli.command("reset-db")
     def reset_db():

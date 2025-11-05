@@ -9,6 +9,10 @@ from src.core.database import db
 from src.core.models.historic_sites.historic_sites import HistoricSites
 from src.core.models.review.review import Review, ReviewStatus
 from sqlalchemy import func, desc  
+from math import radians, sin, cos, sqrt, atan2
+from src.core.models.search.tags import Tag
+from src.core.models.historic_site_tags.hs_tags import HistoricSitesTags
+from src.core.models.review.review import Review, ReviewStatus
 
 # Consulta para todos los sitios con su categoría
 def list_all_historic_sites(): 
@@ -178,11 +182,6 @@ def list_historic_sites_with_filters(q='', city='', province='', tags=None, stat
     return sites, total
 
 def list_historic_sites_with_advanced_filters(name='', description='', city='', province='', tag_names=None, lat=None, long=None, radius=None, order_by='latest', page=1, per_page=25):
-    from math import radians, sin, cos, sqrt, atan2
-    from src.core.models.search.tags import Tag
-    from src.core.models.historic_site_tags.hs_tags import HistoricSitesTags
-    from src.core.models.review.review import Review
-
     query = db.session.query(HistoricSites).filter(HistoricSites.delete == False, HistoricSites.visible == True)
 
     if name:
@@ -206,8 +205,8 @@ def list_historic_sites_with_advanced_filters(name='', description='', city='', 
     # Handle ordering
     if order_by in ['rating-5-1', 'rating-1-5']:
         order_dir = 'desc' if order_by == 'rating-5-1' else 'asc'
-        subq = db.session.query(Review.historic_site_id, func.avg(Review.rating).label('avg_rating')).group_by(Review.historic_site_id).subquery()
-        query = query.outerjoin(subq, HistoricSites.id == subq.c.historic_site_id).order_by(getattr(subq.c.avg_rating, order_dir)())
+        subq = db.session.query(Review.historic_site_id, func.avg(Review.rating).label('avg_rating')).filter(Review.status == ReviewStatus.APPROVED).group_by(Review.historic_site_id).subquery()
+        query = query.outerjoin(subq, HistoricSites.id == subq.c.historic_site_id).order_by(func.coalesce(subq.c.avg_rating, 0).desc() if order_dir == 'desc' else func.coalesce(subq.c.avg_rating, 0).asc())
     elif order_by == 'latest':
         query = query.order_by(HistoricSites.registration_date.desc())
     elif order_by == 'oldest':
@@ -217,6 +216,7 @@ def list_historic_sites_with_advanced_filters(name='', description='', city='', 
 
     total = query.count()
     sites = query.offset((page - 1) * per_page).limit(per_page).all()
+
 
     # Filter by geospatial radius if provided
     if lat is not None and long is not None and radius is not None:

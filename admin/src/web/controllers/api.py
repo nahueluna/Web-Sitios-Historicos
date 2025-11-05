@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request, session
 from src.core.models.review import list_reviews_with_filters, get_specific_review, create_review as create_review_model, update_data_review, remove_review
-from src.core.models.historic_sites import list_historic_sites_with_filters, get_visible_historic_site
+from src.core.models.historic_sites import list_historic_sites_with_advanced_filters, get_visible_historic_site
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import func, desc
 from src.core.database import db
@@ -326,7 +326,7 @@ def get_historic_sites():
             tag_names = [t.strip() for t in tags_str.split(',') if t.strip()]
         
         # Call service
-        sites, total = list_historic_sites_with_filters(
+        sites, total = list_historic_sites_with_advanced_filters(
             name=name,
             description=description,
             city=city,

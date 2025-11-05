@@ -39,11 +39,12 @@
             No has escrito ninguna reseña aún.
           </div>
           <div v-else>
-            <!-- d-flex: display flexbox, justify-content-between: distribuye espacio entre elementos, align-items-start: alinea al inicio verticalmente, mb-4: margen inferior 4 -->
-            <div class="d-flex justify-content-between align-items-start mb-4">
-              <div>
-                <h2 class="h3 fw-bold mb-1">Mis Reseñas Recientes</h2>
-                <p class="text-muted mb-0">Reseñas que has escrito recientemente</p>
+            <h3 class="h4 mb-3">
+              <router-link to="/reviews" class="text-decoration-none">Mis Reseñas Recientes</router-link>
+            </h3>
+            <div class="row g-3">
+              <div v-for="review in reviews" :key="review.id" class="col-md-6">
+                <ReviewComponent :review="review" />
               </div>
               <!-- d-none d-md-flex: oculto en móvil, flex en tablet/desktop, align-items-center: centra verticalmente -->
               <router-link to="/mis-reseñas" class="btn btn-outline-secondary d-none d-md-flex align-items-center">
@@ -70,13 +71,20 @@
             </div>
           </div>
 
-          <FeaturedSection
-            section-id="profile-favorites"
-            title="Mis Favoritos Recientes"
-            description="Sitios que has guardado para después"
-            sort-by="favorites"
-            :show-if-empty="false"
-          />
+          <div v-if="favorites.length === 0" class="alert alert-info mt-3">
+            <i class="bi bi-star me-2"></i>
+            No has agregado ningún favorito aún.
+          </div>
+          <div v-else>
+            <h3 class="h4 mb-3 mt-4">
+              <router-link to="/favorites" class="text-decoration-none">Mis Favoritos Recientes</router-link>
+            </h3>
+            <div class="row g-3">
+              <div v-for="favorite in favorites" :key="favorite.id" class="col-md-6">
+                <SiteCard :site="favorite" />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

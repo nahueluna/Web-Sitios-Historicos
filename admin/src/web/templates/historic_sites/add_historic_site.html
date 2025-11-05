@@ -120,6 +120,22 @@
         </div>
 
         <div class="mb-3">
+            <label for="images" class="form-label">Imágenes (Máximo 10)</label>
+            <input type="file" id="images" name="images" class="form-control" accept="image/jpeg,image/png,image/webp" multiple required>
+            <small class="text-muted">Formatos permitidos: JPG, PNG, WEBP. Máx. 5MB c/u</small>
+        </div>
+        
+        <div id="image-preview" class="d-flex flex-wrap gap-3 mt-2"></div>
+        <small class="text-muted">Arrastra las imágenes para cambiar el orden</small>
+        
+        <div class="mt-3">
+            <label class="form-label">Seleccionar imagen principal</label>
+            <select id="main-image" name="main-image" class="form-select" required>
+                <option value="">Seleccione una imagen</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
             <label for="tags" class="form-label">Etiquetas</label>
             <select id="tags" name="tags" multiple></select>
         </div>
@@ -133,6 +149,7 @@
 
 {% block scripts %}
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
     window.alert = function (message, type = "info") {
         const container = document.getElementById("flash-container");
@@ -163,6 +180,58 @@
 
     document.addEventListener("DOMContentLoaded", () => {
         const form = document.getElementById("historic-site-form");
+        let imagesData = []; // { archivo, titulo, descripcion }
+
+        function renderImages() {
+            imagePreview.innerHTML = "";
+            mainImageSelect.innerHTML = '<option value="">Seleccione imagen principal</option>';
+        
+            imagesData.forEach((img, index) => {
+                const container = document.createElement("div");
+                container.className = "p-2 border rounded position-relative";
+                container.style.width = "150px";
+                container.dataset.index = index;
+        
+                // Preview
+                const preview = document.createElement("img");
+                preview.src = URL.createObjectURL(img.file);
+                preview.className = "img-thumbnail mb-2";
+                preview.style.width = "100%";
+        
+                // Titulo
+                const titleInput = document.createElement("input");
+                titleInput.type = "text";
+                titleInput.placeholder = "Título (obligatorio)";
+                titleInput.className = "form-control form-control-sm mb-1";
+                titleInput.value = img.title;
+                titleInput.oninput = () => img.title = titleInput.value;
+        
+                // Description input
+                const descInput = document.createElement("textarea");
+                descInput.placeholder = "Descripción (opcional)";
+                descInput.className = "form-control form-control-sm";
+                descInput.style.height = "60px";
+                descInput.value = img.description;
+                descInput.oninput = () => img.description = descInput.value;
+        
+                container.append(preview, titleInput, descInput);
+                imagePreview.appendChild(container);
+        
+                const opt = document.createElement("option");
+                opt.value = index;
+                opt.textContent = img.file.name;
+                mainImageSelect.appendChild(opt);
+            });
+        
+            Sortable.create(imagePreview, {
+                animation: 150,
+                onSort: () => {
+                    const newOrder = [...imagePreview.children].map(c => Number(c.dataset.index));
+                    imagesData = newOrder.map(i => imagesData[i]);
+                    renderImages(); // re-render to keep inputs aligned
+                }
+            });
+        }
 
         // Llenar select de estados desde la API
         fetch("/sitios-historicos/state/get-all")
@@ -201,32 +270,105 @@
             })
             .catch(error => console.error('Error cargando tags:', error));
 
+        const imageInput = document.getElementById("images");
+        const imagePreview = document.getElementById("image-preview");
+        const mainImageSelect = document.getElementById("main-image");
+
+        imageInput.addEventListener("change", () => {
+            const files = [...imageInput.files];
+
+            //Validar cantidad maxima
+            if (files.length > 10) {
+                alert("Solo puedes subir hasta 10 imágenes.", "warning");
+                imageInput.value = "";
+                return;
+            }
+
+            imagesData = []; // reset
+            imagePreview.innerHTML = "";
+            mainImageSelect.innerHTML = '<option value="">Seleccione una imagen</option>';
+
+            files.forEach((file, index) => {
+                //Validar tipo
+                if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+                    alert(`Formato no permitido: ${file.name}`, "danger");
+                    imageInput.value = "";
+                    return;
+                }
+
+                //Validar tamaño
+                if (file.size > 5 * 1024 * 1024) {
+                    alert(`La imagen ${file.name} supera los 5MB.`, "danger");
+                    imageInput.value = "";
+                    return;
+                }
+
+                imagesData.push({
+                    file,
+                    title: "",
+                    description: ""
+                });
+
+            });
+
+            renderImages();
+        });
+
         // Interceptar el submit
-        form.addEventListener("submit", async (e) => {
+        form.addEventListener("submit", (e) => {
             e.preventDefault();
 
-            // Obtener los tags seleccionados desde Choices.js
-            const selectedTags = tagSelect.getValue(true);
+            // Validar que todas las imágenes tengan título
+            for (const img of imagesData) {
+                if (!img.title || img.title.trim() === "") {
+                    alert("Todas las imágenes deben tener un título.", "warning");
+                    return;
+                }
+            }
 
-            const body = {
-                site_name: document.getElementById("site-name").value,
-                short_description: document.getElementById("short-description").value,
-                long_description: document.getElementById("long-description").value,
-                city: document.getElementById("city").value,
-                province: document.getElementById("province").value,
-                latitude: parseFloat(document.getElementById("latitude").value),
-                longitude: parseFloat(document.getElementById("longitude").value),
-                conservation_status: document.getElementById("conservation-status").value,
-                inauguration_year: document.getElementById("inauguration-year").value,
-                category: document.getElementById("category").value,
-                visible: document.getElementById("visible").value === "True",
-                tags: selectedTags
-            };
+            const files = imageInput.files;
+            const mainImageIndex = mainImageSelect.value;
+
+            if (files.length === 0) {
+                alert("Debes subir al menos una imagen.", "warning");
+                return;
+            }
+            if (mainImageIndex === "") {
+                alert("Debes seleccionar una imagen principal.", "warning");
+                return;
+            }
+
+            const formData = new FormData();
+
+            formData.append("site_name", document.getElementById("site-name").value);
+            formData.append("short_description", document.getElementById("short-description").value);
+            formData.append("long_description", document.getElementById("long-description").value);
+            formData.append("city", document.getElementById("city").value);
+            formData.append("province", document.getElementById("province").value);
+            formData.append("latitude", document.getElementById("latitude").value);
+            formData.append("longitude", document.getElementById("longitude").value);
+            formData.append("conservation_status", document.getElementById("conservation-status").value);
+            formData.append("inauguration_year", document.getElementById("inauguration-year").value);
+            formData.append("category", document.getElementById("category").value);
+            formData.append("visible", document.getElementById("visible").value === "True");
+
+            // Tags
+            tagSelect.getValue(true).forEach(tag => formData.append("tags", tag));
+
+            // Imagenes
+            const order = [...imagePreview.children].map(div => Number(div.dataset.index));
+
+
+            // Agregar imagenes y metadata
+            imagesData.forEach((img, index) => {
+                formData.append("images", img.file);
+                formData.append(`title_${index}`, img.title);
+                formData.append(`description_${index}`, img.description);
+            });
 
             fetch("/sitios-historicos/add-site", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(body)
+                body: formData
             })
                 .then(response => {
                     if (!response.ok) {
@@ -246,8 +388,8 @@
                 }).catch(error => {
                     alert('Error al crear la categoría: ' + error, "danger");
                 });
-
         });
+
     });
 
     // Coordenadas iniciales

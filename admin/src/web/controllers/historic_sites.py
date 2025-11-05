@@ -201,38 +201,61 @@ def render_category_form(user):
 
 # RENDERING
 
-@historic_sites_bp.route('/add-site', methods=['POST']) # 
+@historic_sites_bp.route('/add-site', methods=['POST'])
 @role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
 @block_admin_maintenance
 def add_site(user):
     try:
-        json = request.get_json()
-        __validator__(json)
+        form = request.form
+        files = request.files.getlist("images")  # list of FileStorage objects
+
+        print(form)
+        print(files)
+
+        # ---- Extract ordered index list (optional, but good to keep) ----
+        image_order = form.get("image_order")
+        if image_order:
+            from json import loads
+            image_order = loads(image_order)  # e.g. [2,0,1]
+
+        main_image_index = form.get("main_image_index")
+
+        # ---- Validate text fields ----
+        # If you have a validator, update it to accept form instead of json
+        # __validator__(form)  # <- optional
+
+        # Parse date
+        date_str = form.get("inauguration_year")
+        inauguration_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+
         user_id = user.id
 
-        date = json['inauguration_year']
-        format_date = datetime.strptime(date, "%Y-%m-%d")
-        format_date = format_date.strftime("%Y-%m-%d")
-
         hs = add_historic_site(
-            site_name=json['site_name'],
-            short_description=json['short_description'],
-            long_description=json['long_description'],
-            city=json['city'],
-            province=json['province'],
-            latitude=json['latitude'],
-            longitude=json['longitude'],
-            inauguration_year=format_date,
-            visible=json['visible'],
-            conservation_status=json['conservation_status'],       
-            category=json['category'],
-            tags=json.get('tags'),
+            site_name=form.get("site_name"),
+            short_description=form.get("short_description"),
+            long_description=form.get("long_description"),
+            city=form.get("city"),
+            province=form.get("province"),
+            latitude=float(form.get("latitude")),
+            longitude=float(form.get("longitude")),
+            inauguration_year=inauguration_date,
+            visible=(form.get("visible") == "True"),
+            conservation_status=form.get("conservation_status"),
+            category=form.get("category"),
+            tags=form.getlist("tags"),  # because tags is multiple
             user_id=user_id
         )
 
+        # ---- IGNORE saving images for now ----
+        # But keep variables ready for later
+        # files → list of uploaded files
+        # image_order → ordered index list
+        # main_image_index → which one is main
+
         return jsonify({}), 201
+
     except Exception as e:
-        print(e)
+        print("Error in add_site:", e)
         return jsonify({"error": str(e)}), 400
 
 @historic_sites_bp.route('/edit-site', methods=['PUT'])

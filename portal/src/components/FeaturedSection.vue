@@ -10,7 +10,7 @@
       <!-- d-none d-md-flex: oculto en móvil, flex en tablet+, align-items-center: centra verticalmente -->
       <router-link
         v-if="!loading && sites.length > 0"
-        :to="{ name: 'sites', query: { sort: sortBy } }"
+        :to="{ name: 'sites', query: { order_by: orderBy } }"
         class="btn btn-outline-secondary d-none d-md-flex align-items-center"
       >
         Ver todos
@@ -58,7 +58,11 @@
     <!-- Sites Grid/Carousel -->
     <div v-else-if="sites.length > 0">
       <!-- Mobile: Carousel -->
-      <!-- d-md-none: visible solo en móvil -->
+      <!-- d-md-none: visible solo en móvil 
+        d: display
+        md: medium devices (a partir de dispositivos medianos (768px))
+        none: ninguno 
+      -->
       <div class="d-md-none">
         <div :id="`carousel-${sectionId}`" class="carousel slide" data-bs-ride="false">
           <div class="carousel-inner">
@@ -109,7 +113,7 @@
       <!-- d-md-none: visible solo en móvil, text-center: texto centrado, mt-4: margen superior 4 -->
       <div class="d-md-none text-center mt-4">
         <router-link
-          :to="{ name: 'sites', query: { sort: sortBy } }"
+          :to="{ name: 'sites', query: { order_by: orderBy } }"
           class="btn btn-outline-secondary"
         >
           Ver todos
@@ -122,7 +126,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { fetchSites } from '../api/sites'
+import { useSitesStore } from '@/stores/sitesStore'
 import SiteCard from './SiteCard.vue'
 
 const props = defineProps({
@@ -138,9 +142,10 @@ const props = defineProps({
     type: String,
     default: ''
   },
-  sortBy: {
+  orderBy: {
     type: String,
-    required: true
+    required: true,
+    validator: (value) => ['rating-5-1', 'rating-1-5', 'latest', 'oldest'].includes(value)
   },
   showIfEmpty: {
     type: Boolean,
@@ -152,6 +157,7 @@ const props = defineProps({
   }
 })
 
+const sitesStore = useSitesStore()
 const sites = ref([])
 const loading = ref(true)
 const error = ref(null)
@@ -161,8 +167,8 @@ onMounted(async () => {
     loading.value = true
     error.value = null
 
-    const response = await fetchSites({
-      sort: props.sortBy,
+    const response = await sitesStore.fetchSites({
+      order_by: props.orderBy,
       limit: 6,
     })
 

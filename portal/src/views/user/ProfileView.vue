@@ -74,7 +74,7 @@
             section-id="profile-favorites"
             title="Mis Favoritos Recientes"
             description="Sitios que has guardado para después"
-            sort-by="favorites"
+            order-by="latest"
             :show-if-empty="false"
           />
         </div>

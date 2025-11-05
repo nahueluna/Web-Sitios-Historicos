@@ -118,11 +118,12 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { fetchSiteBySlug, trackSiteVisit } from '../api/sites'
+import { useSitesStore } from '@/stores/sitesStore'
 import { useReviewsStore } from '@/stores/reviewsStore'
 import ReviewForm from '@/components/ReviewForm.vue'
 
 const route = useRoute()
+const sitesStore = useSitesStore()
 const site = ref(null)
 const loading = ref(true)
 const showReviewForm = ref(false)
@@ -138,10 +139,10 @@ onMounted(async () => {
   const slug = route.params.slug
   try {
     loading.value = true
-    site.value = await fetchSiteBySlug(slug)
+    site.value = await sitesStore.fetchSiteBySlug(slug)
 
     if (site.value) {
-      await trackSiteVisit(site.value.id)
+      await sitesStore.trackSiteVisit(site.value.id)
       await reviewsStore.fetchReviewsBySite(site.value.id)
     }
   } catch (err) {

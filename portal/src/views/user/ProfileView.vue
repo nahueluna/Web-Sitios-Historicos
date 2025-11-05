@@ -71,6 +71,7 @@
             </div>
           </div>
 
+<<<<<<< HEAD
           <div v-if="favorites.length === 0" class="alert alert-info mt-3">
             <i class="bi bi-star me-2"></i>
             No has agregado ningún favorito aún.
@@ -85,6 +86,15 @@
               </div>
             </div>
           </div>
+=======
+          <FeaturedSection
+            section-id="profile-favorites"
+            title="Mis Favoritos Recientes"
+            description="Sitios que has guardado para después"
+            order-by="latest"
+            :show-if-empty="false"
+          />
+>>>>>>> feature/resenas-y-calificaciones
         </div>
       </div>
     </div>
@@ -92,12 +102,11 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useSessionStore } from "@/stores/sessionStore"
 import { useReviewsStore } from '@/stores/reviewsStore'
 import ReviewComponent from '@/components/ReviewComponent.vue'
-import SiteCard from '@/components/SiteCard.vue'
 import GoogleLogout from '@/components/google/GoogleLogoutComponent.vue'
 import FeaturedSection from '@/components/FeaturedSection.vue'
 
@@ -105,7 +114,10 @@ const sessionStore = useSessionStore()
 const reviewsStore = useReviewsStore()
 
 const user = sessionStore.user
-const reviews = reviewsStore.reviews.slice(0, 3)
+const reviews = computed(() => {
+  if (!sessionStore.user) return []
+  return reviewsStore.getReviewsByUser(sessionStore.user.id).slice(0, 3)
+})
 
 
 </script>

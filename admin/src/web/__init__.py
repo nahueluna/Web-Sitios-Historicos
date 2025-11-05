@@ -16,6 +16,7 @@ import src.web.controllers.advanced_search
 from src.web.controllers.review import review_bp
 from src.web.controllers.auth import bp_auth
 from src.web.controllers.feature_flag import feature_flag_bp
+from src.web.controllers.api import api_bp
 from src.core.bcrypt import bcrypt
 from flask_cors import CORS
 
@@ -45,21 +46,21 @@ def create_app(env='development', static_folder='../../static'):
         else:
             return redirect(url_for("auth.login"))
 
-    @app.route('/admin')
-    def admin():
-        return render_template('layout.html')
+    #@app.route('/admin')
+    #def admin():
+    #    return render_template('layout.html')
 
-    @app.route('/admin/validacion-propuestas')
-    def validacion_propuestas():
-        return render_template('validacion_propuestas.html')
+    #@app.route('/admin/validacion-propuestas')
+    #def validacion_propuestas():
+    #    return render_template('validacion_propuestas.html')
 
-    @app.route('/admin/moderacion')
-    def moderacion():
-        return render_template('moderacion.html')
+    #@app.route('/admin/moderacion')
+    #def moderacion():
+    #    return render_template('moderacion.html')
 
-    @app.route('/admin/gestion-usuarios')
-    def gestion_usuarios():
-        return render_template('gestion_usuarios.html')
+    #@app.route('/admin/gestion-usuarios')
+    #def gestion_usuarios():
+    #    return render_template('gestion_usuarios.html')
 
     app.register_error_handler(404, error.not_found)
     app.register_error_handler(401, error.unauthorized)
@@ -83,6 +84,7 @@ def create_app(env='development', static_folder='../../static'):
     app.register_blueprint(feature_flag_bp)
     app.register_blueprint(bp_google_auth)
     app.register_blueprint(review_bp)
+    app.register_blueprint(api_bp)  # API pública
 
     @app.cli.command("reset-db")
     def reset_db():

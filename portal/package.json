@@ -14,6 +14,8 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "bootstrap": "^5.3.8",
+    "bootstrap-vue-next": "^0.40.6",
     "axios": "^1.13.0",
     "pinia": "^3.0.3",
     "vue": "^3.5.22",

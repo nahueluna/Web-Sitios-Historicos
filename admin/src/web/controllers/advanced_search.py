@@ -10,6 +10,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from core.models.historic_sites import list_historic_sites_with_filters
 from src.web.controllers.historic_sites import historic_sites_bp
 from web.controllers.helpers.tags import handle_db_error
+from web.controllers.helpers.time import date_is_greater_than
 from datetime import datetime
 
 
@@ -36,10 +37,7 @@ def get_historic_sites(_user):
             params['date_to'] = date_to
 
         if date_from and date_to:
-            date_from_millis = int(datetime.strptime(date_from, "%Y-%m-%d").timestamp())
-            date_to_millis = int(datetime.strptime(date_to, "%Y-%m-%d").timestamp())
-
-            if date_from_millis > date_to_millis:
+            if date_is_greater_than(date_from, date_to):
                 return jsonify({"error": "date_from cannot be greater than date_to"}), 400
 
 
@@ -67,7 +65,7 @@ def get_historic_sites(_user):
         return handle_db_error(
             e,
             "Error getting historic sites",
-            "Ocurrió un error al obtener las sitios históricos. Por favor, intente nuevamente.",
+            "Ocurrió un error al obtener los sitios históricos. Por favor, intente nuevamente.",
             "historic_sites/index.html",
         )
 

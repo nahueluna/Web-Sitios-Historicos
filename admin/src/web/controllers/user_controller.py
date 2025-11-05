@@ -46,6 +46,11 @@ def list_users(_session_user):
         por_pagina=10
     )
 
+# Limpiar filtros aplicados al listado
+@bp_user.route("/limpiar_filtros")
+def clear_filters():
+    return redirect(url_for("user.list_users"))
+
 # Crear usuario
 @bp_user.route("/nuevo", methods=["GET", "POST"])
 # @permission_required('user_new')

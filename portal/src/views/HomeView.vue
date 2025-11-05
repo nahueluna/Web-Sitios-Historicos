@@ -97,3 +97,7 @@ watchEffect(() => {
   background-color: #ffffff;
 }
 </style>
+
+<script setup>
+
+</script>

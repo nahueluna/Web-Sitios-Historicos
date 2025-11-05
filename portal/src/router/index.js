@@ -53,6 +53,7 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
+<<<<<<< HEAD
       path: '/reviews',
       name: 'reviews',
       component: () => import('../views/user/ReviewsView.vue'),
@@ -64,6 +65,13 @@ const router = createRouter({
       component: () => import('../views/user/FavoritosView.vue'),
       meta: { requiresAuth: true }
     }
+=======
+      path: '/mis-reseñas',
+      name: 'reviews',
+      component: () => import('../views/user/ReviewsView.vue'),
+      meta: { requiresAuth: true },
+    },
+>>>>>>> feature/resenas-y-calificaciones
   ],
 })
 

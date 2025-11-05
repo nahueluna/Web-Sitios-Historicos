@@ -29,14 +29,12 @@
           section-id="favorites"
           title="Tus Favoritos"
           description="Sitios que has guardado para después"
-          sort-by="favorites"
+          order-by="latest"
           :show-if-empty="false"
           :require-auth="true"
         />
 
-        <!-- hr: línea separadora, my-5: margen vertical 5 -->
         <hr class="my-5" />
-
       </template>
 
       <!-- Top Rated Section -->
@@ -44,17 +42,7 @@
         section-id="top-rated"
         title="Mejor Puntuados"
         description="Destinos con mejor calificación amados por los visitantes"
-        sort-by="top-rated"
-      />
-
-      <hr class="my-5" />
-
-      <!-- Most Visited Section -->
-      <FeaturedSection
-        section-id="most-visited"
-        title="Más Visitados"
-        description="Sitios populares que están en tendencia ahora"
-        sort-by="most-visited"
+        order-by="rating-5-1"
       />
 
       <hr class="my-5" />
@@ -64,7 +52,7 @@
         section-id="recently-added"
         title="Recientemente Agregados"
         description="Nuevos lugares por descubrir"
-        sort-by="recently-added"
+        order-by="latest"
       />
     </div>
   </div>

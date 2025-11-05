@@ -16,8 +16,18 @@
 <script setup>
 import ReviewComponent from '@/components/ReviewComponent.vue'
 import { useReviewsStore } from '@/stores/reviewsStore'
-import { ref } from 'vue'
+import { useSessionStore } from '@/stores/sessionStore'
+import { computed, onMounted } from 'vue'
 
 const reviewsStore = useReviewsStore()
-const reviews = ref(reviewsStore.reviews)
+const sessionStore = useSessionStore()
+
+const reviews = computed(() => {
+  if (!sessionStore.user) return []
+  return reviewsStore.getReviewsByUser(sessionStore.user.id)
+})
+
+onMounted(() => {
+  reviewsStore.fetchReviews()
+})
 </script>

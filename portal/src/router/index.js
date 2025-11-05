@@ -27,18 +27,6 @@ const router = createRouter({
       meta: { requiresAuth: false }
     },
     {
-      path: '/sites',
-      name: 'sites',
-      component: () => import('../views/SitesList.vue'),
-      meta: { requiresAuth: false }
-    },
-    {
-      path: '/sites/:slug',
-      name: 'site-detail',
-      component: () => import('../views/SiteDetail.vue'),
-      meta: { requiresAuth: false }
-    },
-    {
       path: '/about',
       name: 'about',
       // route level code-splitting
@@ -53,7 +41,6 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
-<<<<<<< HEAD
       path: '/reviews',
       name: 'reviews',
       component: () => import('../views/user/ReviewsView.vue'),
@@ -64,14 +51,13 @@ const router = createRouter({
       name: 'favorites',
       component: () => import('../views/user/FavoritosView.vue'),
       meta: { requiresAuth: true }
-    }
-=======
+    },
+    {
       path: '/mis-reseñas',
-      name: 'reviews',
+      name: 'mis-reseñas',
       component: () => import('../views/user/ReviewsView.vue'),
       meta: { requiresAuth: true },
     },
->>>>>>> feature/resenas-y-calificaciones
   ],
 })
 

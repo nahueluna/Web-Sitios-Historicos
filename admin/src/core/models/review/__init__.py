@@ -3,7 +3,7 @@ from src.core.models.review.review import Review
 from src.core.models.auth import Usuario
 from datetime import datetime
 
-def list_reviews_with_filters(site='', status='', rating='', date_from='', date_to='', user_email='', order_by='inserted_at', order_dir='desc', page=1, per_page=25):
+def list_reviews_with_filters(site='', status='', rating='', date_from='', date_to='', user_email='', user_id='', order_by='inserted_at', order_dir='desc', page=1, per_page=25):
     query = db.session.query(
         Review
     )
@@ -35,6 +35,9 @@ def list_reviews_with_filters(site='', status='', rating='', date_from='', date_
 
     if user_email:
         query = query.join(Usuario, Review.user_id == Usuario.id).filter(Usuario.email.ilike(f"%{user_email}%"))
+
+    if user_id:
+        query = query.filter(Review.user_id == user_id)
 
     if order_by in ['inserted_at', 'rating']:
         order_column = getattr(Review, order_by)
@@ -74,6 +77,22 @@ def update_review_status(review_id, new_status, review_rejection_reason=None):
     if review_obj:
         review_obj.status = new_status
         review_obj.rejection_reason = review_rejection_reason
+
+        try:
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise e
+
+    return review_obj
+
+def update_data_review(review_id, rating=None, content=None):
+    review_obj = db.session.query(Review).filter(Review.id == review_id).first()
+    if review_obj:
+        if rating is not None:
+            review_obj.rating = rating
+        if content is not None:
+            review_obj.content = content
 
         try:
             db.session.commit()

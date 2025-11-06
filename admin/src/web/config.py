@@ -35,10 +35,10 @@ class DevelopmentConfig(Config):
     DB_SCHEME = environ.get("DB_SCHEME", "postgresql+psycopg2")
 
     # Minio
-    MINIO_SERVER = "localhost:9000"
+    MINIO_SERVER = environ.get("MINIO_SERVER_DEV", "localhost:9000");
     MINIO_ACCESS_KEY = environ.get("MINIO_ACCESS_KEY_DEV", "minioadmin")
     MINIO_SECRET_KEY = environ.get("MINIO_SECRET_KEY_DEV", "minioadmin")
-    MINIO_SECURE = False
+    MINIO_SECURE = environ.get("MINIO_SECURE_DEV", False)
     MINIO_BUCKET = "grupo03"
 
     SQLALCHEMY_ENGINES = {

@@ -1,8 +1,12 @@
 import datetime
-from os import abort
+import os
+from uuid import uuid1
+from flask import current_app
+from os import abort, fstat
 from src.web.decorator import block_admin_maintenance
 from src.core.models.auth import get_usuario_by_email
 from src.core.models.auth.user import RolUsuario
+from src.core.models.images import guardar_imagenes
 from src.web.handlers.auth import login_required, role_required
 from src.core.models.historic_site_tags import get_tags_by_site
 from src.core.models.search import get_all_tags
@@ -207,24 +211,43 @@ def render_category_form(user):
 def add_site(user):
     try:
         form = request.form
-        files = request.files.getlist("images")  # list of FileStorage objects
+        __validator__(form)
+        files = request.files.getlist("images")
 
-        print(form)
-        print(files)
+        if len(files) == 0:
+            return jsonify({"error": "El sitio debe tener imagenes."}), 400
 
-        # ---- Extract ordered index list (optional, but good to keep) ----
-        image_order = form.get("image_order")
-        if image_order:
-            from json import loads
-            image_order = loads(image_order)  # e.g. [2,0,1]
+        client = current_app.storage
 
-        main_image_index = form.get("main_image_index")
+        # Guardar imagenes en Minio
+        object_names = []
+        titles = []
+        descs = []
+        bucket_name = current_app.config["MINIO_BUCKET"]
+        for i, f in enumerate(files):
+            _, ext = os.path.splitext(f.filename)
+            ext = ext.lower()
+            size = fstat(f.fileno()).st_size
+            object_name = f"public/{str(uuid1())}{ext}"
+            object_names.append(object_name)
+            print(f"size: {size}")
+            client.put_object(
+                bucket_name=bucket_name,
+                object_name=object_name,
+                data=f,
+                length=size,
+                content_type=f.content_type,
+            )
+            title = form.get(f"title_{i}")
+            if len(title) > 100:
+                return jsonify({"error": "Los titulos no pueden tener mas de 100 caracteres."}), 400
+            titles.append(title)
 
-        # ---- Validate text fields ----
-        # If you have a validator, update it to accept form instead of json
-        # __validator__(form)  # <- optional
+            desc = form.get(f"description_{i}")
+            if len(desc) > 300:
+                return jsonify({"error": "Las descripciones no pueden tener mas de 300 caracteres."}), 400
+            descs.append(desc)
 
-        # Parse date
         date_str = form.get("inauguration_year")
         inauguration_date = datetime.strptime(date_str, "%Y-%m-%d").date()
 
@@ -242,15 +265,11 @@ def add_site(user):
             visible=(form.get("visible") == "True"),
             conservation_status=form.get("conservation_status"),
             category=form.get("category"),
-            tags=form.getlist("tags"),  # because tags is multiple
+            tags=form.getlist("tags"),
             user_id=user_id
         )
 
-        # ---- IGNORE saving images for now ----
-        # But keep variables ready for later
-        # files → list of uploaded files
-        # image_order → ordered index list
-        # main_image_index → which one is main
+        guardar_imagenes(object_names, titles, descs, hs.id)
 
         return jsonify({}), 201
 

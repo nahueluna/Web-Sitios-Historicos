@@ -126,14 +126,7 @@
         </div>
         
         <div id="image-preview" class="d-flex flex-wrap gap-3 mt-2"></div>
-        <small class="text-muted">Arrastra las imágenes para cambiar el orden</small>
-        
-        <div class="mt-3">
-            <label class="form-label">Seleccionar imagen principal</label>
-            <select id="main-image" name="main-image" class="form-select" required>
-                <option value="">Seleccione una imagen</option>
-            </select>
-        </div>
+        <small class="text-muted">Arrastra las imágenes para cambiar el orden. La primera se usara como portada.</small>
 
         <div class="mb-3">
             <label for="tags" class="form-label">Etiquetas</label>
@@ -184,7 +177,6 @@
 
         function renderImages() {
             imagePreview.innerHTML = "";
-            mainImageSelect.innerHTML = '<option value="">Seleccione imagen principal</option>';
         
             imagesData.forEach((img, index) => {
                 const container = document.createElement("div");
@@ -204,14 +196,17 @@
                 titleInput.placeholder = "Título (obligatorio)";
                 titleInput.className = "form-control form-control-sm mb-1";
                 titleInput.value = img.title;
+                titleInput.required = true;
+                titleInput.maxLength = 100;
                 titleInput.oninput = () => img.title = titleInput.value;
         
-                // Description input
+                // Descripcion
                 const descInput = document.createElement("textarea");
                 descInput.placeholder = "Descripción (opcional)";
                 descInput.className = "form-control form-control-sm";
                 descInput.style.height = "60px";
                 descInput.value = img.description;
+                descInput.maxLength = 300;
                 descInput.oninput = () => img.description = descInput.value;
         
                 container.append(preview, titleInput, descInput);
@@ -220,7 +215,6 @@
                 const opt = document.createElement("option");
                 opt.value = index;
                 opt.textContent = img.file.name;
-                mainImageSelect.appendChild(opt);
             });
         
             Sortable.create(imagePreview, {
@@ -272,7 +266,6 @@
 
         const imageInput = document.getElementById("images");
         const imagePreview = document.getElementById("image-preview");
-        const mainImageSelect = document.getElementById("main-image");
 
         imageInput.addEventListener("change", () => {
             const files = [...imageInput.files];
@@ -286,7 +279,6 @@
 
             imagesData = []; // reset
             imagePreview.innerHTML = "";
-            mainImageSelect.innerHTML = '<option value="">Seleccione una imagen</option>';
 
             files.forEach((file, index) => {
                 //Validar tipo
@@ -317,6 +309,13 @@
         // Interceptar el submit
         form.addEventListener("submit", (e) => {
             e.preventDefault();
+            // Activar validación nativa de Bootstrap
+            if (!form.checkValidity()) {
+                e.stopPropagation();
+                form.classList.add("was-validated");
+                alert("Por favor completa todos los campos obligatorios.", "warning");
+                return;
+            }
 
             // Validar que todas las imágenes tengan título
             for (const img of imagesData) {
@@ -327,16 +326,7 @@
             }
 
             const files = imageInput.files;
-            const mainImageIndex = mainImageSelect.value;
 
-            if (files.length === 0) {
-                alert("Debes subir al menos una imagen.", "warning");
-                return;
-            }
-            if (mainImageIndex === "") {
-                alert("Debes seleccionar una imagen principal.", "warning");
-                return;
-            }
 
             const formData = new FormData();
 

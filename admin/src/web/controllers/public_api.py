@@ -129,7 +129,7 @@ def get_public_historic_sites():
                 "description": site.long_description,
                 "city": site.city,
                 "province": site.province,
-                "country": "AR",  # TODO: Implementar pais en modelo
+                "country": site.country,
                 "lat": site.latitude,
                 "long": site.longitude,
                 "tags": [tag.name for tag in site.tags],

@@ -17,7 +17,7 @@ export const useReviewsStore = defineStore('reviews', {
     siteReviews: [], // Reviews específicas de un sitio
     siteReviewsMeta: { // Metadata de paginación para reviews de sitio
       page: 1,
-      per_page: 30,
+      per_page: 25,
       total: 0
     },
     loading: false,

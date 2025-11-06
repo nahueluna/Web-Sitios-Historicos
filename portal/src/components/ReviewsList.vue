@@ -73,7 +73,7 @@ const fetchReviews = async (page = 1) => {
   loading.value = true
   try {
     console.log('[ReviewsList] Fetching reviews for site:', props.siteId, 'page:', page)
-    await reviewsStore.fetchReviewsBySite(props.siteId, { page, per_page: 30 })
+    await reviewsStore.fetchReviewsBySite(props.siteId, { page, per_page: 25 })
     console.log('[ReviewsList] Reviews loaded:', reviews.value.length, 'Total pages:', totalPages.value)
   } catch (error) {
     console.error('[ReviewsList] Error fetching reviews:', error)

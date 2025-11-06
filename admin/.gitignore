@@ -223,3 +223,9 @@ setup.cfg
 
 # Flask Session
 flask_session
+
+# Environment variables
+.env
+.env.local
+.env.production
+.env.*.local

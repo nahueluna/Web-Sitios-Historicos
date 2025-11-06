@@ -1,6 +1,9 @@
 from flask import Flask
 from flask import render_template, redirect, url_for
 from flask_session import Session
+from flask_jwt_extended import JWTManager
+import os
+from dotenv import load_dotenv
 from src.web.controllers.tags import tags_bp
 from src.web.handlers import error
 from src.web.handlers.auth import is_authenticated, is_system_admin, is_admin, is_editor_or_admin
@@ -22,8 +25,11 @@ from flask_cors import CORS
 
 
 session = Session()
+jwt = JWTManager()
 
 def create_app(env='development', static_folder='../../static'):
+    load_dotenv()
+    
     app = Flask(__name__, static_folder=static_folder)
     app.config.from_object(config[env])
 
@@ -32,6 +38,14 @@ def create_app(env='development', static_folder='../../static'):
     session.init_app(app)
 
     bcrypt.init_app(app)
+
+    # Configuración para JWT, configurar secret key en env pls
+    app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
+    app.config['JWT_ALGORITHM'] = 'HS256'  # Cifrado simetrico, como dice la teoria
+    app.config['JWT_TOKEN_LOCATION'] = ['headers']  # Solo se puede enviar por headers (Authorization: Bearer)
+    app.config['JWT_HEADER_NAME'] = 'Authorization'
+    app.config['JWT_HEADER_TYPE'] = 'Bearer'
+    jwt.init_app(app)
 
     ## Necesario para el OAuth2 con Google
     CORS(app, origins=["http://localhost:5173"], supports_credentials=True)  # URL de tu frontend Vue

@@ -42,7 +42,7 @@
             <!-- d-flex: display flexbox, justify-content-between: distribuye espacio entre elementos, align-items-start: alinea al inicio verticalmente, mb-4: margen inferior 4 -->
             <div class="d-flex justify-content-between align-items-start mb-4">
               <div>
-                <h2 class="h3 fw-bold mb-1">Mis Reseñas Recientes</h2>
+                <h2 class="h4 mb-1">Mis Reseñas Recientes</h2>
                 <p class="text-muted mb-0">Reseñas que has escrito recientemente</p>
               </div>
               <!-- d-none d-md-flex: oculto en móvil, flex en tablet/desktop, align-items-center: centra verticalmente -->
@@ -58,7 +58,6 @@
               <div v-for="review in reviews" :key="review.id" class="col-md-6">
                 <!-- REVIEW COMPONENT -->
                 <ReviewComponent :review="review" />
-
               </div>
             </div>
             <!-- d-md-none: visible solo en móvil, text-center: texto centrado, mt-4: margen superior 4 -->
@@ -70,13 +69,20 @@
             </div>
           </div>
 
-          <FeaturedSection
-            section-id="profile-favorites"
-            title="Mis Favoritos Recientes"
-            description="Sitios que has guardado para después"
-            order-by="latest"
-            :show-if-empty="false"
-          />
+          <div v-if="favorites.length === 0" class="alert alert-info mt-3">
+            <i class="bi bi-star me-2"></i>
+            No has agregado ningún favorito aún.
+          </div>
+          <div v-else>
+            <h3 class="h4 mb-3 mt-4">
+              <router-link to="/favorites" class="text-decoration-none">Mis Favoritos Recientes</router-link>
+            </h3>
+            <div class="row g-3">
+              <div v-for="favorite in favorites" :key="favorite.id" class="col-md-6">
+                <SiteCard :site="favorite" />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -88,12 +94,14 @@ import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useSessionStore } from "@/stores/sessionStore"
 import { useReviewsStore } from '@/stores/reviewsStore'
+import { useFavoritesStore } from '@/stores/favoriteStore'
 import ReviewComponent from '@/components/ReviewComponent.vue'
+import SiteCard from '@/components/SiteCard.vue'
 import GoogleLogout from '@/components/google/GoogleLogoutComponent.vue'
-import FeaturedSection from '@/components/FeaturedSection.vue'
 
 const sessionStore = useSessionStore()
 const reviewsStore = useReviewsStore()
+const favoritesStore = useFavoritesStore()
 
 const user = sessionStore.user
 const reviews = computed(() => {
@@ -101,5 +109,7 @@ const reviews = computed(() => {
   return reviewsStore.getReviewsByUser(sessionStore.user.id).slice(0, 3)
 })
 
-
+const favorites = computed(() => {
+  return favoritesStore.getFavorites(6)
+})
 </script>

@@ -7,10 +7,8 @@ import { useSitesStore } from "@/stores/sitesStore";
  *
  * Estado actual:
  * - ✅ fetchReviewsBySite: Implementado con nuevo endpoint /api/historic-sites/<site_id>/reviews
- * - ⚠️ fetchReviews, addReview, removeReview: Usan endpoints antiguos (/reviews) - necesitan actualización
- * - ⚠️ getReviewsByUser: Funciona con datos locales - necesita endpoint de backend para reseñas por usuario
- *
- * TODO: Actualizar funciones obsoletas cuando estén disponibles los nuevos endpoints del backend
+ * - 
+ * TODO: Actualizar funciones obsoletas, ya están los endpoints del backend
  */
 
 export const useReviewsStore = defineStore('reviews', {
@@ -19,7 +17,7 @@ export const useReviewsStore = defineStore('reviews', {
     siteReviews: [], // Reviews específicas de un sitio
     siteReviewsMeta: { // Metadata de paginación para reviews de sitio
       page: 1,
-      per_page: 10,
+      per_page: 30,
       total: 0
     },
     loading: false,
@@ -38,11 +36,11 @@ export const useReviewsStore = defineStore('reviews', {
       this.loading = true;
       try {
         const response = await api.get('/reviews');
-        const apiReviews = response.data.map(review => ({
+        const apiReviews = await Promise.all(response.data.map(async review => ({
           ...review,
-          siteName: this.getSiteName(review.siteId),
+          siteName: await this.getSiteName(review.siteId),
           userName: this.getUserName(review.userId)
-        }));
+        })));
 
         this.reviews = apiReviews;
       } catch (error) {
@@ -59,7 +57,7 @@ export const useReviewsStore = defineStore('reviews', {
         const response = await api.post('/reviews', reviewData);
         const reviewWithSiteName = {
           ...response.data,
-          siteName: this.getSiteName(response.data.siteId),
+          siteName: await this.getSiteName(response.data.siteId),
           userName: this.getUserName(response.data.userId)
         };
         this.reviews.push(reviewWithSiteName);
@@ -96,7 +94,7 @@ export const useReviewsStore = defineStore('reviews', {
         const { data: reviewsData, meta } = response.data;
 
         // Transformar las reseñas del backend al formato interno
-        const transformedReviews = reviewsData.map(review => ({
+        const transformedReviews = await Promise.all(reviewsData.map(async review => ({
           id: review.id,
           siteId: siteId,
           userId: review.user_id,
@@ -105,8 +103,8 @@ export const useReviewsStore = defineStore('reviews', {
           createdAt: review.created_at,
           // Agregar información adicional si está disponible
           userName: review.user_name || this.getUserName(review.user_id),
-          siteName: this.getSiteName(siteId)
-        }));
+          siteName: await this.getSiteName(siteId)
+        })));
 
         // Actualizar estado
         if (queryParams.page > 1) {
@@ -143,14 +141,17 @@ export const useReviewsStore = defineStore('reviews', {
     getReviewsByUser(userId) {
       return this.reviews.filter(review => review.userId === userId);
     },
-    getSiteName(siteId) {
+    async getSiteName(siteId) {
       const sitesStore = useSitesStore();
+
+      // Si no hay sites cargados, cargarlos
+      if (!sitesStore.sites || sitesStore.sites.length === 0) {
+        await sitesStore.fetchSites({ per_page: 100 });
+      }
+
       const site = sitesStore.sites.find(s => s.id === siteId);
       return site ? site.name : 'Sitio Desconocido';
     },
-    getUserName(userId) {
-      // En una implementación real, esto vendría de un servicio de usuarios
-      return `Usuario ${userId}`;
-    }
+    
   }
 });

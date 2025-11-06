@@ -65,41 +65,11 @@
 
               <!-- Reviews Section -->
               <div class="mt-5">
-                <h3 class="mb-4">Reseñas</h3>
-                <div v-if="siteReviews.length === 0" class="alert alert-info">
-                  <i class="bi bi-chat-square-text me-2"></i>
-                  No hay reseñas para este sitio aún. ¡Sé el primero en escribir una!
-                </div>
-                <div v-else class="row g-3">
-                  <div v-for="review in siteReviews" :key="review.id" class="col-md-6">
-                    <div class="card">
-                      <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                          <div>
-                            <strong>{{ review.userName || 'Usuario' }}</strong>
-                            <div class="text-warning">
-                              <i v-for="i in 5" :key="i" :class="i <= review.rating ? 'bi bi-star-fill' : 'bi bi-star'"></i>
-                            </div>
-                          </div>
-                          <small class="text-muted">{{ formatDate(review.createdAt) }}</small>
-                        </div>
-                        <p class="card-text">{{ review.text }}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Pagination Controls -->
-                <div v-if="hasMoreReviews" class="text-center mt-4">
-                  <button
-                    class="btn btn-outline-primary"
-                    @click="loadMoreReviews"
-                    :disabled="loading"
-                  >
-                    <i class="bi bi-arrow-down-circle me-2"></i>
-                    Cargar Más Reseñas
-                  </button>
-                </div>
+                <ReviewsList
+                  v-if="site"
+                  :site-id="site.id"
+                  ref="reviewsList"
+                />
               </div>
             </div>
           </div>
@@ -128,27 +98,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useSitesStore } from '@/stores/sitesStore'
-import { useReviewsStore } from '@/stores/reviewsStore'
 import ReviewForm from '@/components/ReviewForm.vue'
+import ReviewsList from '@/components/ReviewsList.vue'
 
 const route = useRoute()
 const sitesStore = useSitesStore()
 const site = ref(null)
 const loading = ref(true)
 const showReviewForm = ref(false)
-
-const reviewsStore = useReviewsStore()
-
-const siteReviews = computed(() => {
-  return reviewsStore.getSiteReviews
-})
-
-const hasMoreReviews = computed(() => {
-  return reviewsStore.hasMoreSiteReviews
-})
 
 onMounted(async () => {
   const slug = route.params.slug
@@ -158,7 +118,6 @@ onMounted(async () => {
 
     if (site.value) {
       await sitesStore.trackSiteVisit(site.value.id)
-      await reviewsStore.fetchReviewsBySite(site.value.id)
     }
   } catch (err) {
     console.error('[SiteDetail] Error loading site:', err)
@@ -167,28 +126,8 @@ onMounted(async () => {
   }
 })
 
-const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleDateString('es-ES')
-}
-
 const onReviewAdded = () => {
-  // Refresh reviews
-  if (site.value) {
-    reviewsStore.fetchReviewsBySite(site.value.id)
-  }
-}
-
-const loadMoreReviews = async () => {
-  if (!site.value || !hasMoreReviews.value) return
-
-  const currentMeta = reviewsStore.getSiteReviewsMeta
-  const nextPage = currentMeta.page + 1
-
-  try {
-    await reviewsStore.fetchReviewsBySite(site.value.id, { page: nextPage, per_page: currentMeta.per_page })
-  } catch (error) {
-    console.error('[SiteDetail] Error loading more reviews:', error)
-  }
+  // Reviews will be refreshed when component re-mounts or manually
 }
 </script>
 

@@ -374,17 +374,40 @@ def get_historic_sites():
 @api_bp.route('/historic-sites/<int:site_id>', methods=['GET'])
 def get_historic_site(site_id):
     """
-    Obtiene el detalle de un sitio histórico específico por ID.
-    Solo devuelve sitios visibles.
+    Obtiene detalles de un sitio histórico específico por su ID.
+    No requiere autenticación.
+    Example URI: historic-sites/10
+
+    URI Parameters:
+        - site_id: number (required) - ID del sitio histórico.
+
+    Response 200:
+        Headers: Content-Type: application/json
+        Body: Ver schema en documentación.
     """
     try:
         site = get_visible_historic_site(site_id)
         if site:
-            return jsonify(site.json()), 200
+            data = {
+                "id": site.id,
+                "name": site.site_name,
+                "short_description": site.short_description,
+                "description": site.long_description,
+                "city": site.city,
+                "province": site.province,
+                "country": "AR",
+                "lat": site.latitude,
+                "long": site.longitude,
+                "tags": [tag.name for tag in site.tags],
+                "state_of_conservation": site.status.state,
+                "inserted_at": site.registration_date.isoformat() + 'Z',
+                "updated_at": site.registration_date.isoformat() + 'Z'  # Placeholder, as model doesn't have updated_at
+            }
+            return jsonify(data), 200
         else:
-            return jsonify({"error": "Sitio histórico no encontrado"}), 404
+            return jsonify({"error": {"code": "not_found", "message": "Site not found"}}), 404
     except Exception as e:
-        return jsonify({"error": "Error al obtener el sitio histórico", "details": str(e)}), 500
+        return jsonify({"error": {"code": "server_error", "message": "An unexpected error occurred"}}), 500
 
 
 @api_bp.route('/historic-sites/<int:site_id>/reviews', methods=['GET'])
@@ -427,6 +450,7 @@ def get_historic_site_reviews(site_id):
                 "site_id": r.historic_site_id,
                 "rating": r.rating,
                 "comment": r.content,
+                "user_name": f"{r.user.nombre} {r.user.apellido}",
                 "inserted_at": r.inserted_at.isoformat() + 'Z' if hasattr(r, 'inserted_at') and r.inserted_at else None,
                 "updated_at": r.updated_at.isoformat() + 'Z' if hasattr(r, 'updated_at') and r.updated_at else None,
             })

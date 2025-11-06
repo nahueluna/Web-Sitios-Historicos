@@ -33,6 +33,14 @@
         <div v-for="site in sites" :key="site.id" class="col-12 col-md-6 col-lg-4">
           <SiteCard :site="site" />
         </div>
+
+        <!-- Pagination -->
+        <PaginationComponent
+          :current-page="currentPage"
+          :total-pages="totalPages"
+          :loading="loading"
+          @page-change="handlePageChange"
+        />
       </div>
 
       <!-- Empty -->
@@ -50,6 +58,7 @@ import { ref, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useSitesStore } from '@/stores/sitesStore'
 import SiteCard from '../components/SiteCard.vue'
+import PaginationComponent from '@/components/PaginationComponent.vue'
 
 const route = useRoute()
 const sitesStore = useSitesStore()
@@ -57,6 +66,8 @@ const sites = ref([])
 const loading = ref(true)
 const searchQuery = ref('')
 const orderBy = ref(undefined)
+const currentPage = ref(1)
+const totalPages = ref(1)
 
 const getOrderByLabel = (order) => {
   const labels = {
@@ -68,6 +79,12 @@ const getOrderByLabel = (order) => {
   return labels[order] || 'Sin ordenar'
 }
 
+// Maneja el cambio de página desde el componente de paginación
+const handlePageChange = async (page) => {
+  currentPage.value = page
+  await loadSites()
+}
+
 const loadSites = async () => {
   loading.value = true
   try {
@@ -77,9 +94,12 @@ const loadSites = async () => {
     const response = await sitesStore.fetchSites({
       search: searchQuery.value,
       order_by: orderBy.value,
+      page: currentPage.value,
+      per_page: 25,
     })
 
     sites.value = response.sites
+    totalPages.value = Math.ceil(response.total / response.per_page)
   } catch (err) {
     console.error('[SitesList] Error:', err)
   } finally {
@@ -87,8 +107,14 @@ const loadSites = async () => {
   }
 }
 
+// Maneja cambios en los parámetros de consulta
+const handleQueryChange = () => {
+  currentPage.value = 1
+  loadSites()
+}
+
 onMounted(loadSites)
-watch(() => route.query, loadSites)
+watch(() => route.query, handleQueryChange)
 </script>
 
 <style scoped>

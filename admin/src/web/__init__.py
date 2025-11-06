@@ -2,6 +2,7 @@ from flask import Flask
 from flask import render_template, redirect, url_for
 from flask_session import Session
 from flask_jwt_extended import JWTManager
+from datetime import timedelta
 import os
 from dotenv import load_dotenv
 from src.web.controllers.tags import tags_bp
@@ -45,6 +46,7 @@ def create_app(env='development', static_folder='../../static'):
     app.config['JWT_TOKEN_LOCATION'] = ['headers']  # Solo se puede enviar por headers (Authorization: Bearer)
     app.config['JWT_HEADER_NAME'] = 'Authorization'
     app.config['JWT_HEADER_TYPE'] = 'Bearer'
+    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=24)
     jwt.init_app(app)
 
     ## Necesario para el OAuth2 con Google

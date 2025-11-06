@@ -88,6 +88,18 @@
                     </div>
                   </div>
                 </div>
+
+                <!-- Pagination Controls -->
+                <div v-if="hasMoreReviews" class="text-center mt-4">
+                  <button
+                    class="btn btn-outline-primary"
+                    @click="loadMoreReviews"
+                    :disabled="loading"
+                  >
+                    <i class="bi bi-arrow-down-circle me-2"></i>
+                    Cargar Más Reseñas
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -131,8 +143,11 @@ const showReviewForm = ref(false)
 const reviewsStore = useReviewsStore()
 
 const siteReviews = computed(() => {
-  if (!site.value) return []
-  return reviewsStore.reviews.filter(review => review.siteId === site.value.id)
+  return reviewsStore.getSiteReviews
+})
+
+const hasMoreReviews = computed(() => {
+  return reviewsStore.hasMoreSiteReviews
 })
 
 onMounted(async () => {
@@ -160,6 +175,19 @@ const onReviewAdded = () => {
   // Refresh reviews
   if (site.value) {
     reviewsStore.fetchReviewsBySite(site.value.id)
+  }
+}
+
+const loadMoreReviews = async () => {
+  if (!site.value || !hasMoreReviews.value) return
+
+  const currentMeta = reviewsStore.getSiteReviewsMeta
+  const nextPage = currentMeta.page + 1
+
+  try {
+    await reviewsStore.fetchReviewsBySite(site.value.id, { page: nextPage, per_page: currentMeta.per_page })
+  } catch (error) {
+    console.error('[SiteDetail] Error loading more reviews:', error)
   }
 }
 </script>

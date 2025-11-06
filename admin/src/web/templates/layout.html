@@ -52,10 +52,6 @@
                                 historicos</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ 'active' if request.path.startswith('/admin/validacion-propuestas') else '' }}"
-                                href="/admin/validacion-propuestas">Validacion de propuestas</a>
-                        </li>
-                        <li class="nav-item">
                             <a class="nav-link {{ 'active' if request.path.startswith('/admin/reviews') else '' }}"
                                 href="/admin/reviews">Moderacion de reseñas</a>
                         </li>
@@ -105,10 +101,6 @@
                 <li class="nav-item">
                     <a class="nav-link {{ 'active' if request.path.startswith('/sitios-historicos/admin/') or request.path.startswith('/etiquetas') else '' }}"
                         href="{{ url_for('historic_sites.render_admin_management') }}">Gestion de sitios historicos</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ 'active' if request.path.startswith('/admin/validacion-propuestas') else '' }}"
-                        href="/admin/validacion-propuestas">Validacion de propuestas</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {{ 'active' if request.path.startswith('/admin/reviews') else '' }}"

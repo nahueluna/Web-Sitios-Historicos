@@ -19,6 +19,7 @@ from src.web.controllers.feature_flag import feature_flag_bp
 from src.web.controllers.api import api_bp
 from src.core.bcrypt import bcrypt
 from flask_cors import CORS
+from src.web.storage import storage
 
 
 session = Session()
@@ -35,9 +36,13 @@ def create_app(env='development', static_folder='../../static'):
 
     ## Necesario para el OAuth2 con Google
     CORS(app, origins=["http://localhost:5173"], supports_credentials=True)  # URL de tu frontend Vue
-    app.secret_key = "dev_secret_key"  # Deberia ser un valor seguro en producción
+    app.secret_key = app.config["SECRET_KEY"]
     app.config["SESSION_COOKIE_SAMESITE"] = "None"
     app.config["SESSION_COOKIE_SECURE"] = True
+
+    # Inicializar Storage
+    storage.init_app(app)
+
 
     @app.route('/')
     def home():  # return render_index()

@@ -7,7 +7,8 @@ from src.core.models.historic_site_tags import add_historic_site_tag, reset_tags
 from src.core.models.historic_sites_state.hs_states import HistoricSitesStates
 from src.core.models.historic_sites_categorie.hs_categories import HistoricSitesCategories
 from src.core.database import db
-from src.core.models.historic_sites.historic_sites import HistoricSites  
+from src.core.models.historic_sites.historic_sites import HistoricSites
+from src.core.models.review.review import Review, ReviewStatus  
 
 # Consulta para todos los sitios con su categoría
 def list_all_historic_sites(): 
@@ -184,8 +185,20 @@ def public_list_historic_sites(
     page=1, 
     per_page=25
 ):
+    # Calcular rating promedio por sitio
+    rating_subquery = db.session.query(
+        Review.historic_site_id,
+        func.avg(Review.rating).label('avg_rating')
+    ).filter(
+        Review.status == ReviewStatus.APPROVED
+    ).group_by(Review.historic_site_id).subquery()
+    
+    # Query principal siempre incluye el rating
     query = db.session.query(
-        HistoricSites
+        HistoricSites,
+        rating_subquery.c.avg_rating
+    ).outerjoin(
+        rating_subquery, HistoricSites.id == rating_subquery.c.historic_site_id
     ).filter(
         HistoricSites.delete == False
     )
@@ -202,8 +215,10 @@ def public_list_historic_sites(
     if province:
         query = query.filter(HistoricSites.province.ilike(f'{province}'))
 
+    # Preparar variables para filtros que se usan tanto en query como count_query
+    tag_ids = []
     if tags:
-    # Busco los ID de los tags por sus nombres
+        # Busco los ID de los tags por sus nombres
         tag_ids = db.session.query(Tag.id).filter(Tag.name.in_(tags)).all()
         tag_ids = [tag_id[0] for tag_id in tag_ids]  # Me lo devuelve como tupla, asi que saco el primer elemento (id)
         
@@ -234,18 +249,28 @@ def public_list_historic_sites(
         query = query.order_by(HistoricSites.registration_date.desc())
     elif order_by == 'oldest':
         query = query.order_by(HistoricSites.registration_date.asc())
-    # TODO: Implementar orden por rating cuando se pueda manejar en el modelo
+    # Sitios sin reviews se consideran mas bajos en el ranking
     elif order_by == 'rating-5-1':
-        query = query.order_by(HistoricSites.rating.desc()) 
+        query = query.order_by(rating_subquery.c.avg_rating.desc().nullslast())
     elif order_by == 'rating-1-5':
-        query = query.order_by(HistoricSites.rating.asc())  
+        query = query.order_by(rating_subquery.c.avg_rating.asc().nullsfirst())
 
+    # Obtengo el total de resultados
+    all_results = query.all()
+    total = len(all_results)
 
-    total = query.group_by(HistoricSites.id).count()
+    # Si no se especifica pag, uso pag 1 por defecto
+    current_page = int(page) if page is not None else 1
+    
+    # Aplicar paginación
+    start_idx = (current_page - 1) * int(per_page)
+    end_idx = start_idx + int(per_page)
+    paginated_results = all_results[start_idx:end_idx]
 
-    if not page is None:
-        sites = query.group_by(HistoricSites.id).offset((int(page) - 1) * int(per_page)).limit(int(per_page)).all()
-    else:
-        sites = query.all()
+    # Agrego el rating promedio a cada sitio como atributo temporal
+    sites = []
+    for site, avg_rating in paginated_results:
+        site.average_rating = round(avg_rating, 1) if avg_rating else None
+        sites.append(site)
 
     return sites, total

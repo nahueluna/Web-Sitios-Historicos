@@ -133,6 +133,7 @@ def get_public_historic_sites():
                 "lat": site.latitude,
                 "long": site.longitude,
                 "tags": [tag.name for tag in site.tags],
+                "average_rating": site.average_rating, 
                 "state_of_conservation": site.conservation_status if hasattr(site, 'conservation_status') else "unknown",
                 "inserted_at": site.registration_date.isoformat() + "Z" if site.registration_date else None,
                 "updated_at": site.registration_date.isoformat() + "Z" if site.registration_date else None  # TODO: Implementar updated_at

@@ -1,8 +1,12 @@
 import datetime
-from os import abort
+import os
+from uuid import uuid1
+from flask import current_app
+from os import abort, fstat
 from src.web.decorator import block_admin_maintenance
 from src.core.models.auth import get_usuario_by_email
 from src.core.models.auth.user import RolUsuario
+from src.core.models.images import guardar_imagenes
 from src.web.handlers.auth import login_required, role_required
 from src.core.models.historic_site_tags import get_tags_by_site
 from src.core.models.search import get_all_tags
@@ -201,38 +205,76 @@ def render_category_form(user):
 
 # RENDERING
 
-@historic_sites_bp.route('/add-site', methods=['POST']) # 
+@historic_sites_bp.route('/add-site', methods=['POST'])
 @role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
 @block_admin_maintenance
 def add_site(user):
     try:
-        json = request.get_json()
-        __validator__(json)
+        form = request.form
+        __validator__(form)
+        files = request.files.getlist("images")
+
+        if len(files) == 0:
+            return jsonify({"error": "El sitio debe tener imagenes."}), 400
+
+        client = current_app.storage
+
+        # Guardar imagenes en Minio
+        object_names = []
+        titles = []
+        descs = []
+        bucket_name = current_app.config["MINIO_BUCKET"]
+        for i, f in enumerate(files):
+            _, ext = os.path.splitext(f.filename)
+            ext = ext.lower()
+            size = fstat(f.fileno()).st_size
+            object_name = f"public/{str(uuid1())}{ext}"
+            object_names.append(object_name)
+            print(f"size: {size}")
+            client.put_object(
+                bucket_name=bucket_name,
+                object_name=object_name,
+                data=f,
+                length=size,
+                content_type=f.content_type,
+            )
+            title = form.get(f"title_{i}")
+            if len(title) > 100:
+                return jsonify({"error": "Los titulos no pueden tener mas de 100 caracteres."}), 400
+            titles.append(title)
+
+            desc = form.get(f"description_{i}")
+            if len(desc) > 300:
+                return jsonify({"error": "Las descripciones no pueden tener mas de 300 caracteres."}), 400
+            descs.append(desc)
+
+        date_str = form.get("inauguration_year")
+        inauguration_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+
         user_id = user.id
 
-        date = json['inauguration_year']
-        format_date = datetime.strptime(date, "%Y-%m-%d")
-        format_date = format_date.strftime("%Y-%m-%d")
-
         hs = add_historic_site(
-            site_name=json['site_name'],
-            short_description=json['short_description'],
-            long_description=json['long_description'],
-            city=json['city'],
-            province=json['province'],
-            latitude=json['latitude'],
-            longitude=json['longitude'],
-            inauguration_year=format_date,
-            visible=json['visible'],
-            conservation_status=json['conservation_status'],       
-            category=json['category'],
-            tags=json.get('tags'),
+            site_name=form.get("site_name"),
+            short_description=form.get("short_description"),
+            long_description=form.get("long_description"),
+            city=form.get("city"),
+            province=form.get("province"),
+            latitude=float(form.get("latitude")),
+            longitude=float(form.get("longitude")),
+            inauguration_year=inauguration_date,
+            visible=(form.get("visible") == "True"),
+            conservation_status=form.get("conservation_status"),
+            category=form.get("category"),
+            tags=form.getlist("tags"),
             user_id=user_id
         )
 
+        guardar_imagenes(object_names, titles, descs, hs.id)
+
         return jsonify({}), 201
+
     except Exception as e:
-        print(e)
+        print("Error in add_site:", e)
         return jsonify({"error": str(e)}), 400
 
 @historic_sites_bp.route('/edit-site', methods=['PUT'])

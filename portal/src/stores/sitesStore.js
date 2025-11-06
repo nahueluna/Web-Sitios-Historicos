@@ -7,6 +7,7 @@ function generateSlug(name) {
 
 export const useSitesStore = defineStore('sites', {
   state: () => ({
+    sites: [],
     loading: false,
   }),
   actions: {
@@ -45,6 +46,9 @@ export const useSitesStore = defineStore('sites', {
           coverImage: '/placeholder.svg',
           rating: null,
         }));
+
+        // Guardar los sites en el estado del store
+        this.sites = sites;
 
         return { sites, total: meta.total, page: meta.page, per_page: meta.per_page };
       } catch (error) {

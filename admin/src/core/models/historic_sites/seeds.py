@@ -12,6 +12,11 @@ PROVINCIAS_ARG = [
     "Santa Cruz", "Santa Fe", "Santiago del Estero", "Tierra del Fuego", "Tucumán"
 ]
 
+PAISES_LATAM = [
+    "AR", "BO", "BR", "CL", "CO", "CR", "CU", "DO", "EC", "SV",
+    "GT", "HN", "MX", "NI", "PA", "PY",
+]
+
 def seed_historic_sites():
     sitios = []
     now = datetime.now(timezone.utc)
@@ -22,6 +27,7 @@ def seed_historic_sites():
             long_description=f"Descripción larga y detallada del sitio histórico número {i}.",
             city=f"Ciudad {random.randint(1, 100)}",
             province=random.choice(PROVINCIAS_ARG),
+            country=random.choice(PAISES_LATAM),
             latitude=random.uniform(-55.0, -21.0),
             longitude=random.uniform(-73.0, -53.0),
             registration_date=now - timedelta(days=random.randint(0, 365)),

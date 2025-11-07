@@ -1,7 +1,8 @@
 from src.core.database import db
-from src.core.models.review.review import Review
+from src.core.models.review.review import Review, ReviewStatus
 from src.core.models.auth import Usuario
 from datetime import datetime
+from sqlalchemy import func
 
 def list_reviews_with_filters(site='', status='', rating='', date_from='', date_to='', user_email='', user_id='', order_by='inserted_at', order_dir='desc', page=1, per_page=25):
     query = db.session.query(

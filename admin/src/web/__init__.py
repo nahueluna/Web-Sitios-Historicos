@@ -1,6 +1,10 @@
 from flask import Flask
 from flask import render_template, redirect, url_for
 from flask_session import Session
+from flask_jwt_extended import JWTManager
+from datetime import timedelta
+import os
+from dotenv import load_dotenv
 from src.web.controllers.tags import tags_bp
 from src.web.handlers import error
 from src.web.handlers.auth import is_authenticated, is_system_admin, is_admin, is_editor_or_admin
@@ -17,14 +21,18 @@ from src.web.controllers.review import review_bp
 from src.web.controllers.auth import bp_auth
 from src.web.controllers.feature_flag import feature_flag_bp
 from src.web.controllers.api import api_bp
+from src.web.controllers.public_api import public_api_bp  # Blueprint público
 from src.core.bcrypt import bcrypt
 from flask_cors import CORS
 from src.web.storage import storage
 
 
 session = Session()
+jwt = JWTManager()
 
 def create_app(env='development', static_folder='../../static'):
+    load_dotenv()
+    
     app = Flask(__name__, static_folder=static_folder)
     app.config.from_object(config[env])
 
@@ -33,6 +41,15 @@ def create_app(env='development', static_folder='../../static'):
     session.init_app(app)
 
     bcrypt.init_app(app)
+
+    # Configuración para JWT, configurar secret key en env pls
+    app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
+    app.config['JWT_ALGORITHM'] = 'HS256'  # Cifrado simetrico, como dice la teoria
+    app.config['JWT_TOKEN_LOCATION'] = ['headers']  # Solo se puede enviar por headers (Authorization: Bearer)
+    app.config['JWT_HEADER_NAME'] = 'Authorization'
+    app.config['JWT_HEADER_TYPE'] = 'Bearer'
+    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=24)
+    jwt.init_app(app)
 
     ## Necesario para el OAuth2 con Google
     CORS(app, origins=["http://localhost:5173"], supports_credentials=True)  # URL de tu frontend Vue
@@ -87,6 +104,7 @@ def create_app(env='development', static_folder='../../static'):
     app.register_blueprint(role_bp)
     app.register_blueprint(bp_auth)
     app.register_blueprint(feature_flag_bp)
+    app.register_blueprint(public_api_bp)  # Blueprint público sin autenticación
     app.register_blueprint(bp_google_auth)
     app.register_blueprint(review_bp)
     app.register_blueprint(api_bp)  # API pública

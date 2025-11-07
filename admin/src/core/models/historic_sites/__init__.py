@@ -1,4 +1,5 @@
 from datetime import datetime
+from sqlalchemy import func
 from src.core.models.search.tags import Tag
 from src.core.models.historic_site_tags.hs_tags import HistoricSitesTags
 from src.core.models.historic_sites_logs import add_log
@@ -178,6 +179,112 @@ def list_historic_sites_with_filters(q='', city='', province='', tags=None, stat
         sites = query.group_by(HistoricSites.id).offset((int(page) - 1) * int(per_page)).limit(int(per_page)).all()
     else:
         sites = query.all()
+
+    return sites, total
+
+
+### --------- API PUBLICA --------- ###
+
+def public_list_historic_sites(
+    name='', 
+    description='', 
+    city='', 
+    province='', 
+    tags=None, 
+    order_by='latest',
+    lat=None, 
+    long=None, 
+    radius=None,
+    page=1, 
+    per_page=25
+):
+    # Calcular rating promedio por sitio
+    rating_subquery = db.session.query(
+        Review.historic_site_id,
+        func.avg(Review.rating).label('avg_rating')
+    ).filter(
+        Review.status == ReviewStatus.APPROVED
+    ).group_by(Review.historic_site_id).subquery()
+    
+    # Query principal siempre incluye el rating
+    query = db.session.query(
+        HistoricSites,
+        rating_subquery.c.avg_rating
+    ).outerjoin(
+        rating_subquery, HistoricSites.id == rating_subquery.c.historic_site_id
+    ).filter(
+        HistoricSites.delete == False
+    )
+
+    if name:
+        query = query.filter(HistoricSites.site_name.ilike(f'%{name}%'))
+
+    if description:
+        query = query.filter(HistoricSites.short_description.ilike(f'%{description}%'))
+
+    if city:
+        query = query.filter(HistoricSites.city.ilike(f'%{city}%'))
+
+    if province:
+        query = query.filter(HistoricSites.province.ilike(f'{province}'))
+
+    # Preparar variables para filtros que se usan tanto en query como count_query
+    tag_ids = []
+    if tags:
+        # Busco los ID de los tags por sus nombres
+        tag_ids = db.session.query(Tag.id).filter(Tag.name.in_(tags)).all()
+        tag_ids = [tag_id[0] for tag_id in tag_ids]  # Me lo devuelve como tupla, asi que saco el primer elemento (id)
+        
+        if tag_ids:  # Solo si se encontraron tags válidos
+            query = (query.join(HistoricSitesTags, HistoricSites.id == HistoricSitesTags.site_id)
+                    .filter(HistoricSitesTags.tag_id.in_(tag_ids)))
+
+    if lat is not None and long is not None and radius is not None:
+        # Crea punto desde donde se buscan todos los sitios en un radio
+        search_point = func.ST_SetSRID(func.ST_MakePoint(long, lat), 4326)
+        
+        # Crea por cada sitio su punto geografico
+        site_point = func.ST_SetSRID(
+            func.ST_MakePoint(HistoricSites.longitude, HistoricSites.latitude), 
+            4326
+        )
+        
+        # Filtrar por sitios dentro del radio
+        query = query.filter(
+            func.ST_DWithin(
+                site_point,
+                search_point,
+                radius * 1000  # pasar a metros
+            )
+        )
+
+    if order_by == 'latest':
+        query = query.order_by(HistoricSites.registration_date.desc())
+    elif order_by == 'oldest':
+        query = query.order_by(HistoricSites.registration_date.asc())
+    # Sitios sin reviews se consideran mas bajos en el ranking
+    elif order_by == 'rating-5-1':
+        query = query.order_by(rating_subquery.c.avg_rating.desc().nullslast())
+    elif order_by == 'rating-1-5':
+        query = query.order_by(rating_subquery.c.avg_rating.asc().nullsfirst())
+
+    # Obtengo el total de resultados
+    all_results = query.all()
+    total = len(all_results)
+
+    # Si no se especifica pag, uso pag 1 por defecto
+    current_page = int(page) if page is not None else 1
+    
+    # Aplicar paginación
+    start_idx = (current_page - 1) * int(per_page)
+    end_idx = start_idx + int(per_page)
+    paginated_results = all_results[start_idx:end_idx]
+
+    # Agrego el rating promedio a cada sitio como atributo temporal
+    sites = []
+    for site, avg_rating in paginated_results:
+        site.average_rating = round(avg_rating, 1) if avg_rating else None
+        sites.append(site)
 
     return sites, total
 

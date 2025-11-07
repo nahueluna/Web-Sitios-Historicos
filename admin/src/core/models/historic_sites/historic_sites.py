@@ -16,6 +16,7 @@ class HistoricSites(Base):
 
     city: Mapped[str] = mapped_column(nullable=False)
     province: Mapped[str] = mapped_column(nullable=False)
+    country: Mapped[str] = mapped_column(nullable=False, default="AR")
 
     latitude: Mapped[float] = mapped_column(nullable=False)
     longitude: Mapped[float] = mapped_column(nullable=False)
@@ -46,6 +47,7 @@ class HistoricSites(Base):
             "long_description": self.long_description,
             "city": self.city,
             "province": self.province,
+            "country": self.country,
             "latitude": self.latitude,
             "longitude": self.longitude,
             "inauguration_year": (self.inauguration_year).strftime('%Y-%m-%d'),

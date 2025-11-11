@@ -15,6 +15,7 @@ api_bp = Blueprint('api', __name__, url_prefix='/api')
 # ========================= RESEÑAS ========================
 
 @api_bp.route('/reviews', methods=['GET'])
+#@jwt_required()?
 def get_approved_reviews():
     """
     Obtiene reseñas aprobadas con filtros opcionales.
@@ -51,6 +52,7 @@ def get_approved_reviews():
         return jsonify({"error": "Error al obtener las reseñas", "details": str(e)}), 500
 
 @api_bp.route('/reviews/<int:review_id>', methods=['GET'])
+#@jwt_required()?
 def get_review(review_id):
     """
     Obtiene el detalle de una reseña específica por ID.
@@ -69,6 +71,7 @@ def get_review(review_id):
         return jsonify({"error": "Error al obtener la reseña", "details": str(e)}), 500
 
 @api_bp.route('/reviews/<int:review_id>', methods=['PUT'])
+#@jwt_required()?
 def update_review(review_id):
     """
     Actualiza el contenido y/o rating de una reseña.
@@ -135,6 +138,7 @@ def update_review(review_id):
         return jsonify({"error": "Error inesperado", "details": str(e)}), 500
 
 @api_bp.route('/reviews', methods=['POST'])
+#@jwt_required()?
 def create_review():
     """
     Crea una nueva reseña.
@@ -214,6 +218,7 @@ def create_review():
     
 
 @api_bp.route('/users/<int:user_id>/reviews', methods=['GET'])
+#@jwt_required()?
 def get_user_reviews(user_id):
     """
     Obtiene las reseñas aprobadas de un usuario específico (para su perfil público).
@@ -257,6 +262,7 @@ def get_user_reviews(user_id):
 # ========================= SITIOS ========================
 
 @api_bp.route('/historic-sites', methods=['GET'])
+#@jwt_required()?
 def get_historic_sites():
     """
     Obtiene los sitios históricos visibles con filtros avanzados y paginación.
@@ -372,6 +378,7 @@ def get_historic_sites():
 
 
 @api_bp.route('/historic-sites/<int:site_id>', methods=['GET'])
+#@jwt_required()?
 def get_historic_site(site_id):
     """
     Obtiene detalles de un sitio histórico específico por su ID.
@@ -411,6 +418,7 @@ def get_historic_site(site_id):
 
 
 @api_bp.route('/historic-sites/<int:site_id>/reviews', methods=['GET'])
+#@jwt_required()?
 def get_historic_site_reviews(site_id):
     """
     Obtiene las reseñas aprobadas de un sitio histórico específico (público).
@@ -468,6 +476,7 @@ def get_historic_site_reviews(site_id):
 
 
 @api_bp.route('/historic-sites/<int:site_id>/reviews/<int:review_id>', methods=['DELETE'])
+#@jwt_required()?
 def delete_historic_site_review(site_id, review_id):
     """
     Elimina una reseña específica de un sitio histórico.

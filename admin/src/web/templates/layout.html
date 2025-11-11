@@ -52,12 +52,8 @@
                                 historicos</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ 'active' if request.path.startswith('/admin/validacion-propuestas') else '' }}"
-                                href="/admin/validacion-propuestas">Validacion de propuestas</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ 'active' if request.path.startswith('/admin/moderacion') else '' }}"
-                                href="/admin/moderacion">Moderacion de reseñas</a>
+                            <a class="nav-link {{ 'active' if request.path.startswith('/admin/reviews') else '' }}"
+                                href="/admin/reviews">Moderacion de reseñas</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {{ 'active' if request.path.startswith('/usuarios') else '' }}"
@@ -107,12 +103,8 @@
                         href="{{ url_for('historic_sites.render_admin_management') }}">Gestion de sitios historicos</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ 'active' if request.path.startswith('/admin/validacion-propuestas') else '' }}"
-                        href="/admin/validacion-propuestas">Validacion de propuestas</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ 'active' if request.path.startswith('/admin/moderacion') else '' }}"
-                        href="/admin/moderacion">Moderacion de reseñas</a>
+                    <a class="nav-link {{ 'active' if request.path.startswith('/admin/reviews') else '' }}"
+                        href="/admin/reviews">Moderacion de reseñas</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {{ 'active' if request.path.startswith('/usuarios') else '' }}"
@@ -135,20 +127,22 @@
         <div class="vr" style="background-color: rgb(0, 0, 0); flex-shrink: 0;"></div>
 
         <div class="p-3 flex-grow-1" style="min-width: 0;">
+            {% block flashes %}
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+            {% endblock %}
+
             {% block content %}
             <!-- Contenido principal aca -->
             {% endblock %}
 
         </div>
     </main>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-    {% for category, message in messages %}
-    <div class="alert alert-{{ category }}">{{ message }}</div>
-    {% endfor %}
-    {% endif %}
-    {% endwith %}
 
     <footer>
         {% block footer %}

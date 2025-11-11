@@ -40,3 +40,4 @@ def logout():
     else:
         flash("No has iniciado sesión.", "danger")
     return redirect(url_for("auth.login"))
+

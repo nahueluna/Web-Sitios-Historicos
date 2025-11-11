@@ -34,8 +34,25 @@
     <div class="col-auto">
         <button type="submit" class="btn btn-primary">Buscar</button>
     </div>
+    <div class="col-auto">
+        <a href="{{ url_for('user.clear_filters') }}" class="btn btn-secondary">
+            Limpiar filtros
+        </a>
+    </div>
 </form>
 
+{% if total > 0 %}
+    <p class="text-muted mb-2">
+        Se encontraron <strong>{{ total }}</strong> resultados.
+    </p>
+{% else %}
+    <div class="alert alert-warning" role="alert">
+        No se encontraron usuarios con los filtros seleccionados.
+    </div>
+{% endif %}
+
+
+{% if total > 0 %}
 <div style="display: flex; gap: 2rem;">
     <!-- Tabla de usuarios -->
     <div>
@@ -70,6 +87,7 @@
         <button class="btn btn-danger" id="btn-delete" disabled>Eliminar</button>
     </div>
 </div>
+{% endif %}
 
 <!-- Paginación -->
 <nav aria-label="Paginación usuarios" class="mt-3">

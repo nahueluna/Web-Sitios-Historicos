@@ -1,22 +1,31 @@
 import datetime
-from os import abort
+import os
+from uuid import uuid1
+from flask import current_app
+from os import abort, fstat
 from src.web.decorator import block_admin_maintenance
 from src.core.models.auth import get_usuario_by_email
 from src.core.models.auth.user import RolUsuario
+from src.core.models.images import (
+    guardar_imagen,
+    guardar_imagenes,
+    get_images_by_site,
+    get_images_map,
+    delete_image,
+    save_changes,
+)
 from src.web.handlers.auth import login_required, role_required
 from src.core.models.historic_site_tags import get_tags_by_site
 from src.core.models.search import get_all_tags
 from flask import Blueprint, render_template, request, jsonify, session
-from src.core.models.historic_sites import delete_histoirc_site, get_historic_site, list_all_historic_sites, list_visible_historic_sites, add_historic_site, edit_historic_site
+from src.core.models.historic_sites import delete_histoirc_site, get_historic_site, list_all_historic_sites, list_visible_historic_sites, add_historic_site, edit_historic_site, get_only_historic_site
 from core.models.historic_sites import list_historic_sites_with_filters
 from src.core.models.historic_sites_categorie import delete_category, list_historic_sites_categorie, add_category
 from src.core.models.historic_sites_state import list_states
 from src.core.models.historic_sites_logs import get_logs_per_hs
 import io, csv
-from datetime import datetime
 from flask import Response
-
-from src.web.decorator import block_admin_maintenance
+import json
 
 
 historic_sites_bp = Blueprint('historic_sites', __name__, url_prefix='/sitios-historicos')
@@ -149,11 +158,23 @@ def export_sites(user):
 @block_admin_maintenance
 @role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
 def get_site(user, id):
-    hs = get_historic_site(int(id))
+    hs, category, state = get_historic_site(int(id))
+    images = get_images_by_site(id)  # <-- debes implementar o ya lo tienes
+
     response = {
-        "historic_site": hs[0].json(),
-        "category": hs[1].category,
-        "state": hs[2].state,
+        "historic_site": hs.json(),
+        "category": category.category,
+        "state": state.state,
+        "images": [
+            {
+                "id": img.nombre,
+                "url": img.url,         # o construyes la URL al bucket
+                "title": img.titulo,
+                "desc": img.desc,
+                "order": img.orden
+            }
+            for img in images
+        ],
     }
     return jsonify(response), 200
 
@@ -201,72 +222,185 @@ def render_category_form(user):
 
 # RENDERING
 
-@historic_sites_bp.route('/add-site', methods=['POST']) # 
+@historic_sites_bp.route('/add-site', methods=['POST'])
 @role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
 @block_admin_maintenance
 def add_site(user):
     try:
-        json = request.get_json()
-        __validator__(json)
+        form = request.form
+        __validator__(form)
+        files = request.files.getlist("images")
+
+        if len(files) == 0:
+            return jsonify({"error": "El sitio debe tener imagenes."}), 400
+
+        if len(files) > 10:
+            return jsonify({"error": "El sitio no puede tener mas de 10 imagenes."}), 400
+
+        client = current_app.storage
+
+        # Guardar imagenes en Minio
+        object_names = []
+        titles = []
+        descs = []
+        bucket_name = current_app.config["MINIO_BUCKET"]
+        for i, f in enumerate(files):
+            _, ext = os.path.splitext(f.filename)
+            ext = ext.lower()
+            size = fstat(f.fileno()).st_size
+            object_name = f"public/{str(uuid1())}{ext}"
+            object_names.append(object_name)
+            client.put_object(
+                bucket_name=bucket_name,
+                object_name=object_name,
+                data=f,
+                length=size,
+                content_type=f.content_type,
+            )
+            title = form.get(f"title_{i}")
+            if len(title) > 100:
+                return jsonify({"error": "Los titulos no pueden tener mas de 100 caracteres."}), 400
+            titles.append(title)
+
+            desc = form.get(f"description_{i}")
+            if len(desc) > 300:
+                return jsonify({"error": "Las descripciones no pueden tener mas de 300 caracteres."}), 400
+            descs.append(desc)
+
+        date_str = form.get("inauguration_year")
+        inauguration_date = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
+
         user_id = user.id
 
-        date = json['inauguration_year']
-        format_date = datetime.strptime(date, "%Y-%m-%d")
-        format_date = format_date.strftime("%Y-%m-%d")
-
         hs = add_historic_site(
-            site_name=json['site_name'],
-            short_description=json['short_description'],
-            long_description=json['long_description'],
-            city=json['city'],
-            province=json['province'],
-            latitude=json['latitude'],
-            longitude=json['longitude'],
-            inauguration_year=format_date,
-            visible=json['visible'],
-            conservation_status=json['conservation_status'],       
-            category=json['category'],
-            tags=json.get('tags'),
+            site_name=form.get("site_name"),
+            short_description=form.get("short_description"),
+            long_description=form.get("long_description"),
+            city=form.get("city"),
+            province=form.get("province"),
+            latitude=float(form.get("latitude")),
+            longitude=float(form.get("longitude")),
+            inauguration_year=inauguration_date,
+            visible=(form.get("visible") == "True"),
+            conservation_status=form.get("conservation_status"),
+            category=form.get("category"),
+            tags=form.getlist("tags"),
             user_id=user_id
         )
 
+        guardar_imagenes(object_names, titles, descs, hs.id)
+
         return jsonify({}), 201
+
     except Exception as e:
-        print(e)
+        print("Error in add_site:", e)
         return jsonify({"error": str(e)}), 400
 
-@historic_sites_bp.route('/edit-site', methods=['PUT'])
+@historic_sites_bp.route('/edit-site', methods=['POST'])
 @role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
 @block_admin_maintenance
 def edit_site(user):
     try:
-        json = request.get_json()
-        __validator__(json)
-        user_id = user.id
+        # ====== 1) Parse metadata ======
+        metadata = request.form.get("metadata")
+        if not metadata:
+            return jsonify({"error": "metadata is required"}), 400
 
-        date = json['inauguration_year']
-        format_date = datetime.strptime(date, "%Y-%m-%d")
-        format_date = format_date.strftime("%Y-%m-%d")
+        data = json.loads(metadata)
+        site_id = data["id"]
 
-        edit_historic_site(
-            hs_id = int(json['id']),
-            site_name=json['site_name'],
-            short_description=json['short_description'],
-            long_description=json['long_description'],
-            city=json['city'],
-            province=json['province'],
-            latitude=float(json['latitude']),
-            longitude=float(json['longitude']),
-            inauguration_year=format_date,
-            visible=json['visible'],
-            conservation_status=json['conservation_status'],       
-            category=json['category'],
-            tags=json.get('tags'),
-            user_id=user_id
-        )
+        # ====== 2) Obtener sitio ======
+        site = get_only_historic_site(int(site_id))
+        if site is None:
+            return jsonify({"error": "El sitio no existe"}), 404
 
-        return jsonify({}), 201
+        # ====== 3) Actualizar datos básicos ======
+        site.site_name = data["site_name"]
+        site.short_description = data["short_description"]
+        site.long_description = data["long_description"]
+        site.city = data["city"]
+        site.province = data["province"]
+        site.latitude = data["latitude"]
+        site.longitude = data["longitude"]
+        site.visible = data["visible"]
+        site.conservation_status = data["conservation_status"]
+        site.category = data["category"]
+        site.tags = data.get("tags", [])
+
+        # Manejo de fecha
+        if data.get("inauguration_year"):
+            site.inauguration_year = datetime.datetime.strptime(data["inauguration_year"], "%Y-%m-%d")
+
+        # ====== 4) Procesar imágenes ======
+        new_images_files = request.files.getlist("images")  # Nuevas imágenes (solo archivos)
+        submitted_images = data["images"]  # [{id, title, desc, order}, ...]
+
+        if len(submitted_images) == 0:
+            return jsonify({"error": "El sitio debe tener imagenes."}), 400
+
+        if len(submitted_images) > 10:
+            return jsonify({"error": "El sitio no puede tener mas de 10 imagenes."}), 400
+
+        # Obtener todas las imágenes actuales en la BD
+        images_map, current_images = get_images_map(site_id)
+        used = set()
+        file_index = 0  # para recorrer archivos en el mismo orden en que están los nuevos
+
+        client = current_app.storage
+        bucket_name = current_app.config["MINIO_BUCKET"]
+
+        for img_info in submitted_images:
+            img_id = img_info.get("id")
+            title = img_info["title"]
+            desc = img_info["desc"]
+            order = img_info["order"]
+
+            if img_id:
+                # Imagen YA existente → actualizar
+                img = images_map.get(img_id)
+                if img:
+                    img.titulo = title
+                    img.desc = desc
+                    img.orden = order
+                    used.add(img_id)
+
+            else:
+                # Imagen NUEVA → guardar en Minio + DB
+                file = new_images_files[file_index]
+                file_index += 1
+
+                # Guardar en Minio
+                _, ext = os.path.splitext(file.filename)
+                ext = ext.lower()
+                size = fstat(file.fileno()).st_size
+                object_name = f"public/{str(uuid1())}{ext}"
+                client.put_object(
+                    bucket_name=bucket_name,
+                    object_name=object_name,
+                    data=file,
+                    length=size,
+                    content_type=file.content_type,
+                )
+
+                # Guardar en la BD
+                guardar_imagen(
+                    nombre=object_name,
+                    titulo=title,
+                    desc=desc,
+                    orden=order,
+                    sitio=site_id
+                )
+
+        # ====== 5) Eliminar imágenes quitadas del formulario (solo DB, no Minio) ======
+        for img in current_images:
+            if img.nombre not in used:
+                delete_image(img)
+
+        save_changes()
+        return jsonify({"status": "ok"}), 200
+
     except Exception as e:
+        print("Error in edit_site:", e)
         return jsonify({"error": str(e)}), 400
 
 @historic_sites_bp.route('/delete-site', methods=['DELETE'])

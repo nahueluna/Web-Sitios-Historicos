@@ -69,8 +69,9 @@
             </div>
           </div>
 
-          <div v-if="favorites.length === 0" class="alert alert-info mt-3">
-            <i class="bi bi-star me-2"></i>
+          <div v-if="reviews.length === 0" class="alert alert-info">
+            <!-- me-2: margen derecho 2 -->
+            <i class="bi bi-info-circle me-2"></i>
             No has agregado ningún favorito aún.
           </div>
           <div v-else>
@@ -110,6 +111,7 @@ const reviews = computed(() => {
 })
 
 const favorites = computed(() => {
-  return favoritesStore.getFavorites(6)
+  return []
+  //return favoritesStore.getFavorites(6)
 })
 </script>

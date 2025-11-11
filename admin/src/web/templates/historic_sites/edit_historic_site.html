@@ -120,6 +120,17 @@
             <select id="tags" name="tags" multiple></select>
         </div>
 
+        <div class="mb-4">
+            <label class="form-label">Imágenes:</label>
+            <div id="images-container" class="d-flex flex-wrap gap-3"></div>
+        
+            <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="add-image-btn">
+                Agregar Imagen
+            </button>
+        
+            <input type="file" id="image-file-input" accept="image/*" class="d-none" multiple>
+        </div>
+
         <div class="d-flex gap-2">
             <button type="submit" class="btn btn-primary">Modificar Sitio Histórico</button>
             <a href="#" id="cancel-link" class="btn btn-outline-secondary">Cancelar y Volver</a>
@@ -153,6 +164,48 @@
     };
 </script>
 <script>
+    let images = []; // lista mixta
+    
+    function renderImages() {
+        const container = document.getElementById("images-container");
+        container.innerHTML = "";
+
+        images.forEach((img, index) => {
+            const card = document.createElement("div");
+            card.className = "border p-2";
+            card.style.width = "160px";
+            card.draggable = true;
+
+            // arrastrar
+            card.ondragstart = (e) => e.dataTransfer.setData("index", index);
+            card.ondragover = (e) => e.preventDefault();
+            card.ondrop = (e) => {
+                const from = e.dataTransfer.getData("index");
+                const to = index;
+                [images[from], images[to]] = [images[to], images[from]];
+                renderImages();
+            };
+
+            // HTML de cada card (imagen, titulo, descripcion y eliminar)
+            card.innerHTML = `
+                <img src="${img.preview || img.url}" class="img-fluid mb-1" style="height:100px; object-fit:cover;">
+                <input type="text" class="form-control form-control-sm mb-1" placeholder="Título" required maxlength="100" value="${img.title}" />
+                <textarea class="form-control form-control-sm mb-1" placeholder="Descripción" maxlength="300">${img.desc}</textarea>
+                <button class="btn btn-sm btn-danger w-100">Eliminar</button>
+            `;
+
+            const titleInput = card.querySelector("input");
+            const descInput = card.querySelector("textarea");
+            const deleteBtn = card.querySelector("button");
+
+            titleInput.oninput = () => img.title = titleInput.value;
+            descInput.oninput = () => img.desc = descInput.value;
+            deleteBtn.onclick = () => { images.splice(index, 1); renderImages(); };
+
+            container.appendChild(card);
+        });
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
         const form = document.getElementById("historic-site-form");
         const loadingMessage = document.getElementById("loading-message");
@@ -210,6 +263,15 @@
                 return response.json();
             })
             .then(historicSiteData => {
+                images = historicSiteData.images.map(img => ({
+                    id: img.id,
+                    url: img.url,
+                    title: img.title,
+                    desc: img.desc
+                }));
+
+                renderImages();
+
                 console.log("historicSiteData", historicSiteData);
                 loadingMessage.style.display = 'none';
                 form.style.display = 'block';
@@ -286,28 +348,38 @@
 
         form.addEventListener('submit', e => {
             e.preventDefault();
-            const selectedTags = choicesTags.getValue(true);
 
-            const formData = {
-                "id": siteId,
-                'site_name': document.getElementById('site-name').value,
-                'short_description': document.getElementById('short-description').value,
-                'long_description': document.getElementById('long-description').value,
-                'city': document.getElementById('city').value,
-                'province': document.getElementById('province').value,
-                'latitude': document.getElementById('latitude').value,
-                'longitude': document.getElementById('longitude').value,
-                'conservation_status': document.getElementById('conservation-status').value,
-                'inauguration_year': document.getElementById('inauguration-year').value,
-                'category': document.getElementById('category').value,
-                'visible': document.getElementById('visible').value === 'true',
-                'tags': selectedTags
-            };
+            const fd = new FormData();
+            fd.append("metadata", JSON.stringify({
+                id: siteId,
+                site_name: document.getElementById('site-name').value,
+                short_description: document.getElementById('short-description').value,
+                long_description: document.getElementById('long-description').value,
+                city: document.getElementById('city').value,
+                province: document.getElementById('province').value,
+                latitude: document.getElementById('latitude').value,
+                longitude: document.getElementById('longitude').value,
+                conservation_status: document.getElementById('conservation-status').value,
+                inauguration_year: document.getElementById('inauguration-year').value,
+                category: document.getElementById('category').value,
+                visible: document.getElementById('visible').value === 'true',
+                tags: choicesTags.getValue(true),
+                images: images.map((img, order) => ({
+                    id: img.id,
+                    title: img.title,
+                    desc: img.desc,
+                    order
+                }))
+            }));
+
+            // Solo nuevos archivos
+            images.forEach(img => {
+                if (img.file) fd.append("images", img.file);
+            });
 
             fetch(`/sitios-historicos/edit-site`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
+                method: 'POST',
+                body: fd
             })
                 .then(response => {
                     if (!response.ok) {
@@ -327,6 +399,23 @@
                 })
                 .catch(error => alert(`Error al modificar el sitio: ${error}`, "danger"));
         });
+
+        document.getElementById("add-image-btn").onclick = () => {
+            document.getElementById("image-file-input").click();
+        };
+
+        document.getElementById("image-file-input").onchange = (e) => {
+            for (const file of e.target.files) {
+                images.push({
+                    id: null,
+                    file: file,
+                    preview: URL.createObjectURL(file),
+                    title: "",
+                    desc: ""
+                });
+            }
+            renderImages();
+        };
     });
 </script>
 {% endblock %}

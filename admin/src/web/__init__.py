@@ -20,8 +20,8 @@ import src.web.controllers.advanced_search
 from src.web.controllers.review import review_bp
 from src.web.controllers.auth import bp_auth
 from src.web.controllers.feature_flag import feature_flag_bp
-from src.web.controllers.api import api_bp
-from src.web.controllers.public_api import public_api_bp  # Blueprint público
+from src.web.api.sites import sites_api
+from src.web.api.reviews import reviews_api
 from src.core.bcrypt import bcrypt
 from flask_cors import CORS
 from src.web.storage import storage
@@ -104,10 +104,12 @@ def create_app(env='development', static_folder='../../static'):
     app.register_blueprint(role_bp)
     app.register_blueprint(bp_auth)
     app.register_blueprint(feature_flag_bp)
-    app.register_blueprint(public_api_bp)  # Blueprint público sin autenticación
+ 
+    app.register_blueprint(reviews_api)
+    app.register_blueprint(sites_api)
+    
     app.register_blueprint(bp_google_auth)
     app.register_blueprint(review_bp)
-    app.register_blueprint(api_bp)  # API pública
 
     @app.cli.command("reset-db")
     def reset_db():

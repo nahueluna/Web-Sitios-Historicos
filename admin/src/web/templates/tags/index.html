@@ -36,10 +36,21 @@
                     <option value="desc" {% if request.args.get('order_dir', 'asc') == 'desc' %}selected{% endif %}>Descendente</option>
                 </select>
             </div>
+            <div class="col-12 col-md-auto">
+                <button type="button" id="clear-filters" class="btn btn-secondary">Limpiar filtros</button>
+            </div>
         </form>
 
+    <div id="result-count" class="d-flex justify-content-between align-items-center mb-2">
+        {% if total == 1 %}
+            <p id="result-number" class="lead mb-0">Se encontró {{ total }} resultado.</p>
+        {% elif total > 1 %}
+            <p id="result-number" class="lead mb-0">Se encontraron {{ total }} resultados.</p>
+        {% endif %}
+    </div>
+
    <!-- Tags table and action buttons -->
-   <div style="display: flex; gap: 2rem; align-items: flex-start;">
+   <div style="display: flex; gap: 10rem; align-items: flex-start;">
        <div id="tags-container" style="display: flex; flex-wrap: wrap; gap: 0.5rem; min-width: 26.3vw;">
            {% if tags %}
                {% for t in tags %}
@@ -154,6 +165,12 @@
                 document.getElementById("btn-update").disabled = true;
                 document.getElementById("btn-delete").disabled = true;
             }
+        });
+
+        document.getElementById("clear-filters").addEventListener('click', () => {
+            const url = new URL(window.location.href);
+
+            window.location.href = url.pathname;
         });
     </script>
 {% endblock %}

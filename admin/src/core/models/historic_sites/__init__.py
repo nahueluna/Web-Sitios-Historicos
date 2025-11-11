@@ -1,4 +1,5 @@
 from datetime import datetime
+from sqlalchemy import func
 from src.core.models.search.tags import Tag
 from src.core.models.historic_site_tags.hs_tags import HistoricSitesTags
 from src.core.models.historic_sites_logs import add_log
@@ -6,7 +7,13 @@ from src.core.models.historic_site_tags import add_historic_site_tag, reset_tags
 from src.core.models.historic_sites_state.hs_states import HistoricSitesStates
 from src.core.models.historic_sites_categorie.hs_categories import HistoricSitesCategories
 from src.core.database import db
-from src.core.models.historic_sites.historic_sites import HistoricSites  
+from src.core.models.historic_sites.historic_sites import HistoricSites
+from src.core.models.review.review import Review, ReviewStatus
+from sqlalchemy import func, desc  
+from math import radians, sin, cos, sqrt, atan2
+from src.core.models.search.tags import Tag
+from src.core.models.historic_site_tags.hs_tags import HistoricSitesTags
+from src.core.models.review.review import Review, ReviewStatus
 
 # Consulta para todos los sitios con su categoría
 def list_all_historic_sites(): 
@@ -34,6 +41,18 @@ def get_historic_site(hs_id: int):
         HistoricSitesCategories, HistoricSites.category_id == HistoricSitesCategories.id
     ).join(
         HistoricSitesStates, HistoricSites.status_id == HistoricSitesStates.id
+    ).first()
+
+def get_only_historic_site(hs_id: int):
+    """Retorna el sitio historico sin logs ni categorias"""
+    return db.session.get(HistoricSites, hs_id)
+
+# Un sitio visible específico por ID con su categoría, estado y tags
+def get_visible_historic_site(hs_id: int):
+    return db.session.query(HistoricSites).filter(
+        HistoricSites.id == hs_id,
+        HistoricSites.visible == True,
+        HistoricSites.delete == False
     ).first()
 
 # Crear nuevo sitio histórico
@@ -166,3 +185,163 @@ def list_historic_sites_with_filters(q='', city='', province='', tags=None, stat
         sites = query.all()
 
     return sites, total
+
+
+### --------- API PUBLICA --------- ###
+
+def public_list_historic_sites(
+    name='', 
+    description='', 
+    city='', 
+    province='', 
+    tags=None, 
+    order_by='latest',
+    lat=None, 
+    long=None, 
+    radius=None,
+    page=1, 
+    per_page=25
+):
+    # Calcular rating promedio por sitio
+    rating_subquery = db.session.query(
+        Review.historic_site_id,
+        func.avg(Review.rating).label('avg_rating')
+    ).filter(
+        Review.status == ReviewStatus.APPROVED
+    ).group_by(Review.historic_site_id).subquery()
+    
+    # Query principal siempre incluye el rating
+    query = db.session.query(
+        HistoricSites,
+        rating_subquery.c.avg_rating
+    ).outerjoin(
+        rating_subquery, HistoricSites.id == rating_subquery.c.historic_site_id
+    ).filter(
+        HistoricSites.delete == False
+    )
+
+    if name:
+        query = query.filter(HistoricSites.site_name.ilike(f'%{name}%'))
+
+    if description:
+        query = query.filter(HistoricSites.short_description.ilike(f'%{description}%'))
+
+    if city:
+        query = query.filter(HistoricSites.city.ilike(f'%{city}%'))
+
+    if province:
+        query = query.filter(HistoricSites.province.ilike(f'{province}'))
+
+    # Preparar variables para filtros que se usan tanto en query como count_query
+    tag_ids = []
+    if tags:
+        # Busco los ID de los tags por sus nombres
+        tag_ids = db.session.query(Tag.id).filter(Tag.name.in_(tags)).all()
+        tag_ids = [tag_id[0] for tag_id in tag_ids]  # Me lo devuelve como tupla, asi que saco el primer elemento (id)
+        
+        if tag_ids:  # Solo si se encontraron tags válidos
+            query = (query.join(HistoricSitesTags, HistoricSites.id == HistoricSitesTags.site_id)
+                    .filter(HistoricSitesTags.tag_id.in_(tag_ids)))
+
+    if lat is not None and long is not None and radius is not None:
+        # Crea punto desde donde se buscan todos los sitios en un radio
+        search_point = func.ST_SetSRID(func.ST_MakePoint(long, lat), 4326)
+        
+        # Crea por cada sitio su punto geografico
+        site_point = func.ST_SetSRID(
+            func.ST_MakePoint(HistoricSites.longitude, HistoricSites.latitude), 
+            4326
+        )
+        
+        # Filtrar por sitios dentro del radio
+        query = query.filter(
+            func.ST_DWithin(
+                site_point,
+                search_point,
+                radius * 1000  # pasar a metros
+            )
+        )
+
+    if order_by == 'latest':
+        query = query.order_by(HistoricSites.registration_date.desc())
+    elif order_by == 'oldest':
+        query = query.order_by(HistoricSites.registration_date.asc())
+    # Sitios sin reviews se consideran mas bajos en el ranking
+    elif order_by == 'rating-5-1':
+        query = query.order_by(rating_subquery.c.avg_rating.desc().nullslast())
+    elif order_by == 'rating-1-5':
+        query = query.order_by(rating_subquery.c.avg_rating.asc().nullsfirst())
+
+    # Obtengo el total de resultados
+    all_results = query.all()
+    total = len(all_results)
+
+    # Si no se especifica pag, uso pag 1 por defecto
+    current_page = int(page) if page is not None else 1
+    
+    # Aplicar paginación
+    start_idx = (current_page - 1) * int(per_page)
+    end_idx = start_idx + int(per_page)
+    paginated_results = all_results[start_idx:end_idx]
+
+    # Agrego el rating promedio a cada sitio como atributo temporal
+    sites = []
+    for site, avg_rating in paginated_results:
+        site.average_rating = round(avg_rating, 1) if avg_rating else None
+        sites.append(site)
+
+    return sites, total
+
+def list_historic_sites_with_advanced_filters(name='', description='', city='', province='', tag_names=None, lat=None, long=None, radius=None, order_by='latest', page=1, per_page=25):
+    query = db.session.query(HistoricSites).filter(HistoricSites.delete == False, HistoricSites.visible == True)
+
+    if name:
+        query = query.filter(HistoricSites.site_name.ilike(f'%{name}%'))
+
+    if description:
+        query = query.filter(HistoricSites.long_description.ilike(f'%{description}%'))
+
+    if city:
+        query = query.filter(func.lower(HistoricSites.city) == func.lower(city))
+
+    if province:
+        query = query.filter(func.lower(HistoricSites.province) == func.lower(province))
+
+    if tag_names:
+        tag_ids = db.session.query(Tag.id).filter(Tag.name.in_(tag_names)).all()
+        tag_ids = [t[0] for t in tag_ids]
+        if tag_ids:
+            query = query.join(HistoricSitesTags, HistoricSites.id == HistoricSitesTags.site_id).filter(HistoricSitesTags.tag_id.in_(tag_ids))
+
+    # Handle ordering
+    if order_by in ['rating-5-1', 'rating-1-5']:
+        order_dir = 'desc' if order_by == 'rating-5-1' else 'asc'
+        subq = db.session.query(Review.historic_site_id, func.avg(Review.rating).label('avg_rating')).filter(Review.status == ReviewStatus.APPROVED).group_by(Review.historic_site_id).subquery()
+        query = query.outerjoin(subq, HistoricSites.id == subq.c.historic_site_id).order_by(func.coalesce(subq.c.avg_rating, 0).desc() if order_dir == 'desc' else func.coalesce(subq.c.avg_rating, 0).asc())
+    elif order_by == 'latest':
+        query = query.order_by(HistoricSites.registration_date.desc())
+    elif order_by == 'oldest':
+        query = query.order_by(HistoricSites.registration_date.asc())
+    else:
+        query = query.order_by(HistoricSites.site_name)  # default
+
+    total = query.count()
+    sites = query.offset((page - 1) * per_page).limit(per_page).all()
+
+
+    # Filter by geospatial radius if provided
+    if lat is not None and long is not None and radius is not None:
+        def haversine(lat1, lon1, lat2, lon2):
+            R = 6371  # Earth radius in km
+            dlat = radians(lat2 - lat1)
+            dlon = radians(lon2 - lon1)
+            a = sin(dlat/2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon/2)**2
+            c = 2 * atan2(sqrt(a), sqrt(1-a))
+            return R * c
+
+        sites = [s for s in sites if haversine(lat, long, s.latitude, s.longitude) <= radius]
+        total = len(sites)  # Update total after filtering (approximate for pagination)
+
+    return sites, total
+
+

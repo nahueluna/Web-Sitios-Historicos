@@ -1,0 +1,117 @@
+{% extends "layout.html" %}
+
+{% block title %}Detalle de reseña{% endblock %}
+{% block head %}
+{{ super() }}
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid d-flex flex-column py-4">
+    <div id="review-detail" style="max-width: 80vw">
+        <div class="mb-4">
+            <h3 class="text-primary">{{ r.historic_site.site_name }} - <span class="text-warning" aria-hidden="true">★</span> {{ r.rating }}</h3>
+            <hr>
+            <p><strong>Fecha de creación:</strong> {{ r.inserted_at.strftime('%d/%m/%Y %H:%M:%S') }}</p>
+            <p><strong>Última fecha de actualización:</strong> {{ r.updated_at.strftime('%d/%m/%Y %H:%M:%S') }}</p>
+            <p style="max-width: 50vw"><strong>Contenido:<br></strong> {{ r.content }}</p>
+            <p><span class="fw-bold me-2">Estado de aprobación:</span> <span id="review-status" data-review-status="{{ r.status.name }}"> {{ r.status.value }}</span></p>
+
+            {% if r.rejection_reason %}
+            <p style="max-width: 50vw"><strong>Motivo de rechazo:</strong> {{ r.rejection_reason }}</p>
+            {% endif %}
+
+            <h3 class="text-primary">Detalles del usuario</h3>
+            <hr>
+            <p><strong>Email:</strong> {{ r.user.email }}</p>
+            <p><strong>Nombre:</strong> {{ r.user.nombre }}</p>
+            <p><strong>Apellido:</strong> {{ r.user.apellido }}</p>
+            <p><strong>Fecha de registro:</strong> {{ r.user.fecha_creacion.strftime('%d/%m/%Y %H:%M:%S') }}</p>
+
+            <h3 class="text-primary">Detalles del sitio histórico</h3>
+            <hr>
+            <p><strong>Nombre:</strong> {{ r.historic_site.site_name }}</p>
+            <p><strong>Descripción corta:</strong> {{ r.historic_site.short_description }}</p>
+            <p><strong>Provincia:</strong> {{ r.historic_site.province }}, <strong>Ciudad:</strong> {{ r.historic_site.city }}</p>
+            <p><strong>Fecha de inauguración:</strong> {{ r.historic_site.inauguration_year.strftime('%d/%m/%Y') }}</p>
+        </div>
+        <div class="d-flex justify-content-end gap-2">
+            <div class="d-flex gap-2 me-auto align-items-center">
+            {% if r.status == ReviewStatus.PENDING %}
+            <form method="POST" action="{{ url_for('review.approve_review', review_id=r.id) }}" autocomplete="off" class="m-0 me-2">
+                <input type="hidden" name="_method" value="PUT">
+                <button class="btn btn-primary" type="submit">Aprobar</button>
+            </form>
+            <button class="btn btn-danger" id="reject-btn" data-bs-toggle="modal" data-bs-target="#reject-modal" >Rechazar</button>
+            {% endif %}
+            </div>
+            <div>
+            <button class="btn btn-danger" id="delete-btn" data-bs-toggle="modal" data-bs-target="#delete-modal" >Eliminar reseña</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Review Modal -->
+<div class="modal fade" id="reject-modal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="exampleModalLabel">Rechazar reseña</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-footer">
+        <form method="POST" action="{{ url_for('review.reject_review', review_id=r.id) }}" id="reject-form" class="w-100">
+          <input type="hidden" name="_method" value="PUT">
+          <label id="rejection-reason-label" for="rejection-reason" class="form-label">Indique el motivo del rechazo</label>
+          <textarea id="rejection-reason" name="rejection_reason" class="form-control" required minlength="1" maxlength="200" rows="4" aria-describedby="rejection-reason-help" autofocus></textarea>
+          <div id="rejection-reason-help" class="form-text">Máx. 200 caracteres.</div>
+          <div class="d-flex justify-content-end gap-2 mt-3">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-danger" id="modal-btn-reject">Rechazar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Delete Review Modal -->
+<div class="modal fade" id="delete-modal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="exampleModalLabel">Eliminar reseña</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+          <p>¿Estás seguro de que deseas eliminar la reseña?</p>
+
+      </div>
+      <div class="modal-footer">
+        <form method="POST" action="{{ url_for('review.delete_review', review_id=r.id) }}" id="delete-form" class="w-100">
+          <input type="hidden" name="_method" value="DELETE">
+            <p class="text-muted">Esta acción no puede deshacerse</p>
+          <div class="d-flex justify-content-end gap-2 mt-3">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-danger" id="modal-btn-delete">Eliminar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const statusStyle = new Map([ ['PENDING', "warning"], ['APPROVED', "success"], ['REJECTED', "danger"] ]);
+    const statusField = document.getElementById("review-status");
+    const statusName = statusField.getAttribute('data-review-status');
+    if(statusName) {
+        statusField.className = `badge bg-${statusStyle.get(statusName)} fs-6`;
+    }
+
+</script>
+{% endblock %}

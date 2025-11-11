@@ -1,0 +1,12 @@
+/* Main CSS - Portal de Sitios Históricos */
+
+/* Reset básico para el layout */
+#app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
+}

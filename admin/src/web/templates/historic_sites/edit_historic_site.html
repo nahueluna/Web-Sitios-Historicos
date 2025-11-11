@@ -29,7 +29,7 @@
     <h2 class="mb-4">Formulario para Modificar un Sitio Histórico</h2>
     <div id="loading-message" class="alert alert-info">Cargando datos del sitio histórico...</div>
 
-    <form id="historic-site-form" class="needs-validation" style="display: none;">
+    <form id="historic-site-form" class="needs-validation" novalidate style="display: none;">
         <div class="mb-3">
             <label for="site-name" class="form-label">Nombre del sitio:</label>
             <input type="text" class="form-control" id="site-name" name="site-name" required>
@@ -142,6 +142,7 @@
 
 {% block scripts %}
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 <script>
     window.alert = function(message, type = "info") {
@@ -174,21 +175,12 @@
             const card = document.createElement("div");
             card.className = "border p-2";
             card.style.width = "160px";
-            card.draggable = true;
-
-            // arrastrar
-            card.ondragstart = (e) => e.dataTransfer.setData("index", index);
-            card.ondragover = (e) => e.preventDefault();
-            card.ondrop = (e) => {
-                const from = e.dataTransfer.getData("index");
-                const to = index;
-                [images[from], images[to]] = [images[to], images[from]];
-                renderImages();
-            };
 
             // HTML de cada card (imagen, titulo, descripcion y eliminar)
             card.innerHTML = `
-                <img src="${img.preview || img.url}" class="img-fluid mb-1" style="height:100px; object-fit:cover;">
+                <img src="${img.preview || img.url}" 
+                     class="img-fluid mb-1"
+                     style="width:100%; height:100px; object-fit:cover; display:block;">
                 <input type="text" class="form-control form-control-sm mb-1" placeholder="Título" required maxlength="100" value="${img.title}" />
                 <textarea class="form-control form-control-sm mb-1" placeholder="Descripción" maxlength="300">${img.desc}</textarea>
                 <button class="btn btn-sm btn-danger w-100">Eliminar</button>
@@ -272,6 +264,15 @@
 
                 renderImages();
 
+                new Sortable(document.getElementById('images-container'), {
+                    animation: 150,
+                    ghostClass: 'bg-light',
+                    onEnd: function (evt) {
+                        const moved = images.splice(evt.oldIndex, 1)[0];
+                        images.splice(evt.newIndex, 0, moved);
+                    }
+                });
+
                 console.log("historicSiteData", historicSiteData);
                 loadingMessage.style.display = 'none';
                 form.style.display = 'block';
@@ -348,6 +349,23 @@
 
         form.addEventListener('submit', e => {
             e.preventDefault();
+            form.classList.add("was-validated");
+            // Activar validación nativa de Bootstrap
+            if (!form.checkValidity()) {
+                e.stopPropagation();
+                alert("Por favor completa todos los campos obligatorios.", "warning");
+                return;
+            }
+
+            if (images.length === 0) {
+                alert("Debe agregar al menos una imagen.", "danger");
+                return;
+            }
+
+            if (images.length > 10) {
+                alert("El máximo de imágenes es 10.", "danger");
+                return;
+            }
 
             const fd = new FormData();
             fd.append("metadata", JSON.stringify({
@@ -406,6 +424,18 @@
 
         document.getElementById("image-file-input").onchange = (e) => {
             for (const file of e.target.files) {
+                //Validar tipo
+                if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+                    alert(`Formato no permitido: ${file.name}`, "danger");
+                    return;
+                }
+
+                //Validar tamaño
+                if (file.size > 5 * 1024 * 1024) {
+                    alert(`La imagen ${file.name} supera los 5MB.`, "danger");
+                    return;
+                }
+
                 images.push({
                     id: null,
                     file: file,

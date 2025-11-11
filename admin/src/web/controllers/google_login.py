@@ -1,6 +1,8 @@
 from src.core.models.auth.user import RolUsuario
 from flask import Blueprint, request, session, jsonify
 from src.core.models.auth import crear_usuario, get_usuario_by_email
+from flask_jwt_extended import jwt_required, get_jwt_identity
+
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 
@@ -43,6 +45,7 @@ def register_login():
     
 
 @bp_google_auth.post("/logout")
+@jwt_required()
 def logout():
     if session.get("user"):
         print("Se cerró sesión de:", session.get("user"))

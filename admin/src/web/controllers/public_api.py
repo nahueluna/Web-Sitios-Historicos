@@ -192,6 +192,7 @@ def get_public_historic_sites():
         return response, 200
 
     except Exception as e:
+        print("-------------------ERROR--------------", e)
         response = jsonify({
             "error": {
                 "code": "server_error",

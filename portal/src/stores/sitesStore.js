@@ -29,7 +29,7 @@ export const useSitesStore = defineStore('sites', {
         if (params.long) queryParams.long = params.long;
         if (params.radius) queryParams.radius = params.radius;
 
-        const response = await api.get('/api/historic-sites', { params: queryParams });
+        const response = await api.get('/api/sites', { params: queryParams });
         const { data, meta } = response.data;
 
         const sites = data.map(site => ({

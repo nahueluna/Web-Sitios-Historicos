@@ -6,29 +6,26 @@ from os import abort, fstat
 from src.web.decorator import block_admin_maintenance
 from src.core.models.auth import get_usuario_by_email
 from src.core.models.auth.user import RolUsuario
-from src.core.models.images import guardar_imagenes, get_images_by_site
+from src.core.models.images import (
+    guardar_imagen,
+    guardar_imagenes,
+    get_images_by_site,
+    get_images_map,
+    delete_image,
+    save_changes,
+)
 from src.web.handlers.auth import login_required, role_required
 from src.core.models.historic_site_tags import get_tags_by_site
 from src.core.models.search import get_all_tags
 from flask import Blueprint, render_template, request, jsonify, session
-from src.core.models.historic_sites import delete_histoirc_site, get_historic_site, list_all_historic_sites, list_visible_historic_sites, add_historic_site, edit_historic_site
+from src.core.models.historic_sites import delete_histoirc_site, get_historic_site, list_all_historic_sites, list_visible_historic_sites, add_historic_site, edit_historic_site, get_only_historic_site
 from core.models.historic_sites import list_historic_sites_with_filters
 from src.core.models.historic_sites_categorie import delete_category, list_historic_sites_categorie, add_category
 from src.core.models.historic_sites_state import list_states
 from src.core.models.historic_sites_logs import get_logs_per_hs
 import io, csv
-from datetime import datetime
 from flask import Response
-
-from src.web.decorator import block_admin_maintenance
-
 import json
-
-# Eliminar. Mover a models
-from src.core.models.historic_sites import HistoricSites
-from src.core.models.images.image import Image
-from src.core.database import db
-from sqlalchemy import select
 
 
 historic_sites_bp = Blueprint('historic_sites', __name__, url_prefix='/sitios-historicos')
@@ -179,7 +176,6 @@ def get_site(user, id):
             for img in images
         ],
     }
-    print(response)
     return jsonify(response), 200
 
 # -- USUAIROS -- #
@@ -238,6 +234,9 @@ def add_site(user):
         if len(files) == 0:
             return jsonify({"error": "El sitio debe tener imagenes."}), 400
 
+        if len(files) > 10:
+            return jsonify({"error": "El sitio no puede tener mas de 10 imagenes."}), 400
+
         client = current_app.storage
 
         # Guardar imagenes en Minio
@@ -251,7 +250,6 @@ def add_site(user):
             size = fstat(f.fileno()).st_size
             object_name = f"public/{str(uuid1())}{ext}"
             object_names.append(object_name)
-            print(f"size: {size}")
             client.put_object(
                 bucket_name=bucket_name,
                 object_name=object_name,
@@ -270,7 +268,7 @@ def add_site(user):
             descs.append(desc)
 
         date_str = form.get("inauguration_year")
-        inauguration_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        inauguration_date = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
 
         user_id = user.id
 
@@ -312,7 +310,7 @@ def edit_site(user):
         site_id = data["id"]
 
         # ====== 2) Obtener sitio ======
-        site: HistoricSites = db.session.get(HistoricSites, site_id)
+        site = get_only_historic_site(int(site_id))
         if site is None:
             return jsonify({"error": "El sitio no existe"}), 404
 
@@ -331,23 +329,21 @@ def edit_site(user):
 
         # Manejo de fecha
         if data.get("inauguration_year"):
-            site.inauguration_year = datetime.strptime(data["inauguration_year"], "%Y-%m-%d")
+            site.inauguration_year = datetime.datetime.strptime(data["inauguration_year"], "%Y-%m-%d")
 
         # ====== 4) Procesar imágenes ======
         new_images_files = request.files.getlist("images")  # Nuevas imágenes (solo archivos)
-
         submitted_images = data["images"]  # [{id, title, desc, order}, ...]
 
+        if len(submitted_images) == 0:
+            return jsonify({"error": "El sitio debe tener imagenes."}), 400
+
+        if len(submitted_images) > 10:
+            return jsonify({"error": "El sitio no puede tener mas de 10 imagenes."}), 400
+
         # Obtener todas las imágenes actuales en la BD
-        current_images = db.session.execute(
-            select(Image).where(Image.sitio == site_id)
-        ).scalars().all()
-
-        # Mapear por id para rápido acceso
-        current_map = {img.nombre: img for img in current_images}
-
-        used_ids = set()
-
+        images_map, current_images = get_images_map(site_id)
+        used = set()
         file_index = 0  # para recorrer archivos en el mismo orden en que están los nuevos
 
         client = current_app.storage
@@ -361,18 +357,19 @@ def edit_site(user):
 
             if img_id:
                 # Imagen YA existente → actualizar
-                img = current_map.get(img_id)
+                img = images_map.get(img_id)
                 if img:
                     img.titulo = title
                     img.desc = desc
                     img.orden = order
-                    used_ids.add(img_id)
+                    used.add(img_id)
 
             else:
                 # Imagen NUEVA → guardar en Minio + DB
                 file = new_images_files[file_index]
                 file_index += 1
 
+                # Guardar en Minio
                 _, ext = os.path.splitext(file.filename)
                 ext = ext.lower()
                 size = fstat(file.fileno()).st_size
@@ -385,26 +382,25 @@ def edit_site(user):
                     content_type=file.content_type,
                 )
 
-                new_img = Image(
+                # Guardar en la BD
+                guardar_imagen(
                     nombre=object_name,
                     titulo=title,
                     desc=desc,
                     orden=order,
                     sitio=site_id
                 )
-                db.session.add(new_img)
 
         # ====== 5) Eliminar imágenes quitadas del formulario (solo DB, no Minio) ======
         for img in current_images:
-            if img.nombre not in used_ids:
-                db.session.delete(img)
+            if img.nombre not in used:
+                delete_image(img)
 
-        db.session.commit()
+        save_changes()
         return jsonify({"status": "ok"}), 200
 
     except Exception as e:
         print("Error in edit_site:", e)
-        db.session.rollback()
         return jsonify({"error": str(e)}), 400
 
 @historic_sites_bp.route('/delete-site', methods=['DELETE'])

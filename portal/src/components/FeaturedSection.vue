@@ -127,6 +127,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useSitesStore } from '@/stores/sitesStore'
+import { useSessionStore } from '@/stores/sessionStore'
 import SiteCard from './SiteCard.vue'
 
 const props = defineProps({
@@ -158,6 +159,7 @@ const props = defineProps({
 })
 
 const sitesStore = useSitesStore()
+const sessionStore = useSessionStore()
 const sites = ref([])
 const loading = ref(true)
 const error = ref(null)
@@ -167,10 +169,19 @@ onMounted(async () => {
     loading.value = true
     error.value = null
 
-    const response = await sitesStore.fetchSites({
+    if (props.requireAuth && props.sectionId === 'favorites') {
+      const response = await sitesStore.fetchFavoriteSites({
+        order_by: props.orderBy,
+        limit: 6,
+      }, sessionStore.user.email)
+    }
+    else {
+      const response = await sitesStore.fetchSites({
       order_by: props.orderBy,
       limit: 6,
     })
+    }
+    
 
     sites.value = response.sites
   } catch (err) {

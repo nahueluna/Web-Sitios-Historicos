@@ -52,7 +52,7 @@ def create_app(env='development', static_folder='../../static'):
     jwt.init_app(app)
 
     ## Necesario para el OAuth2 con Google
-    CORS(app, origins=["http://localhost:5173"], supports_credentials=True)  # URL de tu frontend Vue
+    CORS(app, origins=["http://localhost:5173",  "http://127.0.0.1:5173"], supports_credentials=True)  # URL de tu frontend Vue
     app.secret_key = app.config["SECRET_KEY"]
     app.config["SESSION_COOKIE_SAMESITE"] = "None"
     app.config["SESSION_COOKIE_SECURE"] = True

@@ -12,11 +12,14 @@ const callback = (response) => {
       console.log(response.data.user)
       const user = response.data.user
       sessionStore.login(user)
+
+      api.post("/api/auth").then(() => {console.log("JWT creado")})
     })
     .catch((error) => {
       console.error(error)
       alert(error.message)
     })
+  
 }
 </script>
 

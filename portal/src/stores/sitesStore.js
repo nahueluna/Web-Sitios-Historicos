@@ -75,5 +75,8 @@ export const useSitesStore = defineStore('sites', {
         console.error('[SitesStore] Error:', error);
       }
     },
+    async fetchFavoriteSites(params = {}) {
+      return []; // Implementar la lógica para obtener los sitios favoritos del usuario
+    }
   },
 });

@@ -13,8 +13,6 @@ def register_login():
         if not token:
             return jsonify({"status": "error", "message": "Token de Google no recibido"}), 400
 
-        print("Token recibido:", token)
-
         # Verificar el token
         idinfo = id_token.verify_oauth2_token(token, google_requests.Request())
         email = idinfo["email"]
@@ -22,7 +20,6 @@ def register_login():
         apellido = idinfo.get("family_name")
         picture = idinfo.get("picture")
 
-        print("Datos extraídos del token:", {"email": email, "nombre": nombre, "apellido": apellido, "picture": picture})
 
         # Buscar usuario
         user = get_usuario_by_email(email)
@@ -39,7 +36,6 @@ def register_login():
             "message": "Inicio de sesión correcto con Google.",
             "user": {"email": email, "name": nombre, "lastname": apellido, "picture": picture}
         }
-        print("Respuesta a devolver:", response)
         return jsonify(response), 200
 
     except ValueError:

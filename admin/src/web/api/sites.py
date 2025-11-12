@@ -176,7 +176,7 @@ def get_historic_site(site_id):
 
 
 @sites_api.route('/<int:site_id>/reviews', methods=['GET'])
-
+@jwt_required()
 def get_historic_site_reviews(site_id):
     """
     Obtiene las reseñas aprobadas de un sitio histórico específico (público).
@@ -234,6 +234,7 @@ def get_historic_site_reviews(site_id):
 
 
 @sites_api.route('/<int:site_id>/reviews/<int:review_id>', methods=['DELETE'])
+@jwt_required()
 def delete_historic_site_review(site_id, review_id):
     """
     Elimina una reseña específica de un sitio histórico.
@@ -241,22 +242,8 @@ def delete_historic_site_review(site_id, review_id):
     Requiere autenticación vía JWT de Google en header Authorization.
     """
     try:
-        # Verificar autenticación con JWT de Google
-        auth_header = request.headers.get('Authorization')
-        if not auth_header or not auth_header.startswith('Bearer '):
-            return jsonify({"error": {"code": "unauthorized", "message": "Authentication required"}}), 401
-
-        token = auth_header.split(' ')[1]
-        try:
-            idinfo = id_token.verify_oauth2_token(token, google_requests.Request())
-            email = idinfo['email']
-        except ValueError:
-            return jsonify({"error": {"code": "unauthorized", "message": "Invalid token"}}), 401
-
-        user = get_usuario_by_email(email)
-        if not user or not user.activo:
-            return jsonify({"error": {"code": "unauthorized", "message": "User not found or inactive"}}), 401
-
+        user_id = get_jwt_identity()
+        
         # Verificar que el sitio existe
         site = get_visible_historic_site(site_id)
         if not site:
@@ -268,7 +255,7 @@ def delete_historic_site_review(site_id, review_id):
             return jsonify({"error": {"code": "not_found", "message": "Review not found"}}), 404
 
         # Verificar que el usuario es el autor
-        if review.user_id != user.id:
+        if review.user_id != user_id:
             return jsonify({"error": {"code": "forbidden", "message": "You do not have permission to delete this review"}}), 403
 
         # Eliminar la reseña

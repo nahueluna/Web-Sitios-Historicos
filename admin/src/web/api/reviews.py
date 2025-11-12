@@ -6,17 +6,14 @@ from sqlalchemy import func, desc
 from src.core.database import db
 from src.core.models.historic_sites.historic_sites import HistoricSites
 from src.core.models.review.review import Review, ReviewStatus
-from google.oauth2 import id_token
-from google.auth.transport import requests as google_requests
-from src.core.models.auth import get_usuario_by_email
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 reviews_api = Blueprint('reviews_api', __name__, url_prefix='/api/reviews')
 
 # ========================= RESEÑAS ========================
 
 @reviews_api.route('', methods=['GET'])
-
+@jwt_required()
 def get_approved_reviews():
     """
     Obtiene reseñas aprobadas con filtros opcionales.
@@ -53,7 +50,7 @@ def get_approved_reviews():
         return jsonify({"error": "Error al obtener las reseñas", "details": str(e)}), 500
 
 @reviews_api.route('/<int:review_id>', methods=['GET'])
-
+@jwt_required()
 def get_review(review_id):
     """
     Obtiene el detalle de una reseña específica por ID.
@@ -72,39 +69,25 @@ def get_review(review_id):
         return jsonify({"error": "Error al obtener la reseña", "details": str(e)}), 500
 
 @reviews_api.route('/<int:review_id>', methods=['PUT'])
-
+@jwt_required()
 def update_review(review_id):
     """
     Actualiza el contenido y/o rating de una reseña.
     Solo el autor de la reseña puede actualizarla.
-    Requiere autenticación vía JWT de Google en header Authorization.
+    Requiere autenticación JWT.
     Body JSON:
         - content: Contenido de la reseña (opcional)
         - rating: Calificación 1-5 (requerido)
     """
     try:
-        # Verificar autenticación con JWT de Google
-        auth_header = request.headers.get('Authorization')
-        if not auth_header or not auth_header.startswith('Bearer '):
-            return jsonify({"error": {"code": "unauthorized", "message": "Authentication required"}}), 401
-
-        token = auth_header.split(' ')[1]
-        try:
-            idinfo = id_token.verify_oauth2_token(token, google_requests.Request())
-            email = idinfo['email']
-        except ValueError:
-            return jsonify({"error": {"code": "unauthorized", "message": "Invalid token"}}), 401
-
-        user = get_usuario_by_email(email)
-        if not user or not user.activo:
-            return jsonify({"error": {"code": "unauthorized", "message": "User not found or inactive"}}), 401
+        user_id = get_jwt_identity()
 
         # Verificar que la reseña existe y es del usuario
         review = get_specific_review(review_id)
         if not review:
             return jsonify({"error": "Reseña no encontrada"}), 404
 
-        if review.user_id != user.id:
+        if review.user_id != user_id:
             return jsonify({"error": {"code": "forbidden", "message": "You can only update your own reviews"}}), 403
 
         data = request.json
@@ -139,32 +122,18 @@ def update_review(review_id):
         return jsonify({"error": "Error inesperado", "details": str(e)}), 500
 
 @reviews_api.route('/', methods=['POST'])
-
+@jwt_required()
 def create_review():
     """
     Crea una nueva reseña.
-    Requiere autenticación vía JWT de Google en header Authorization.
+    Requiere autenticación JWT.
     Body JSON:
         - content: Contenido de la reseña (requerido)
         - rating: Calificación 1-5 (requerido)
         - historic_site_id: ID del sitio histórico (requerido)
     """
     try:
-        # Verificar autenticación con JWT de Google
-        auth_header = request.headers.get('Authorization')
-        if not auth_header or not auth_header.startswith('Bearer '):
-            return jsonify({"error": {"code": "unauthorized", "message": "Authentication required"}}), 401
-
-        token = auth_header.split(' ')[1]
-        try:
-            idinfo = id_token.verify_oauth2_token(token, google_requests.Request())
-            email = idinfo['email']
-        except ValueError:
-            return jsonify({"error": {"code": "unauthorized", "message": "Invalid token"}}), 401
-
-        user = get_usuario_by_email(email)
-        if not user or not user.activo:
-            return jsonify({"error": {"code": "unauthorized", "message": "User not found or inactive"}}), 401
+        user_id = get_jwt_identity()
 
         data = request.json
         if not data:
@@ -200,7 +169,7 @@ def create_review():
             'content': data['content'],
             'rating': rating,
             'historic_site_id': data['historic_site_id'],
-            'user_id': user.id
+            'user_id': user_id
         }
         
         review = create_review_model(**review_data)
@@ -219,7 +188,7 @@ def create_review():
     
 
 @reviews_api.route('/users/<int:user_id>/reviews', methods=['GET'])
-
+@jwt_required()
 def get_user_reviews(user_id):
     """
     Obtiene las reseñas aprobadas de un usuario específico (para su perfil público).

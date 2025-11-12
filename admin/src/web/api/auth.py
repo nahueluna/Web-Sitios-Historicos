@@ -2,7 +2,6 @@ from flask import Blueprint, request, jsonify, session, current_app
 from sqlalchemy.exc import SQLAlchemyError
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from datetime import timedelta
-from core.models.historic_sites import public_list_historic_sites
 from src.web.handlers.auth import is_authenticated
 from src.core.models.auth import get_usuario_by_email
 

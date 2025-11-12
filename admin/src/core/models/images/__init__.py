@@ -73,3 +73,15 @@ def save_changes():
     except Exception:
         db.session.rollback()
         raise ErrorAlGuardar
+
+def get_thumbnail(id: int):
+    """Retorna la portada del sitio (primera imagen)"""
+    bucket_url = get_bucket_url()
+    image = (
+        db.session.query(Image)
+        .filter_by(sitio=id, orden=0)
+        .first()
+    )
+    if image:
+        image.url = f"{bucket_url}/{image.nombre}"
+    return image

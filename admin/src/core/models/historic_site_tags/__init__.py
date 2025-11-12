@@ -24,3 +24,10 @@ def get_tags_by_site(site_id: int):
     ).filter(
         HistoricSitesTags.site_id == site_id
     ).all()
+
+def get_tag_by_name(tag_name: str):
+    return db.session.query(
+        Tag
+    ).filter(
+        Tag.name == tag_name
+    ).first()

@@ -43,6 +43,10 @@ def get_historic_site(hs_id: int):
         HistoricSitesStates, HistoricSites.status_id == HistoricSitesStates.id
     ).first()
 
+def get_only_historic_site(hs_id: int):
+    """Retorna el sitio historico sin logs ni categorias"""
+    return db.session.get(HistoricSites, hs_id)
+
 # Un sitio visible específico por ID con su categoría, estado y tags
 def get_visible_historic_site(hs_id: int):
     return db.session.query(HistoricSites).filter(

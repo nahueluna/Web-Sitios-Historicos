@@ -8,6 +8,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import func, desc
 from src.core.database import db
 from src.core.models.historic_sites.historic_sites import HistoricSites
+from src.core.models.images import get_thumbnail
 from src.core.models.review.review import Review, ReviewStatus
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
@@ -108,6 +109,9 @@ def get_historic_sites():
         # Format response
         data = []
         for site in sites:
+            thumbnail = get_thumbnail(site.id)
+            thumbnail_url = thumbnail.url if thumbnail else None
+            thumbnail_alt = thumbnail.titulo if thumbnail else None
             data.append({
                 "id": site.id,
                 "name": site.site_name,
@@ -121,7 +125,9 @@ def get_historic_sites():
                 "tags": [tag.name for tag in site.tags],
                 "state_of_conservation": site.status.state,
                 "inserted_at": site.registration_date.isoformat() + 'Z',
-                "updated_at": site.registration_date.isoformat() + 'Z'  # Placeholder, as model doesn't have updated_at
+                "updated_at": site.registration_date.isoformat() + 'Z',  # Placeholder, as model doesn't have updated_at
+                "thumbnail_url": thumbnail_url,
+                "thumbnail_alt": thumbnail_alt
             })
         
         return jsonify({

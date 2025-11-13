@@ -22,7 +22,7 @@ app.use(router)
 app.use(BootstrapVueNext.BootstrapVueNext)
 
 app.use(vue3GoogleLogin, {
-  clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+  clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID
 })
 
 

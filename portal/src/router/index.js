@@ -61,25 +61,21 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
-  const guestOnly = to.matched.some(record => record.meta.guestOnly);
   const sessionStore = useSessionStore();
   const loginModalStore = useLoginModalStore();
 
-  const data = localStorage.getItem('user');
-  if (!sessionStore.isAuthenticated() && data) {
-    sessionStore.user = JSON.parse(data);
+  // Solo intentar restaurar sesión si no estamos autenticados
+  if (!sessionStore.isAuthenticated) {
+    await sessionStore.restoreSession();
   }
 
-  if (requiresAuth && !sessionStore.isAuthenticated()) {
-    //alert("Debe iniciar sesión para acceder a este recurso.");
+  // Verificar autenticación después de restaurar la sesión
+  if (requiresAuth && !sessionStore.isAuthenticated) {
     sessionStore.redirect_uri = to.fullPath;
     loginModalStore.openLoginModal();
     next(false);
-  } else if (guestOnly && sessionStore.isAuthenticated()) {
-    alert("Ya ha iniciado sesión.");
-    next(from.fullPath);
   } else {
     next();
   }

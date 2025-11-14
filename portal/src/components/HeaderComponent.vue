@@ -27,11 +27,11 @@ import { useSessionStore } from "@/stores/sessionStore"
 import { ref, watchEffect } from 'vue'
 
 const sessionStore = useSessionStore()
-const isAuthenticated = ref(sessionStore.isAuthenticated())
+const isAuthenticated = ref(sessionStore.isAuthenticated)
 const user = ref(sessionStore.user)
 
 watchEffect(() => {
-    isAuthenticated.value = sessionStore.isAuthenticated()
+    isAuthenticated.value = sessionStore.isAuthenticated
     user.value = sessionStore.user
 })
 

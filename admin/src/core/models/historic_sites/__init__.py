@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from src.core.models.search.tags import Tag
 from src.core.models.historic_site_tags.hs_tags import HistoricSitesTags
 from src.core.models.historic_sites_logs import add_log
@@ -192,19 +192,27 @@ def list_historic_sites_with_filters(q='', city='', province='', tags=None, stat
 ### --------- API PUBLICA --------- ###
 
 def list_historic_sites_with_advanced_filters(name='', description='', city='', province='', tag_names=None, lat=None, long=None, radius=None, order_by='latest', page=1, per_page=25):
+
+    print(f"DEBUG MODEL - Filters received: name='{name}', description='{description}', city='{city}', province='{province}', tag_names={tag_names}")
+    
     query = db.session.query(HistoricSites).filter(HistoricSites.delete == False, HistoricSites.visible == True)
-
-    if name:
-        query = query.filter(HistoricSites.site_name.ilike(f'%{name}%'))
-
-    if description:
-        query = query.filter(HistoricSites.long_description.ilike(f'%{description}%'))
-
-    if city:
-        query = query.filter(func.lower(HistoricSites.city) == func.lower(city))
-
-    if province:
-        query = query.filter(func.lower(HistoricSites.province) == func.lower(province))
+    
+    # Aplicar filtros con OR (cualquier criterio coincide)
+    search_filters = []
+    
+    if name and name != 'None':
+        search_filters.append(HistoricSites.site_name.ilike(f'%{name}%'))
+    if description and description != 'None':
+        search_filters.append(HistoricSites.long_description.ilike(f'%{description}%'))
+    if city and city != 'None':
+        search_filters.append(HistoricSites.city.ilike(f'%{city}%'))
+    if province and province != 'None':
+        search_filters.append(HistoricSites.province.ilike(f'%{province}%'))
+    
+    # Aplicar OR solo si hay filtros de búsqueda
+    if search_filters:
+        query = query.filter(or_(*search_filters))
+        print(f"DEBUG MODEL - Applied {len(search_filters)} filters with OR logic")
 
     if tag_names:
         tag_ids = db.session.query(Tag.id).filter(Tag.name.in_(tag_names)).all()
@@ -223,10 +231,8 @@ def list_historic_sites_with_advanced_filters(name='', description='', city='', 
         query = query.order_by(HistoricSites.registration_date.asc())
     else:
         query = query.order_by(HistoricSites.site_name)  # default
-
-    total = query.count()
+    
     sites = query.offset((page - 1) * per_page).limit(per_page).all()
-
 
     # Filter by geospatial radius if provided
     if lat is not None and long is not None and radius is not None:

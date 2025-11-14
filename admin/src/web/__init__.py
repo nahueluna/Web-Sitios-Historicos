@@ -49,7 +49,8 @@ def create_app(env='development', static_folder='../../static'):
     app.config['JWT_TOKEN_LOCATION'] = ['headers']  # Solo se puede enviar por headers (Authorization: Bearer)
     app.config['JWT_HEADER_NAME'] = 'Authorization'
     app.config['JWT_HEADER_TYPE'] = 'Bearer'
-    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=24)
+    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
+    app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=7)
     jwt.init_app(app)
 
     ## Necesario para el OAuth2 con Google

@@ -18,8 +18,15 @@ export const useSitesStore = defineStore('sites', {
           page: params.page || 1,
           per_page: params.per_page || params.limit || 25,
         };
+
+        console.log('Fetching sites with params:', queryParams);
         
-        if (params.search) queryParams.name = params.search;
+        if (params.search) {
+          const searchValue = params.search.trim();
+          queryParams.name = searchValue;
+          queryParams.city = searchValue;
+          queryParams.province = searchValue;
+        }
         if (params.order_by) queryParams.order_by = params.order_by;
         if (params.city) queryParams.city = params.city;
         if (params.province) queryParams.province = params.province;
@@ -30,6 +37,7 @@ export const useSitesStore = defineStore('sites', {
         if (params.radius) queryParams.radius = params.radius;
 
         const response = await api.get('/api/sites', { params: queryParams });
+        console.log('Fetched sites response:', response.data);
         const { data, meta } = response.data;
 
         const sites = data.map(site => ({

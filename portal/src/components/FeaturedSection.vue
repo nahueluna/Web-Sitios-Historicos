@@ -169,25 +169,27 @@ onMounted(async () => {
     loading.value = true
     error.value = null
 
+    let response
     if (props.requireAuth && props.sectionId === 'favorites') {
-      const response = await sitesStore.fetchFavoriteSites({
+      response = await sitesStore.fetchFavoriteSites({
         order_by: props.orderBy,
         limit: 6,
       }, sessionStore.user.email)
     }
     else {
-      const response = await sitesStore.fetchSites({
+      response = await sitesStore.fetchSites({
       order_by: props.orderBy,
       limit: 6,
     })
     }
     
-
+    console.log('[Featured] Response received:', response)
     sites.value = response.sites
   } catch (err) {
     console.error('[Featured] Error loading sites:', err)
     error.value = 'Error al cargar los sitios'
   } finally {
+    //await new Promise(resolve => setTimeout(resolve, 3500))   // Retraso para simular tiempos de carga
     loading.value = false
   }
 })

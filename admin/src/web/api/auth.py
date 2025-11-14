@@ -3,19 +3,20 @@ from sqlalchemy.exc import SQLAlchemyError
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity
 from datetime import timedelta
 from src.web.handlers.auth import is_authenticated
-from src.core.models.auth import get_usuario_by_email
+from src.core.models.auth import get_usuario_by_email, get_usuario_by_id
 
 auth_api = Blueprint('auth_api', __name__, url_prefix='/api/auth')
 
 @auth_api.post('')
 def generate_jwt_token():
+    user_email = request.json.get('email')
     if not is_authenticated():
         return jsonify({"error": {
             "code": "invalid_credentials",
             "message": "Credenciales inválidas."
         }}), 401
     
-    user = get_usuario_by_email(session["user"])
+    user = get_usuario_by_email(user_email)
     if not user:
         return jsonify({"error": {
             "code": "user_not_found",
@@ -40,10 +41,14 @@ def generate_jwt_token():
 @auth_api.post('/refresh')
 @jwt_required(refresh=True)  # Deberia verificar automaticamente el refresh token
 def refresh():
+    auth_header = request.headers.get('Authorization', '')
+    print(f"🔍 Refresh - Authorization Header: {auth_header}")
+        
     current_user_id = get_jwt_identity()
-
-    user = get_usuario_by_email(session["user"])
+    print(f"🔐 Refreshing token for user ID: {current_user_id}")
     
+    user = get_usuario_by_id(current_user_id)
+    print("USER", user)
     # Usuario eliminano
     if not user:
         return jsonify({"error": {

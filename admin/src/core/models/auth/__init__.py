@@ -255,9 +255,9 @@ def remove_permission_from_role(role: Role, permission_name: str) -> bool:
     print(f"Permiso '{permission_name}' removido exitosamente del rol '{role.name}'")
     return True
 
-def agregar_favorito(user_email: str, site_id: int):
+def agregar_favorito(user_id: int, site_id: int):
     """Agrega un sitio a los favoritos del usuario."""
-    usuario = db.session.query(Usuario).filter_by(email=user_email, eliminado=False).first()
+    usuario = db.session.query(Usuario).filter_by(id=user_id, eliminado=False).first()
     if not usuario:
         return None, "Usuario no encontrado"
 
@@ -273,9 +273,9 @@ def agregar_favorito(user_email: str, site_id: int):
     return usuario, "Agregado correctamente"
 
 
-def quitar_favorito(user_email: str, site_id: int):
+def quitar_favorito(user_id: int, site_id: int):
     """Quita un sitio de los favoritos del usuario."""
-    usuario = db.session.query(Usuario).filter_by(email=user_email, eliminado=False).first()
+    usuario = db.session.query(Usuario).filter_by(id=user_id, eliminado=False).first()
     if not usuario:
         return None, "Usuario no encontrado"
 
@@ -290,20 +290,19 @@ def quitar_favorito(user_email: str, site_id: int):
     return usuario, "Eliminado de favoritos"
 
 
-def get_favoritos(user_email: str):
+def get_favoritos(user_id: int):
     """Obtiene todos los sitios favoritos del usuario."""
-    usuario = db.session.query(Usuario).filter_by(email=user_email, eliminado=False).first()
+    usuario = db.session.query(Usuario).filter_by(id=user_id, eliminado=False).first()
     if not usuario:
         return None, "Usuario no encontrado"
 
     return usuario.favoritos, "OK"
 
 
-def es_favorito(user_email: str, site_id: int):
+def es_favorito(user_id: int, site_id: int):
     """Indica si un sitio es favorito del usuario."""
-    usuario = db.session.query(Usuario).filter_by(email=user_email, eliminado=False).first()
+    usuario = db.session.query(Usuario).filter_by(id=user_id, eliminado=False).first()
     if not usuario:
         return False
 
     return any(s.id == site_id for s in usuario.favoritos)
-

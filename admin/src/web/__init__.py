@@ -23,6 +23,7 @@ from src.web.controllers.feature_flag import feature_flag_bp
 from src.web.api.sites import sites_api
 from src.web.api.reviews import reviews_api
 from src.web.api.auth import auth_api
+from src.web.api.favorites import favorites_api
 from src.core.bcrypt import bcrypt
 from flask_cors import CORS
 from src.web.storage import storage
@@ -110,6 +111,7 @@ def create_app(env='development', static_folder='../../static'):
     app.register_blueprint(reviews_api)
     app.register_blueprint(sites_api)
     app.register_blueprint(auth_api)
+    app.register_blueprint(favorites_api)
     
     app.register_blueprint(bp_google_auth)
     app.register_blueprint(review_bp)

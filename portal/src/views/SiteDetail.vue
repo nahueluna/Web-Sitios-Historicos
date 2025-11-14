@@ -48,6 +48,20 @@
                 {{ site.description }}
               </p>
 
+              <!-- Mapa -->
+              <div style="height:600px; width:800px">
+                <l-map ref="map" v-model:zoom="zoom" :center="[site.lat, site.long]">
+                  <l-tile-layer
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    layer-type="base"
+                    name="OpenStreetMap"
+                  ></l-tile-layer>
+                  <l-marker :lat-lng="[site.lat, site.long]">
+                    <l-popup>{{ site.name }}</l-popup>
+                  </l-marker>
+                </l-map>
+              </div>
+
               <div class="d-flex gap-3 mt-4">
                 <button class="btn btn-primary">
                   <i class="bi bi-heart"></i>
@@ -103,12 +117,17 @@ import { useRoute } from 'vue-router'
 import { useSitesStore } from '@/stores/sitesStore'
 import ReviewForm from '@/components/ReviewForm.vue'
 import ReviewsList from '@/components/ReviewsList.vue'
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import { LMap, LTileLayer, LMarker, LPopup} from "@vue-leaflet/vue-leaflet";
 
 const route = useRoute()
 const sitesStore = useSitesStore()
 const site = ref(null)
 const loading = ref(true)
 const showReviewForm = ref(false)
+const zoom = ref(12)
+const center = ref([0, 0])
 
 onMounted(async () => {
   const slug = route.params.slug

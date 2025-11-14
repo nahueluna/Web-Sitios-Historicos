@@ -23,3 +23,12 @@ def add_log(hs_id: int, action_type: str, user_id: int)-> HistoricSitesLogs:
     db.session.add(log_model)
     db.session.commit()
     return log_model
+
+def add_log_no_commit(hs_id: int, action_type: str, user_id: int)-> HistoricSitesLogs:
+    log_model = HistoricSitesLogs(
+        historic_site_id = hs_id,
+        action_type = action_type,
+        user_id = user_id
+    )
+    db.session.add(log_model)
+    return log_model

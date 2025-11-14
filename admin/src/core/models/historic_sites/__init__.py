@@ -2,8 +2,8 @@ from datetime import datetime
 from sqlalchemy import func
 from src.core.models.search.tags import Tag
 from src.core.models.historic_site_tags.hs_tags import HistoricSitesTags
-from src.core.models.historic_sites_logs import add_log
-from src.core.models.historic_site_tags import add_historic_site_tag, reset_tags
+from src.core.models.historic_sites_logs import add_log, add_log_no_commit
+from src.core.models.historic_site_tags import add_historic_site_tag, reset_tags, add_historic_site_tag_no_commit, reset_tags_no_commit
 from src.core.models.historic_sites_state.hs_states import HistoricSitesStates
 from src.core.models.historic_sites_categorie.hs_categories import HistoricSitesCategories
 from src.core.database import db
@@ -115,6 +115,15 @@ def edit_historic_site(
 
     db.session.commit()
     return hs_model
+
+def set_tags(hs_id, tags):
+    reset_tags_no_commit(site_id=hs_id)
+    for tag_id in tags:
+        add_historic_site_tag_no_commit(site_id=hs_id, tag_id=tag_id)
+
+
+def log_site_edit(hs_id, user_id):
+    add_log_no_commit(hs_id=hs_id, action_type="Edición", user_id=user_id) # AGREGAR EL USUARIO INVOLUCRADO (ID)
 
 def delete_histoirc_site(hs_id: int, user_id: int):
     hs_model = db.session.query(HistoricSites).filter(HistoricSites.id == hs_id).first()

@@ -18,7 +18,7 @@ export const useSitesStore = defineStore('sites', {
           page: params.page || 1,
           per_page: params.per_page || params.limit || 25,
         };
-        
+
         if (params.search) queryParams.name = params.search;
         if (params.order_by) queryParams.order_by = params.order_by;
         if (params.city) queryParams.city = params.city;
@@ -67,7 +67,16 @@ export const useSitesStore = defineStore('sites', {
         return null;
       }
     },
-    
+    async fetchSiteById(site_id) {
+      try {
+        const response = await api.get(`/api/sites/${site_id}`);
+        return response.data;
+      } catch (error) {
+        console.error('[SitesStore] Error:', error);
+        return null;
+      }
+    },
+
     async trackSiteVisit(siteId) {
       try {
         console.log(`[API] Tracked visit for site: ${siteId}`);

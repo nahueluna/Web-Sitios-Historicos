@@ -8,7 +8,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import func, desc
 from src.core.database import db
 from src.core.models.historic_sites.historic_sites import HistoricSites
-from src.core.models.images import get_thumbnail
+from src.core.models.images import get_thumbnail, get_images_by_site
 from src.core.models.review.review import Review, ReviewStatus
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
@@ -118,6 +118,7 @@ def get_historic_site(site_id):
     try:
         site = get_visible_historic_site(site_id)
         if site:
+            images = get_images_by_site(site_id)
             data = {
                 "id": site.id,
                 "name": site.site_name,
@@ -131,6 +132,7 @@ def get_historic_site(site_id):
                 "tags": [tag.name for tag in site.tags],
                 "state_of_conservation": site.status.state,
                 "inserted_at": site.registration_date.isoformat() + 'Z',
+                "images": [image.json() for image in images],
             }
             return jsonify(data), 200
         else:

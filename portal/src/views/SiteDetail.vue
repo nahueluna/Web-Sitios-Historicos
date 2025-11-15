@@ -130,11 +130,11 @@ const zoom = ref(12)
 const center = ref([0, 0])
 
 onMounted(async () => {
-  const slug = route.params.slug
+  const site_id = route.params.site_id
   try {
     loading.value = true
-    site.value = await sitesStore.fetchSiteBySlug(slug)
-
+    site.value = await sitesStore.fetchSiteById(site_id)
+    console.log("site value: ",site.value)
     if (site.value) {
       await sitesStore.trackSiteVisit(site.value.id)
     }

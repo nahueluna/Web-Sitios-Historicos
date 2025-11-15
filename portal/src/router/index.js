@@ -21,7 +21,7 @@ const router = createRouter({
       meta: { requiresAuth: false }
     },
     {
-      path: '/sites/:slug',
+      path: '/sites/:site_id',
       name: 'site-detail',
       component: () => import('../views/SiteDetail.vue'),
       meta: { requiresAuth: false }

@@ -24,12 +24,6 @@
       <div v-else-if="site" class="row">
         <div class="col-lg-8 mx-auto">
           <div class="card shadow-sm">
-            <img
-              :src="site.coverImage"
-              :alt="site.name"
-              class="card-img-top"
-              style="max-height: 400px; object-fit: cover;"
-            />
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-start mb-3">
                 <h1 class="h2 fw-bold mb-0">{{ site.name }}</h1>
@@ -44,9 +38,80 @@
                 {{ site.city }}, {{ site.province }}
               </p>
 
+              <!-- Carousel -->
+              <div v-if="site.images && site.images.length > 0" class="mb-4">
+                <div id="siteCarousel" class="carousel slide" data-bs-ride="carousel"
+                  data-bs-interva="false">
+
+                  <div class="carousel-indicators">
+                    <button
+                      v-for="(img, index) in site.images"
+                      :key="'ind-' + index"
+                      type="button"
+                      data-bs-target="#siteImagesCarousel"
+                      :data-bs-slide-to="index"
+                      :class="{ active: index === 0 }"
+                      aria-current="true"
+                    ></button>
+                  </div>
+
+                  <div class="carousel-inner">
+                    <div
+                      v-for="(img, index) in sortedImages"
+                      :key="img.url"
+                      class="carousel-item"
+                      :class="{ active: index === 0 }"
+                    >
+                      <img
+                        :src="img.url"
+                        class="d-block w-100"
+                        style="max-height: 400px; object-fit: contain;"
+                      />
+
+                      <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded p-2">
+                        <h5>{{ img.titulo }}</h5>
+                        <p>{{ img.desc }}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Controls -->
+                  <button class="carousel-control-prev" type="button" data-bs-target="#siteCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                  </button>
+                  <button class="carousel-control-next" type="button" data-bs-target="#siteCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                  </button>
+
+                </div>
+              </div>
+
+              <!-- No images fallback -->
+              <div v-else class="mb-4">
+                <img
+                  src="https://via.placeholder.com/800x400?text=Sin+imágenes"
+                  class="d-block w-100"
+                  style="max-height: 400px; object-fit: cover;"
+                />
+              </div>
+
               <p v-if="site.description" class="lead">
                 {{ site.description }}
               </p>
+
+              <!-- Mapa -->
+              <div style="height:600px; width:800px">
+                <l-map ref="map" v-model:zoom="zoom" :center="[site.lat, site.long]">
+                  <l-tile-layer
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    layer-type="base"
+                    name="OpenStreetMap"
+                  ></l-tile-layer>
+                  <l-marker :lat-lng="[site.lat, site.long]">
+                    <l-popup>{{ site.name }}</l-popup>
+                  </l-marker>
+                </l-map>
+              </div>
 
               <div class="d-flex gap-3 mt-4">
                 <button class="btn btn-primary">
@@ -103,19 +168,29 @@ import { useRoute } from 'vue-router'
 import { useSitesStore } from '@/stores/sitesStore'
 import ReviewForm from '@/components/ReviewForm.vue'
 import ReviewsList from '@/components/ReviewsList.vue'
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import { LMap, LTileLayer, LMarker, LPopup} from "@vue-leaflet/vue-leaflet";
+import { computed } from "vue";
 
 const route = useRoute()
 const sitesStore = useSitesStore()
 const site = ref(null)
 const loading = ref(true)
 const showReviewForm = ref(false)
+const zoom = ref(12)
+const center = ref([0, 0])
+const sortedImages = computed(() => {
+  if (!site.value?.images) return [];
+  return [...site.value.images].sort((a, b) => a.orden - b.orden);
+});
 
 onMounted(async () => {
-  const slug = route.params.slug
+  const site_id = route.params.site_id
   try {
     loading.value = true
-    site.value = await sitesStore.fetchSiteBySlug(slug)
-
+    site.value = await sitesStore.fetchSiteById(site_id)
+    console.log("site value: ",site.value)
     if (site.value) {
       await sitesStore.trackSiteVisit(site.value.id)
     }
@@ -135,5 +210,9 @@ const onReviewAdded = () => {
 .site-detail-page {
   min-height: 100vh;
   background-color: #f8f9fa;
+}
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+  filter: invert(1) brightness(0.2);
 }
 </style>

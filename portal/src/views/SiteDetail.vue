@@ -180,6 +180,8 @@ const loading = ref(true)
 const showReviewForm = ref(false)
 const zoom = ref(12)
 const center = ref([0, 0])
+const reviewsList = ref(null)
+
 const sortedImages = computed(() => {
   if (!site.value?.images) return [];
   return [...site.value.images].sort((a, b) => a.orden - b.orden);
@@ -202,7 +204,11 @@ onMounted(async () => {
 })
 
 const onReviewAdded = () => {
-  // Reviews will be refreshed when component re-mounts or manually
+  // Refrescar las reseñas cuando se agrega una nueva
+  if (reviewsList.value && reviewsList.value.refresh) {
+    reviewsList.value.refresh()
+  }
+  showReviewForm.value = false
 }
 </script>
 

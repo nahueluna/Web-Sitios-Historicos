@@ -8,96 +8,70 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import func, desc
 from src.core.database import db
 from src.core.models.historic_sites.historic_sites import HistoricSites
-from src.core.models.images import get_thumbnail
+from src.core.models.images import get_thumbnail, get_images_by_site
 from src.core.models.review.review import Review, ReviewStatus
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 from src.core.models.auth import get_usuario_by_email
 from flask_jwt_extended import jwt_required, get_jwt_identity
-
+from marshmallow import ValidationError
 from datetime import datetime
+
+from src.web.schemas.sites import (
+    HistoricSiteSearchSchema,
+    HistoricSiteCreateSchema,
+)
 
 sites_api = Blueprint('sites_api', __name__, url_prefix='/api/sites')
 
 # ========================= SITIOS ========================
 
 @sites_api.route('', methods=['GET'])
-
 def get_historic_sites():
-    """
-    Obtiene los sitios históricos visibles con filtros avanzados y paginación.
-    Query params:
-        - name: string (optional) - Filtra por nombre (búsqueda parcial, case-insensitive)
-        - description: string (optional) - Filtra por descripción (búsqueda parcial, case-insensitive)
-        - city: string (optional) - Filtra por ciudad (búsqueda exacta, case-insensitive)
-        - province: string (optional) - Filtra por provincia (búsqueda exacta, case-insensitive)
-        - tags: string (optional) - Filtra por etiquetas (múltiples separadas por comas)
-        - order_by: string (optional) - Ordena los resultados (default: latest)
-        - lat: number (optional) - Latitud para búsqueda geoespacial
-        - long: number (optional) - Longitud para búsqueda geoespacial
-        - radius: number (optional) - Radio en kilómetros para búsqueda geoespacial (requiere lat y long)
-        - page: number (optional) - Número de página (default: 1)
-        - per_page: number (optional) - Cantidad de elementos por página (default: 20, max: 100)
-    """
     try:
-        # Parse parameters
-        name = request.args.get('name')
-        description = request.args.get('description')
-        city = request.args.get('city')
-        province = request.args.get('province')
-        tags_str = request.args.get('tags')
-        order_by = request.args.get('order_by', 'latest')
-        lat_str = request.args.get('lat')
-        long_str = request.args.get('long')
-        radius_str = request.args.get('radius')
-        page = request.args.get('page', 1, type=int)
-        per_page = request.args.get('per_page', 25, type=int)
-        
-        # Validations
-        if page < 1:
-            return jsonify({"error": {"code": "invalid_query", "message": "Parameter validation failed", "details": {"page": ["Must be at least 1"]}}}), 400
-        if per_page < 1 or per_page > 100:
-            return jsonify({"error": {"code": "invalid_query", "message": "Parameter validation failed", "details": {"per_page": ["Must be between 1 and 100"]}}}), 400
-        if order_by not in ['rating-5-1', 'rating-1-5', 'latest', 'oldest']:
-            return jsonify({"error": {"code": "invalid_query", "message": "Parameter validation failed", "details": {"order_by": ["Invalid choice"]}}}), 400
-        
-        # Parse geospatial parameters
-        lat = None
-        long = None
-        radius = None
-        if lat_str or long_str or radius_str:
-            try:
-                lat = float(lat_str) if lat_str else None
-                long = float(long_str) if long_str else None
-                radius = float(radius_str) if radius_str else None
-            except ValueError:
-                details = {}
-                if lat_str: details["lat"] = ["Must be a number"]
-                if long_str: details["long"] = ["Must be a number"]
-                if radius_str: details["radius"] = ["Must be a number"]
-                return jsonify({"error": {"code": "invalid_query", "message": "Parameter validation failed", "details": details}}), 400
-            
-            if lat is not None and not (-90 <= lat <= 90):
-                return jsonify({"error": {"code": "invalid_query", "message": "Parameter validation failed", "details": {"lat": ["Must be a valid latitude"]}}}), 400
-            if long is not None and not (-180 <= long <= 180):
-                return jsonify({"error": {"code": "invalid_query", "message": "Parameter validation failed", "details": {"long": ["Must be a valid longitude"]}}}), 400
-            if radius is not None and radius <= 0:
-                return jsonify({"error": {"code": "invalid_query", "message": "Parameter validation failed", "details": {"radius": ["Must be positive"]}}}), 400
-            if (lat is None or long is None) and radius is not None:
-                return jsonify({"error": {"code": "invalid_query", "message": "Parameter validation failed", "details": {"radius": ["Requires lat and long"]}}}), 400
-        
-        # Parse tags
-        tag_names = None
-        if tags_str:
-            tag_names = [t.strip() for t in tags_str.split(',') if t.strip()]
-        
-        # Call service
+        # Cargo el schema y los parametros, marshmallow se encarga de cargar los errores si los hay
+        search_schema = HistoricSiteSearchSchema()
+        try:
+            query_params = search_schema.load(request.args)
+        except ValidationError as err:
+            return jsonify({
+                "error": {
+                    "code": "invalid_query",
+                    "message": "Parameter validation failed",
+                    "details": err.messages
+                }
+            }), 400
+
+        name = query_params.get('name')
+        description = query_params.get('description')
+        city = query_params.get('city')
+        province = query_params.get('province')
+        tags_str = query_params.get('tags')
+        order_by = query_params['order_by']
+        lat = query_params.get('lat')
+        long = query_params.get('long')
+        radius = query_params.get('radius')
+        page = query_params['page']
+        per_page = query_params['per_page']
+
+        tags = [tag.strip() for tag in tags_str.split(',') if tag.strip()] if tags_str else []
+
+        # Tira error si no hay lat y long
+        if radius is not None and (lat is None or long is None):
+            return jsonify({
+                "error": {
+                    "code": "invalid_query",
+                    "message": "Parameter validation failed",
+                    "details": {"radius": ["Requires lat and long"]}
+                }
+            }), 400
+
         sites, total = list_historic_sites_with_advanced_filters(
             name=name,
             description=description,
             city=city,
             province=province,
-            tag_names=tag_names,
+            tag_names=tags, 
             lat=lat,
             long=long,
             radius=radius,
@@ -105,14 +79,11 @@ def get_historic_sites():
             page=page,
             per_page=per_page
         )
-        
-        # Format response
+
         data = []
         for site in sites:
             thumbnail = get_thumbnail(site.id)
-            thumbnail_url = thumbnail.url if thumbnail else None
-            thumbnail_alt = thumbnail.titulo if thumbnail else None
-            data.append({
+            site_data = {
                 "id": site.id,
                 "name": site.site_name,
                 "short_description": site.short_description,
@@ -125,10 +96,10 @@ def get_historic_sites():
                 "tags": [tag.name for tag in site.tags],
                 "state_of_conservation": site.status.state,
                 "inserted_at": site.registration_date.isoformat() + 'Z',
-                "updated_at": site.registration_date.isoformat() + 'Z',  # Placeholder, as model doesn't have updated_at
-                "thumbnail_url": thumbnail_url,
-                "thumbnail_alt": thumbnail_alt
-            })
+                "thumbnail_url": thumbnail.url if thumbnail else None,
+                "thumbnail_alt": thumbnail.titulo if thumbnail else None
+            }
+            data.append(site_data)
         
         return jsonify({
             "data": data,
@@ -139,26 +110,15 @@ def get_historic_sites():
             }
         }), 200
     except Exception as e:
+        print(str(e))
         return jsonify({"error": {"code": "server_error", "message": "An unexpected error occurred"}}), 500
 
 @sites_api.route('/<int:site_id>', methods=['GET'])
-
 def get_historic_site(site_id):
-    """
-    Obtiene detalles de un sitio histórico específico por su ID.
-    No requiere autenticación.
-    Example URI: historic-sites/10
-
-    URI Parameters:
-        - site_id: number (required) - ID del sitio histórico.
-
-    Response 200:
-        Headers: Content-Type: application/json
-        Body: Ver schema en documentación.
-    """
     try:
         site = get_visible_historic_site(site_id)
         if site:
+            images = get_images_by_site(site_id)
             data = {
                 "id": site.id,
                 "name": site.site_name,
@@ -172,7 +132,7 @@ def get_historic_site(site_id):
                 "tags": [tag.name for tag in site.tags],
                 "state_of_conservation": site.status.state,
                 "inserted_at": site.registration_date.isoformat() + 'Z',
-                "updated_at": site.registration_date.isoformat() + 'Z'  # Placeholder, as model doesn't have updated_at
+                "images": [image.json() for image in images],
             }
             return jsonify(data), 200
         else:
@@ -281,53 +241,27 @@ def create_historic_site():
     """
     Crea un nuevo sitio histórico.
     Requiere autenticación JWT.
+    
+    Usa HistoricSiteCreateSchema para validación automática.
     """
     try:
-        # Obtener user_id del JWT token 
+        # Obtener user_id del JWT token (ya validado por @jwt_required())
         user_id = get_jwt_identity()
 
-        # Validar que se envió JSON
-        if not request.is_json:
-            return jsonify({"error": {"code": "invalid_data", "message": "Invalid input data", "details": {"content-type": ["Must be application/json"]}}}), 400
+        # Validar datos de entrada con schema
+        create_schema = HistoricSiteCreateSchema()
+        try:
+            data = create_schema.load(request.json)
+        except ValidationError as err:
+            return jsonify({
+                "error": {
+                    "code": "invalid_data",
+                    "message": "Invalid input data",
+                    "details": err.messages
+                }
+            }), 400
 
-        data = request.get_json()
-        if not data:
-            return jsonify({"error": {"code": "invalid_data", "message": "Invalid input data", "details": {"body": ["Request body is required"]}}}), 400
-
-        # Validar campos requeridos
-        required_fields = ['name', 'short_description', 'description', 'city', 'province', 'lat', 'long', 'state_of_conservation']
-        validation_errors = {}
-        
-        for field in required_fields:
-            if field not in data or not data[field]:
-                validation_errors[field] = ["This field is required"]
-
-        # Validar tipos de datos
-        if 'lat' in data:
-            try:
-                lat = float(data['lat'])
-                if not (-90 <= lat <= 90):
-                    validation_errors['lat'] = ["Must be a valid latitude between -90 and 90"]
-            except (ValueError, TypeError):
-                validation_errors['lat'] = ["Must be a number"]
-
-        if 'long' in data:
-            try:
-                long_val = float(data['long'])
-                if not (-180 <= long_val <= 180):
-                    validation_errors['long'] = ["Must be a valid longitude between -180 and 180"]
-            except (ValueError, TypeError):
-                validation_errors['long'] = ["Must be a number"]
-
-        # Validar estado de conservación
-        if 'state_of_conservation' in data:
-            valid_states = ['excelente', 'bueno', 'regular', 'malo']
-            if data['state_of_conservation'] not in valid_states:
-                validation_errors['state_of_conservation'] = [f"Must be one of: {', '.join(valid_states)}"]
-
-        if validation_errors:
-            return jsonify({"error": {"code": "invalid_data", "message": "Invalid input data", "details": validation_errors}}), 400
-
+        # Los datos ya están validados por el schema
         # Procesar tags
         tag_names = data.get('tags', [])
         tag_ids = []
@@ -365,7 +299,8 @@ def create_historic_site():
             country=data.get('country', 'AR')  
         )
 
-        # Formatear respuesta según especificación
+        # Formatear respuesta usando schema
+        response_schema = HistoricSiteResponseSchema()
         response_data = {
             "id": site.id,
             "name": site.site_name,
@@ -380,7 +315,8 @@ def create_historic_site():
             "state_of_conservation": data['state_of_conservation'],
             "inserted_at": site.registration_date.isoformat() + 'Z',
             "updated_at": site.registration_date.isoformat() + 'Z',
-            "user_id": user_id
+            "thumbnail_url": None,  # Nuevo sitio no tiene thumbnail
+            "thumbnail_alt": None
         }
 
         return jsonify(response_data), 201

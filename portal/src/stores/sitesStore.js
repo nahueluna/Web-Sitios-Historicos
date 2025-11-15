@@ -75,7 +75,16 @@ export const useSitesStore = defineStore('sites', {
         return null;
       }
     },
-    
+    async fetchSiteById(site_id) {
+      try {
+        const response = await api.get(`/api/sites/${site_id}`);
+        return response.data;
+      } catch (error) {
+        console.error('[SitesStore] Error:', error);
+        return null;
+      }
+    },
+
     async trackSiteVisit(siteId) {
       try {
         console.log(`[API] Tracked visit for site: ${siteId}`);

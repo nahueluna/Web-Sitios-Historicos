@@ -9,7 +9,7 @@
       </div>
       <!-- d-none d-md-flex: oculto en móvil, flex en tablet+, align-items-center: centra verticalmente -->
       <router-link
-        v-if="!loading && sites.length > 0"
+        v-if="!loading && sites &&  sites.length > 0"
         :to="{ name: 'sites', query: { order_by: orderBy } }"
         class="btn btn-outline-secondary d-none d-md-flex align-items-center"
       >
@@ -49,14 +49,14 @@
 
     <!-- Empty State -->
     <!-- text-center: texto centrado, py-5: padding vertical 5 -->
-    <div v-else-if="sites.length === 0 && showIfEmpty" class="text-center py-5">
+    <div v-else-if="sites && sites.length === 0 && showIfEmpty" class="text-center py-5">
       <i class="bi bi-inbox display-1 text-muted"></i>
       <h4 class="mt-3">No se encontraron sitios</h4>
       <p class="text-muted">Vuelve más tarde para ver nuevo contenido</p>
     </div>
 
     <!-- Sites Grid/Carousel -->
-    <div v-else-if="sites.length > 0">
+    <div v-else-if="sites && sites.length > 0">
       <!-- Mobile: Carousel -->
       <!-- d-md-none: visible solo en móvil 
         d: display
@@ -168,10 +168,9 @@ onMounted(async () => {
   try {
     loading.value = true
     error.value = null
-
-    let response
+    let response = null
     if (props.requireAuth && props.sectionId === 'favorites') {
-      response = await sitesStore.fetchFavoriteSites({
+       response = await sitesStore.fetchFavoriteSites({
         order_by: props.orderBy,
         limit: 6,
       }, sessionStore.user.email)

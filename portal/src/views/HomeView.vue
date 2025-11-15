@@ -65,11 +65,11 @@ import HeroSearch from '../components/HeroSearch.vue'
 import FeaturedSection from '../components/FeaturedSection.vue'
 
 const sessionStore = useSessionStore()
-const isAuthenticated = ref(sessionStore.isAuthenticated())
+const isAuthenticated = ref(sessionStore.isAuthenticated)
 
 // Observar cambios en la autenticación
 watchEffect(() => {
-  isAuthenticated.value = sessionStore.isAuthenticated()
+  isAuthenticated.value = sessionStore.isAuthenticated
 })
 </script>
 

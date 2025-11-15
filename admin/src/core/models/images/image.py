@@ -12,3 +12,14 @@ class Image(Base):
     orden: Mapped[int] = mapped_column(Integer, nullable=False)
     sitio: Mapped[int] = mapped_column(ForeignKey('historic_sites.id'), nullable=True)
     fecha_creacion: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    def json(self):
+        return {
+            "nombre": self.nombre,
+            "titulo": self.titulo,
+            "desc": self.desc,
+            "orden": self.orden,
+            "sitio": self.sitio,
+            "fecha_creacion": self.fecha_creacion.isoformat(),
+            "url": self.url if self.url else None
+        }

@@ -242,6 +242,7 @@ def list_historic_sites_with_advanced_filters(name='', description='', city='', 
         query = query.order_by(HistoricSites.site_name)  # default
     
     sites = query.offset((page - 1) * per_page).limit(per_page).all()
+    total = query.count()
 
     # Filter by geospatial radius if provided
     if lat is not None and long is not None and radius is not None:

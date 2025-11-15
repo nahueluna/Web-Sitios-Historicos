@@ -142,7 +142,6 @@ def get_historic_site(site_id):
 
 
 @sites_api.route('/<int:site_id>/reviews', methods=['GET'])
-@jwt_required()
 def get_historic_site_reviews(site_id):
     """
     Obtiene las reseñas aprobadas de un sitio histórico específico (público).
@@ -183,8 +182,7 @@ def get_historic_site_reviews(site_id):
                 "rating": r.rating,
                 "comment": r.content,
                 "user_name": f"{r.user.nombre} {r.user.apellido}",
-                "inserted_at": r.inserted_at.isoformat() + 'Z' if hasattr(r, 'inserted_at') and r.inserted_at else None,
-                "updated_at": r.updated_at.isoformat() + 'Z' if hasattr(r, 'updated_at') and r.updated_at else None,
+                "inserted_at": r.inserted_at.isoformat() + 'Z',
             })
 
         return jsonify({

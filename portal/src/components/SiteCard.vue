@@ -1,5 +1,5 @@
 <template>
-  <router-link :to="`/sites/${site.slug}`" class="text-decoration-none">
+  <router-link :to="`/sites/${site.id}`" class="text-decoration-none">
     <div class="card h-100 site-card">
       <div class="position-relative card-img-wrapper">
         <img

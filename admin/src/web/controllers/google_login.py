@@ -26,7 +26,7 @@ def register_login():
         # Buscar usuario
         user = get_usuario_by_email(email)
         if not user:
-            user = crear_usuario(email=email, nombre=nombre, apellido=apellido, rol=RolUsuario.PUBLICO)
+            user = crear_usuario(email=email, nombre=nombre, apellido=apellido, rol=RolUsuario.PUBLICO)[0]
         
         elif not user.activo:
             return jsonify({"status": "error", "message": "Cuenta bloqueada"}), 403

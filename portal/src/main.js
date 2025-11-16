@@ -25,15 +25,4 @@ app.use(vue3GoogleLogin, {
   clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID
 })
 
-
-import { useSessionStore } from './stores/sessionStore';
-
-// Restaurar sesión al iniciar la aplicación
-const sessionStore = useSessionStore();
-sessionStore.restoreSession().then(success => {
-  if (success) {
-    console.log('Sesión restaurada al iniciar la app');
-  }
-});
-
 app.mount('#app')

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { useSessionStore } from "../stores/sessionStore";
 
 const api = axios.create({
   baseURL: "http://localhost:5000",
@@ -8,9 +9,12 @@ const api = axios.create({
 // Interceptor para añadir el token a todas las requests
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken');
+    // Obtener token de localStorage directamente
+    const token = useSessionStore().accessToken;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    } else {
+      console.log("No token available for request");
     }
     return config;
   },
@@ -19,7 +23,7 @@ api.interceptors.request.use(
   }
 );
 
-// Interceptor para manejar errores de token expirado
+// Interceptor de respuesta para manejar tokens expirados
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -30,22 +34,23 @@ api.interceptors.response.use(
       
       try {
         const sessionStore = useSessionStore();
-        await sessionStore.refreshToken();
+        const newToken = await sessionStore.refreshToken();
         
-        // Reintentar la request original con el nuevo token
-        const newToken = localStorage.getItem('accessToken');
-        originalRequest.headers.Authorization = `Bearer ${newToken}`;
-        return api(originalRequest);
-        
+        if (newToken) {
+          console.log("New token obtained, retrying request");
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          return api(originalRequest);
+        }
       } catch (refreshError) {
-        console.error("No se pudo refrescar el token:", refreshError);
+        console.error("Failed to refresh token:", refreshError);
+        const sessionStore = useSessionStore();
         sessionStore.logout();
-        return Promise.reject(refreshError);
       }
     }
     
     return Promise.reject(error);
   }
 );
+
 
 export default api;

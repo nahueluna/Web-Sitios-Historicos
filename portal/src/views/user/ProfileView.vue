@@ -94,20 +94,19 @@
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useSessionStore } from "@/stores/sessionStore"
-import { useReviewsStore } from '@/stores/reviewsStore'
 import { useFavoritesStore } from '@/stores/favoriteStore'
 import ReviewComponent from '@/components/ReviewComponent.vue'
 import SiteCard from '@/components/SiteCard.vue'
 import GoogleLogout from '@/components/google/GoogleLogoutComponent.vue'
+import api from '@/service/api'
 
 const sessionStore = useSessionStore()
-const reviewsStore = useReviewsStore()
 const favoritesStore = useFavoritesStore()
 
 const user = sessionStore.user
 const reviews = computed(() => {
   if (!sessionStore.user) return []
-  return reviewsStore.getReviewsByUser(sessionStore.user.id).slice(0, 3)
+  return api.get(`/api/reviews/users/${user.id}/reviews`).then(response => response.data).catch(() => [])
 })
 
 const favorites = computed(() => {

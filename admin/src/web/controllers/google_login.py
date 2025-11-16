@@ -26,7 +26,7 @@ def register_login():
         # Buscar usuario
         user = get_usuario_by_email(email)
         if not user:
-            crear_usuario(email=email, nombre=nombre, apellido=apellido, rol=RolUsuario.PUBLICO)
+            user = crear_usuario(email=email, nombre=nombre, apellido=apellido, rol=RolUsuario.PUBLICO)
         
         elif not user.activo:
             return jsonify({"status": "error", "message": "Cuenta bloqueada"}), 403
@@ -36,7 +36,7 @@ def register_login():
         response = {
             "status": "success",
             "message": "Inicio de sesión correcto con Google.",
-            "user": {"email": email, "name": nombre, "lastname": apellido, "picture": picture}
+            "user": {"email": email, "name": nombre, "lastname": apellido, "picture": picture, "id": str(user.id)}
         }
         return jsonify(response), 200
 

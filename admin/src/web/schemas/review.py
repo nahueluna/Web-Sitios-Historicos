@@ -43,10 +43,10 @@ class ReviewUpdateSchema(Schema):
 class ReviewSearchSchema(Schema):
     site = fields.Int(allow_none=True)
     page = fields.Int(
-        missing=1,
+        load_default=1,
         validate=validate.Range(min=1)
     )
     per_page = fields.Int(
-        missing=25,
+        load_default=25,
         validate=validate.Range(min=1, max=100)
     )

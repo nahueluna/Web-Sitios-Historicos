@@ -8,11 +8,15 @@ from src.core.models.historic_sites.historic_sites import HistoricSites
 from src.core.models.review.review import Review, ReviewStatus
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
+from src.web.decorator import block_portal_maintenance, require_feature
+
 reviews_api = Blueprint('reviews_api', __name__, url_prefix='/api/reviews')
 
 # ========================= RESEÑAS ========================
 
 @reviews_api.route('', methods=['GET'])
+@block_portal_maintenance
+@require_feature('reviews_enabled')
 @jwt_required()
 def get_approved_reviews():
     """
@@ -50,6 +54,8 @@ def get_approved_reviews():
         return jsonify({"error": "Error al obtener las reseñas", "details": str(e)}), 500
 
 @reviews_api.route('/<int:review_id>', methods=['GET'])
+@block_portal_maintenance
+@require_feature('reviews_enabled')
 @jwt_required()
 def get_review(review_id):
     """
@@ -69,6 +75,8 @@ def get_review(review_id):
         return jsonify({"error": "Error al obtener la reseña", "details": str(e)}), 500
 
 @reviews_api.route('/<int:review_id>', methods=['PUT'])
+@block_portal_maintenance
+@require_feature('reviews_enabled')
 @jwt_required()
 def update_review(review_id):
     """
@@ -88,7 +96,7 @@ def update_review(review_id):
             return jsonify({"error": "Reseña no encontrada"}), 404
 
         if review.user_id != user_id:
-            return jsonify({"error": {"code": "forbidden", "message": "You can only update your own reviews"}}), 403
+            return jsonify({"error": {"code": "forbidden", "message": "Solo puedes actualizar tus propias reseñas"}}), 403
 
         data = request.json
         if not data:
@@ -122,6 +130,8 @@ def update_review(review_id):
         return jsonify({"error": "Error inesperado", "details": str(e)}), 500
 
 @reviews_api.route('/', methods=['POST'])
+@block_portal_maintenance
+@require_feature('reviews_enabled')
 @jwt_required()
 def create_review():
     """
@@ -188,6 +198,8 @@ def create_review():
     
 
 @reviews_api.route('/users/<int:user_id>/reviews', methods=['GET'])
+@block_portal_maintenance
+@require_feature('reviews_enabled')
 @jwt_required()
 def get_user_reviews(user_id):
     """

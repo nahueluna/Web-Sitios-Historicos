@@ -24,6 +24,12 @@
       <p class="text-muted mt-2">Cargando reseñas...</p>
     </div>
 
+    <!-- Block feature state -->
+    <div v-else-if="error && error.code === 'feature_disabled'" class="text-center py-5">
+      <div class="bi bi-cone-striped fs-1 text-muted"></div>
+      <p class="text-muted mt-2">{{ error.details || error.message || 'Esta función estará disponible pronto.' }}</p>
+    </div>
+
     <!-- Empty State -->
     <div v-else-if="reviews.length === 0" class="alert alert-info">
       <div class="text-center py-3">
@@ -106,6 +112,7 @@ const reviews = computed(() => reviewsStore.getSiteReviews)
 const currentPage = computed(() => reviewsStore.getSiteReviewsMeta.page)
 const averageRating = computed(() => reviewsStore.averageRating)
 const reviewCount = computed(() => reviewsStore.reviewCount)
+const error = computed(() => reviewsStore.getError)
 
 const totalPages = computed(() => {
   const meta = reviewsStore.getSiteReviewsMeta

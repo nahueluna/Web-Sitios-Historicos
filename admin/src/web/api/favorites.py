@@ -7,12 +7,14 @@ from src.core.database import db
 from src.core.models.historic_sites.historic_sites import HistoricSites
 from src.core.models.review.review import Review, ReviewStatus
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from src.web.decorator import block_portal_maintenance
 
 favorites_api = Blueprint('favorites_api', __name__, url_prefix='/api/favorites')
 
 # ========================= RESEÑAS ========================
 
 @favorites_api.route('', methods=['GET'])
+@block_portal_maintenance
 @jwt_required()
 def get_favorite_sites():
     """
@@ -34,6 +36,7 @@ def get_favorite_sites():
         return jsonify({"error": "Error al obtener los sitios", "details": str(e)}), 500
 
 @favorites_api.route('/<int:site_id>', methods=['POST'])
+@block_portal_maintenance
 @jwt_required()
 def add_favorite(site_id):
     """
@@ -56,6 +59,7 @@ def add_favorite(site_id):
         return jsonify({"error": "Error al agregar favorito", "details": str(e)}), 500
 
 @favorites_api.route('/<int:site_id>', methods=['DELETE'])
+@block_portal_maintenance
 @jwt_required()
 def remove_favorite(site_id):
     """
@@ -78,6 +82,7 @@ def remove_favorite(site_id):
         return jsonify({"error": "Error al quitar favorito", "details": str(e)}), 500
 
 @favorites_api.route('/check/<int:site_id>', methods=['GET'])
+@block_portal_maintenance
 @jwt_required()
 def check_favorite(site_id):
     """

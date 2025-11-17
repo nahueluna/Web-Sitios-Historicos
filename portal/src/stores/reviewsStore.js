@@ -63,7 +63,7 @@ export const useReviewsStore = defineStore('reviews', {
           id: review.id,
           siteId: review.site_id,
           rating: review.rating,
-          comment: review.comment,
+          content: review.comment,
           userName: review.user_name,
           insertedAt: review.inserted_at,
         }));
@@ -101,6 +101,41 @@ export const useReviewsStore = defineStore('reviews', {
           reviews: [],
           meta: { page: 1, per_page: 10, total: 0 }
         };
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // Agregar una nueva reseña para un sitio
+    async addReview(siteId, reviewData) {
+      this.loading = true;
+      this.error = null;
+
+      try {
+        const payload = {
+          rating: reviewData.rating,
+          content: reviewData.content // backend expects 'content' field
+        };
+        console.log('Reviews Store - Adding review for site:', siteId, payload);
+
+        const response = await api.post(`/api/sites/${siteId}/reviews`, payload);
+        console.log('Reviews Store - Add review response:', response.data);
+
+        // Después de agregar, recargar las reseñas desde la primera página
+        await this.fetchReviewsBySite(siteId, { page: 1, per_page: this.siteReviewsMeta.per_page });
+        
+        return response.data;
+
+      } catch (error) {
+        console.error('Reviews Store - Error adding review:', error);
+        if (error.response?.status === 401) {
+          this.error = { message: 'Debes iniciar sesión para agregar una reseña.' };
+        } else if (error.response?.data?.error) {
+          this.error = error.response.data.error;
+        } else {
+          this.error = { message: 'Error al agregar la reseña. Por favor, intenta de nuevo.' };
+        }
+        throw error;
       } finally {
         this.loading = false;
       }

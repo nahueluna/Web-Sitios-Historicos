@@ -30,6 +30,24 @@
       <p class="text-muted mt-2">{{ error.details || error.message || 'Esta función estará disponible pronto.' }}</p>
     </div>
 
+    <!-- Error State -->
+    <div v-else-if="error && error.message" class="alert alert-danger alert-dismissible fade show" role="alert">
+      <div class="d-flex align-items-center">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <div>
+          <strong>Error al cargar reseñas</strong>
+          <p class="mb-1">{{ error.message }}</p>
+          <small v-if="error.code" class="text-muted">Código: {{ error.code }}</small>
+        </div>
+      </div>
+      <button type="button" class="btn-close" @click="dismissError" aria-label="Cerrar"></button>
+      <div class="mt-2">
+        <button type="button" class="btn btn-sm btn-outline-danger" @click="retryFetch">
+          <i class="bi bi-arrow-clockwise"></i> Reintentar
+        </button>
+      </div>
+    </div>
+
     <!-- Empty State -->
     <div v-else-if="reviews.length === 0" class="alert alert-info">
       <div class="text-center py-3">
@@ -75,7 +93,7 @@
             </div>
 
             <!-- Comment -->
-            <p class="card-text mb-0">{{ review.comment }}</p>
+            <p class="card-text mb-0">{{ review.content }}</p>
           </div>
         </div>
       </div>
@@ -134,6 +152,14 @@ const fetchReviews = async (page = 1) => {
   } finally {
     loading.value = false
   }
+}
+
+const dismissError = () => {
+  reviewsStore.clearReviews()
+}
+
+const retryFetch = async () => {
+  await fetchReviews(1)
 }
 
 const formatDate = (dateString) => {

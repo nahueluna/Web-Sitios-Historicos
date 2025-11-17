@@ -118,7 +118,7 @@
                   <i class="bi bi-heart"></i>
                   Agregar a Favoritos
                 </button>
-                <button class="btn btn-success" @click="showReviewForm = true">
+                <button class="btn btn-success" @click="showReviewForm = true" :disabled="!sessionStore.isAuthenticated">
                   <i class="bi bi-star"></i>
                   Escribir Reseña
                 </button>
@@ -166,6 +166,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useSitesStore } from '@/stores/sitesStore'
+import { useSessionStore } from '@/stores/sessionStore'
 import ReviewForm from '@/components/ReviewForm.vue'
 import ReviewsList from '@/components/ReviewsList.vue'
 import L from "leaflet";
@@ -175,6 +176,7 @@ import { computed } from "vue";
 
 const route = useRoute()
 const sitesStore = useSitesStore()
+const sessionStore = useSessionStore()
 const site = ref(null)
 const loading = ref(true)
 const showReviewForm = ref(false)

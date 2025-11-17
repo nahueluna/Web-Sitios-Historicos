@@ -16,10 +16,15 @@ from src.core.models.auth import get_usuario_by_email
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from marshmallow import ValidationError
 from datetime import datetime
+from src.web.decorator import block_portal_maintenance, require_feature
 
 from src.web.schemas.sites import (
     HistoricSiteSearchSchema,
     HistoricSiteCreateSchema,
+)
+from src.web.schemas.review import (
+    ReviewCreateSchema,
+    ReviewUpdateSchema,
 )
 
 sites_api = Blueprint('sites_api', __name__, url_prefix='/api/sites')
@@ -27,6 +32,7 @@ sites_api = Blueprint('sites_api', __name__, url_prefix='/api/sites')
 # ========================= SITIOS ========================
 
 @sites_api.route('', methods=['GET'])
+@block_portal_maintenance
 def get_historic_sites():
     try:
         # Cargo el schema y los parametros, marshmallow se encarga de cargar los errores si los hay
@@ -37,7 +43,7 @@ def get_historic_sites():
             return jsonify({
                 "error": {
                     "code": "invalid_query",
-                    "message": "Parameter validation failed",
+                    "message": "Error al validar los parámetros",
                     "details": err.messages
                 }
             }), 400
@@ -61,8 +67,8 @@ def get_historic_sites():
             return jsonify({
                 "error": {
                     "code": "invalid_query",
-                    "message": "Parameter validation failed",
-                    "details": {"radius": ["Requires lat and long"]}
+                    "message": "Error al validar los parámetros",
+                    "details": {"radius": ["Requiere latitud y longitud"]}
                 }
             }), 400
 
@@ -111,9 +117,10 @@ def get_historic_sites():
         }), 200
     except Exception as e:
         print(str(e))
-        return jsonify({"error": {"code": "server_error", "message": "An unexpected error occurred"}}), 500
+        return jsonify({"error": {"code": "server_error", "message": "Ocurrió un error inesperado"}}), 500
 
 @sites_api.route('/<int:site_id>', methods=['GET'])
+@block_portal_maintenance
 def get_historic_site(site_id):
     try:
         site = get_visible_historic_site(site_id)
@@ -142,6 +149,8 @@ def get_historic_site(site_id):
 
 
 @sites_api.route('/<int:site_id>/reviews', methods=['GET'])
+@block_portal_maintenance
+@require_feature('reviews_enabled')
 def get_historic_site_reviews(site_id):
     """
     Obtiene las reseñas aprobadas de un sitio histórico específico (público).
@@ -197,13 +206,189 @@ def get_historic_site_reviews(site_id):
         return jsonify({"error": {"code": "server_error", "message": "An unexpected error occurred"}}), 500
 
 
+@sites_api.route('/<int:site_id>/reviews', methods=['POST'])
+@block_portal_maintenance
+@jwt_required()
+def create_site_review(site_id):
+    """
+    Crea una nueva reseña para un sitio histórico específico.
+    Requiere autenticación JWT.
+    Request Body (JSON):
+        "rating": int,      # Puntuación 1-5 (requerido)
+        "content": str      # Texto de la reseña, max 1000 chars (requerido)
+    """
+    try:
+        user_id = get_jwt_identity()    # Verificar si anda cuando funciona la autenticación en el frontend
+
+        # Verificar que el sitio existe y es visible
+        site = get_visible_historic_site(site_id)
+        if not site:
+            return jsonify({
+                "error": {
+                    "code": "not_found",
+                    "message": "Sitio no encontrado"
+                }
+            }), 404
+
+        # Validar datos con schema (solo rating y content, site_id viene de la URL)
+        review_schema = ReviewCreateSchema()
+        try:
+            # Agregar site_id del path a los datos
+            request_data = request.json or {}
+            request_data['historic_site_id'] = site_id
+            data = review_schema.load(request_data)
+        except ValidationError as err:
+            return jsonify({
+                "error": {
+                    "code": "invalid_data",
+                    "message": "Datos de entrada inválidos",
+                    "details": err.messages
+                }
+            }), 400
+
+        # Crear reseña
+        review = create_review_model(
+            content=data['content'],
+            rating=data['rating'],
+            historic_site_id=site_id,
+            user_id=user_id
+        )
+
+        # Respuesta limpia sin datos sensibles
+        return jsonify({
+            "id": review.id,
+            "site_id": review.historic_site_id,
+            "rating": review.rating,
+            "comment": review.content,
+            "user_name": f"{review.user.nombre} {review.user.apellido}",
+            "inserted_at": review.inserted_at.isoformat() + 'Z',
+            "message": "Reseña creada exitosamente. Será revisada por un moderador."
+        }), 201
+
+    except SQLAlchemyError as e:
+        error_msg = str(e)
+        # Usuario ya reseñó este sitio
+        if 'uq_historic_site_and_user' in error_msg or 'UNIQUE constraint' in error_msg:
+            return jsonify({
+                "error": {
+                    "code": "duplicate",
+                    "message": "Ya has reseñado este sitio histórico"
+                }
+            }), 409
+        return jsonify({
+            "error": {
+                "code": "server_error",
+                "message": "Error en la base de datos"
+            }
+        }), 500
+    except Exception as e:
+        return jsonify({
+            "error": {
+                "code": "server_error",
+                "message": "Ocurrió un error inesperado"
+            }
+        }), 500
+
+
+@sites_api.route('/<int:site_id>/reviews/<int:review_id>', methods=['PUT'])
+@block_portal_maintenance
+@require_feature('reviews_enabled')
+@jwt_required()
+def update_site_review(site_id, review_id):
+    """
+    Actualiza una reseña existente de un sitio histórico.
+    Solo el autor de la reseña puede actualizarla.
+    Requiere autenticación JWT.
+    Request Body (JSON):
+        "rating": int,      # Puntuación 1-5 (requerido)
+        "content": str      # Texto de la reseña (opcional)
+    """
+    try:
+        user_id = get_jwt_identity()
+
+        # Verificar que el sitio existe
+        site = get_visible_historic_site(site_id)
+        if not site:
+            return jsonify({
+                "error": {
+                    "code": "not_found",
+                    "message": "Sitio no encontrado"
+                }
+            }), 404
+
+        # Verificar que la reseña existe y pertenece al sitio
+        review = get_specific_review(review_id)
+        if not review or review.historic_site_id != site_id:
+            return jsonify({
+                "error": {
+                    "code": "not_found",
+                    "message": "No se encontró la reseña"
+                }
+            }), 404
+
+        # Verificar que el usuario es el autor
+        if review.user_id != user_id:
+            return jsonify({
+                "error": {
+                    "code": "forbidden",
+                    "message": "Solo puedes actualizar tus propias reseñas"
+                }
+            }), 403
+
+        # Validar datos con schema
+        update_schema = ReviewUpdateSchema()
+        try:
+            data = update_schema.load(request.json)
+        except ValidationError as err:
+            return jsonify({
+                "error": {
+                    "code": "invalid_data",
+                    "message": "Datos de entrada inválidos",
+                    "details": err.messages
+                }
+            }), 400
+
+        # Actualizar reseña
+        updated_review = update_data_review(
+            review_id,
+            rating=data['rating'],
+            content=data.get('content')
+        )
+
+        if updated_review:
+            return jsonify({
+                "id": updated_review.id,
+                "site_id": updated_review.historic_site_id,
+                "rating": updated_review.rating,
+                "comment": updated_review.content,
+                "user_name": f"{updated_review.user.nombre} {updated_review.user.apellido}",
+                "inserted_at": updated_review.inserted_at.isoformat() + 'Z'
+            }), 200
+        else:
+            return jsonify({
+                "error": {
+                    "code": "not_found",
+                    "message": "No se pudo actualizar la reseña"
+                }
+            }), 404
+    except Exception as e:
+        return jsonify({
+            "error": {
+                "code": "server_error",
+                "message": "Error inesperado"
+            }
+        }), 500
+
+
 @sites_api.route('/<int:site_id>/reviews/<int:review_id>', methods=['DELETE'])
 @jwt_required()
+@block_portal_maintenance
+@require_feature('reviews_enabled')
 def delete_historic_site_review(site_id, review_id):
     """
     Elimina una reseña específica de un sitio histórico.
     Solo el autor de la reseña puede eliminarla.
-    Requiere autenticación vía JWT de Google en header Authorization.
+    Requiere autenticación JWT.
     """
     try:
         user_id = get_jwt_identity()
@@ -211,30 +396,56 @@ def delete_historic_site_review(site_id, review_id):
         # Verificar que el sitio existe
         site = get_visible_historic_site(site_id)
         if not site:
-            return jsonify({"error": {"code": "not_found", "message": "Site not found"}}), 404
+            return jsonify({
+                "error": {
+                    "code": "not_found",
+                    "message": "Sitio no encontrado"
+                }
+            }), 404
 
         # Verificar que la reseña existe y pertenece al sitio
         review = get_specific_review(review_id)
         if not review or review.historic_site_id != site_id:
-            return jsonify({"error": {"code": "not_found", "message": "Review not found"}}), 404
+            return jsonify({
+                "error": {
+                    "code": "not_found",
+                    "message": "No se encontró la reseña"
+                }
+            }), 404
 
         # Verificar que el usuario es el autor
         if review.user_id != user_id:
-            return jsonify({"error": {"code": "forbidden", "message": "You do not have permission to delete this review"}}), 403
+            return jsonify({
+                "error": {
+                    "code": "forbidden",
+                    "message": "Solo puedes eliminar tus propias reseñas"
+                }
+            }), 403
 
         # Eliminar la reseña
         if remove_review(review_id):
-            return '', 204
+            return '', 204  # No Content (éxito sin cuerpo de respuesta)
         else:
-            return jsonify({"error": {"code": "not_found", "message": "Review not found"}}), 404
+            return jsonify({
+                "error": {
+                    "code": "server_error",
+                    "message": "No se pudo eliminar la reseña"
+                }
+            }), 500
 
     except Exception as e:
-        return jsonify({"error": {"code": "server_error", "message": "An unexpected error occurred"}}), 500
+        return jsonify({
+            "error": {
+                "code": "server_error",
+                "message": "Error inesperado"
+            }
+        }), 500
 
 # =============== Crear sitio =================
 
 @sites_api.route('', methods=['POST'])
 @jwt_required()
+@block_portal_maintenance
 def create_historic_site():
     """
     Crea un nuevo sitio histórico.
@@ -254,7 +465,7 @@ def create_historic_site():
             return jsonify({
                 "error": {
                     "code": "invalid_data",
-                    "message": "Invalid input data",
+                    "message": "Datos de entrada inválidos",
                     "details": err.messages
                 }
             }), 400
@@ -272,12 +483,12 @@ def create_historic_site():
         # Obtener estado de conservación por nombre
         estado = db.session.query(HistoricSitesStates).filter_by(state=data['state_of_conservation']).first()
         if not estado:
-            return jsonify({"error": {"code": "invalid_data", "message": "Invalid state_of_conservation"}}), 400
+            return jsonify({"error": {"code": "invalid_data", "message": "Estado de conservación inválido"}}), 400
 
         # Obtener categoría por defecto 
         categoria = db.session.query(HistoricSitesCategories).first()
         if not categoria:
-            return jsonify({"error": {"code": "server_error", "message": "No categories available"}}), 500
+            return jsonify({"error": {"code": "server_error", "message": "No hay categorías disponibles"}}), 500
 
         # Crear sitio histórico
         site = add_historic_site(
@@ -297,8 +508,7 @@ def create_historic_site():
             country=data.get('country', 'AR')  
         )
 
-        # Formatear respuesta usando schema
-        response_schema = HistoricSiteResponseSchema()
+        # Formatear respuesta
         response_data = {
             "id": site.id,
             "name": site.site_name,
@@ -320,6 +530,6 @@ def create_historic_site():
         return jsonify(response_data), 201
 
     except SQLAlchemyError as e:
-        return jsonify({"error": {"code": "server_error", "message": "Database error"}}), 500
+        return jsonify({"error": {"code": "server_error", "message": "Error en la base de datos"}}), 500
     except Exception as e:
-        return jsonify({"error": {"code": "server_error", "message": "An unexpected error occurred"}}), 500
+        return jsonify({"error": {"code": "server_error", "message": "Ocurrió un error inesperado"}}), 500

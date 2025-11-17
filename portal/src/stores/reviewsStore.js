@@ -17,6 +17,7 @@ export const useReviewsStore = defineStore('reviews', {
       total: 0
     },
     loading: false,
+    error: null, // Nuevo estado para errores
   }),
   
   getters: {
@@ -31,18 +32,14 @@ export const useReviewsStore = defineStore('reviews', {
       const sum = state.siteReviews.reduce((acc, review) => acc + review.rating, 0);
       return (sum / state.siteReviews.length).toFixed(1);
     },
-    reviewCount: (state) => state.siteReviewsMeta.total
+    reviewCount: (state) => state.siteReviewsMeta.total,
+    getError: (state) => state.error, // Nuevo getter para el error
   },
   
   actions: {
-    /**
-     * Obtiene las reseñas aprobadas de un sitio histórico
-     * @param {number} siteId - ID del sitio histórico
-     * @param {object} params - Parámetros de paginación { page, per_page }
-     * @returns {object} { reviews, meta }
-     */
     async fetchReviewsBySite(siteId, params = {}) {
       this.loading = true;
+      this.error = null; // Limpiar error anterior
       try {
         const queryParams = {
           page: params.page || 1,
@@ -56,8 +53,10 @@ export const useReviewsStore = defineStore('reviews', {
         });
 
         console.log('Reviews Store - Response:', response.data);
-
+        console.log('Reviews Store - Response Data:', response.data.data);
+        console.log('Reviews Store - Response meta:', response.data.meta);
         const { data: reviewsData, meta } = response.data;
+
 
         // Transformar las reseñas del backend al formato interno
         const transformedReviews = reviewsData.map(review => ({
@@ -89,6 +88,11 @@ export const useReviewsStore = defineStore('reviews', {
       } catch (error) {
         console.error('Reviews Store - Error:', error);
 
+        // Capturar error específico del backend
+        if (error.response?.status === 403 && error.response?.data?.error) {
+          this.error = error.response.data.error;
+        }
+
         // Estado vacío en caso de error
         this.siteReviews = [];
         this.siteReviewsMeta = { page: 1, per_page: 10, total: 0 };
@@ -108,6 +112,7 @@ export const useReviewsStore = defineStore('reviews', {
     clearReviews() {
       this.siteReviews = [];
       this.siteReviewsMeta = { page: 1, per_page: 10, total: 0 };
+      this.error = null; // Limpiar error también
     }
   }
 });

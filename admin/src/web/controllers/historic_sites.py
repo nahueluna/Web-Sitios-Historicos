@@ -421,7 +421,7 @@ def delete_site(user):
 
 # -- AUXILIARES -- #
 @historic_sites_bp.route('/category/get-all', methods=['GET']) # Retorna todas las categorias de sitios historicos de la BD
-@role_required([RolUsuario.ADMIN])
+@role_required([RolUsuario.ADMIN, RolUsuario.EDITOR])
 def get_all_cateorie(user):
     json = [x.json() for x in list_historic_sites_categorie()]
     return jsonify(json), 200

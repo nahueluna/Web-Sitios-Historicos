@@ -13,18 +13,17 @@ favorites_api = Blueprint('favorites_api', __name__, url_prefix='/api/favorites'
 
 # ========================= RESEÑAS ========================
 
-@favorites_api.route('', methods=['GET'])
-@block_portal_maintenance
+@favorites_api.route('/<int:user_id>', methods=['GET'])
 @jwt_required()
-def get_favorite_sites():
+def get_favorite_sites(user_id):
     """
     Obtiene los favoritos del usuario.
     """
     try:
-        user_id = get_jwt_identity()
-
+        #user_id = get_jwt_identity()
+        print("User ID for favorites:", user_id)
         sites, msg = get_favoritos(user_id)
-
+        print("Favorites ", sites)
         if sites is None:
             return jsonify({"error": msg}), 404
 
@@ -33,6 +32,7 @@ def get_favorite_sites():
         }), 200
 
     except Exception as e:
+        print("Error al obtener los sitios:", e)
         return jsonify({"error": "Error al obtener los sitios", "details": str(e)}), 500
 
 @favorites_api.route('/<int:site_id>', methods=['POST'])

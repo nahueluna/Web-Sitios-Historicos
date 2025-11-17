@@ -6,10 +6,15 @@ class HistoricSiteSearchSchema(Schema):
     description = fields.Str(allow_none=True)
     city = fields.Str(allow_none=True)
     province = fields.Str(allow_none=True)
+    favorites = fields.Bool(allow_none=True)
     tags = fields.Str(allow_none=True)
+    order_dir = fields.Str(
+        load_default='desc',
+        validate=validate.OneOf(['desc', 'asc']),
+    )
     order_by = fields.Str(
-        load_default='latest',
-        validate=validate.OneOf(['latest', 'oldest', 'rating-5-1', 'rating-1-5'])
+        load_default='registration_date',
+        validate=validate.OneOf(['registration_date', 'rating', 'site_name'])
     )
     lat = fields.Float(
         allow_none=True,

@@ -10,17 +10,144 @@
           <p v-else-if="orderBy" class="text-muted">
             Ordenado por: <strong>{{ getOrderByLabel(orderBy) }}</strong>
           </p>
-          <p v-else class="text-muted">
-            Sitios históricos ordenados por fecha de registro
-          </p>
+          <p v-else class="text-muted">Sitios históricos ordenados por fecha de registro</p>
         </div>
       </div>
+
+      <CAccordion class="mb-4">
+        <CAccordionItem :item-key="1">
+          <CAccordionHeader> Filtros y ordenamientos </CAccordionHeader>
+          <CAccordionBody>
+            <div class="row g-3">
+              <!-- Búsqueda -->
+              <div class="col-12">
+                <label for="searchInput" class="form-label">Buscar sitio</label>
+                <input
+                  id="searchInput"
+                  v-model="filterForm.search"
+                  type="text"
+                  class="form-control"
+                  placeholder="Buscar por nombre o descripción corta..."
+                />
+              </div>
+
+              <!-- Ordenamiento -->
+              <div class="col-md-6">
+                <label for="orderBySelect" class="form-label">Ordenar por</label>
+                <div class="input-group">
+                  <select id="orderBySelect" v-model="filterForm.orderBy" class="form-select">
+                    <option value="registration_date">Fecha de registro</option>
+                    <option value="site_name">Nombre</option>
+                    <option value="rating">Calificación</option>
+                  </select>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    @click="toggleOrder"
+                    :disabled="!filterForm.orderBy"
+                    :title="filterForm.orderDir === 'asc' ? 'Ascendente' : 'Descendente'"
+                  >
+                    <i
+                      :class="filterForm.orderDir === 'asc' ? 'bi bi-sort-up' : 'bi bi-sort-down'"
+                    ></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Búsqueda por ciudad -->
+              <div class="col-md-6">
+                <label for="citySearchInput" class="form-label">Ciudad</label>
+                <input
+                  id="citySearchInput"
+                  v-model="filterForm.citySearch"
+                  type="text"
+                  class="form-control"
+                  placeholder="Ej.: La Plata"
+                />
+              </div>
+
+              <!-- Selector de provincia -->
+              <div class="col-md-6">
+                <label for="provinceSelect" class="form-label">Provincia</label>
+                <div class="input-group">
+                  <select id="provinceSelect" v-model="filterForm.province" class="form-select">
+                    <option :value="undefined">Todas las provincias</option>
+                    <option value="Buenos Aires">Buenos Aires</option>
+                    <option value="Catamarca">Catamarca</option>
+                    <option value="Chaco">Chaco</option>
+                    <option value="Chubut">Chubut</option>
+                    <option value="Córdoba">Córdoba</option>
+                    <option value="Corrientes">Corrientes</option>
+                    <option value="Entre Ríos">Entre Ríos</option>
+                    <option value="Formosa">Formosa</option>
+                    <option value="Jujuy">Jujuy</option>
+                    <option value="La Pampa">La Pampa</option>
+                    <option value="La Rioja">La Rioja</option>
+                    <option value="Mendoza">Mendoza</option>
+                    <option value="Misiones">Misiones</option>
+                    <option value="Neuquén">Neuquén</option>
+                    <option value="Río Negro">Río Negro</option>
+                    <option value="Salta">Salta</option>
+                    <option value="San Juan">San Juan</option>
+                    <option value="San Luis">San Luis</option>
+                    <option value="Santa Cruz">Santa Cruz</option>
+                    <option value="Santa Fe">Santa Fe</option>
+                    <option value="Santiago del Estero">Santiago del Estero</option>
+                    <option value="Tierra del Fuego">Tierra del Fuego</option>
+                    <option value="Tucumán">Tucumán</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Multiselector de etiquetas -->
+              <div class="col-md-6">
+                <label class="form-label">Etiquetas</label>
+                <Multiselect
+                  v-model="filterForm.selectedTags"
+                  :options="tags"
+                  :multiple="true"
+                  :close-on-select="false"
+                  placeholder="Selecciona etiquetas"
+                  select-label="Presiona enter para seleccionar"
+                  diselect-label="Presiona enter para quitar"
+                  label="name"
+                  track-by="id"
+                />
+              </div>
+
+              <div v-if="isAuthenticated" class="col-md-6">
+                <div class="form-check">
+                  <input
+                    id="favoritesCheckbox"
+                    v-model="filterForm.favorites"
+                    type="checkbox"
+                    class="form-check-input"
+                  />
+                  <label for="favoritesCheckbox" class="form-check-label">
+                    Mostrar solo mis favoritos
+                  </label>
+                </div>
+              </div>
+
+              <!-- Botones -->
+              <div class="col-12 d-flex gap-2">
+                <button @click="applyFilters" class="btn btn-primary">
+                  <i class="bi bi-funnel"></i> Aplicar Filtros
+                </button>
+                <button @click="clearFilters" class="btn btn-outline-secondary">
+                  <i class="bi bi-x-circle"></i> Limpiar
+                </button>
+              </div>
+            </div>
+          </CAccordionBody>
+        </CAccordionItem>
+      </CAccordion>
 
       <!-- Loading -->
       <div v-if="loading" class="row g-4">
         <div v-for="i in 6" :key="i" class="col-12 col-md-6 col-lg-4">
           <div class="card placeholder-glow">
-            <div class="placeholder col-12" style="height: 200px;"></div>
+            <div class="placeholder col-12" style="height: 200px"></div>
             <div class="card-body">
               <span class="placeholder col-6"></span>
             </div>
@@ -31,7 +158,13 @@
       <!-- Sites Grid -->
       <div v-else-if="sites.length > 0" class="row g-4">
         <div v-for="site in sites" :key="site.id" class="col-12 col-md-6 col-lg-4">
-          <SiteCard :site="site" />
+          <SiteCard :site="site">
+            <span :class="stateConfig(site).classes" class="badge rounded-pill mb-4">
+              <i :class="stateConfig(site).icon"></i>
+              {{ site.state }}
+            </span>
+            <TagList :tags="site.tags" />
+          </SiteCard>
         </div>
 
         <!-- Pagination -->
@@ -54,27 +187,81 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, onMounted, watch, reactive, toRaw, watchEffect } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { Multiselect } from 'vue-multiselect'
+import 'vue-multiselect/dist/vue-multiselect.css'
+import { CAccordion, CAccordionHeader, CAccordionBody, CAccordionItem } from '@coreui/vue'
 import { useSitesStore } from '@/stores/sitesStore'
 import SiteCard from '../components/SiteCard.vue'
 import PaginationComponent from '@/components/PaginationComponent.vue'
+import TagList from '@/components/TagList.vue'
+import api from '@/service/api'
+import { useSessionStore } from '@/stores/sessionStore'
 
 const route = useRoute()
+const router = useRouter()
 const sitesStore = useSitesStore()
 const sites = ref([])
+const tags = ref([])
 const loading = ref(true)
 const searchQuery = ref('')
 const orderBy = ref(undefined)
+const orderDir = ref('desc')
+const city = ref('')
+const province = ref(undefined)
+const selectedTags = ref([])
+const favorites = ref(false)
 const currentPage = ref(1)
 const totalPages = ref(1)
 
+// Construye un diccionario reactivo (dinámico con v-model)
+const filterForm = reactive({
+  search: '',
+  orderBy: 'registration_date',
+  orderDir: 'desc',
+  citySearch: '',
+  province: undefined,
+  selectedTags: [],
+  favorites: false,
+})
+
+const toggleOrder = () => {
+  filterForm.orderDir = filterForm.orderDir === 'asc' ? 'desc' : 'asc'
+}
+
+// Navega a la ruta definida de nombre 'sites' con los parámetros indicados. Dispara el watch de route.query
+const applyFilters = () => {
+  router.push({
+    name: 'sites',
+    query: {
+      search: filterForm.search || undefined,
+      order_by: filterForm.orderBy || undefined,
+      order_dir: filterForm.orderBy ? filterForm.orderDir : undefined,
+      city: filterForm.citySearch || undefined,
+      province: filterForm.province || undefined,
+      tags: filterForm.selectedTags.map((tag) => tag.id) || [],
+      favorites: filterForm.favorites || undefined,
+    },
+  })
+}
+
+const clearFilters = () => {
+  filterForm.search = ''
+  filterForm.orderBy = 'registration_date'
+  filterForm.orderDir = undefined
+  filterForm.citySearch = ''
+  filterForm.province = undefined
+  filterForm.selectedTags = []
+  filterForm.favorites = false
+  router.push({ name: 'sites' })
+}
+
 const getOrderByLabel = (order) => {
   const labels = {
-    'rating-5-1': 'Mejor Puntuados',
-    'rating-1-5': 'Peor Puntuados',
-    'latest': 'Recientemente Agregados',
-    'oldest': 'Más Antiguos',
+    registration_date: 'Fecha de registro',
+    site_name: 'Nombre',
+    rating: 'Calificación',
   }
   return labels[order] || 'Sin ordenar'
 }
@@ -83,17 +270,30 @@ const getOrderByLabel = (order) => {
 const handlePageChange = async (page) => {
   currentPage.value = page
   await loadSites()
+  setTimeout(() => {
+    window.scrollTo(0, 0)
+  }, 50)
 }
 
 const loadSites = async () => {
   loading.value = true
   try {
     searchQuery.value = route.query.search || ''
-    orderBy.value = route.query.order_by || undefined
+    orderBy.value = route.query.order_by || 'registration_date'
+    orderDir.value = route.query.order_dir || 'desc'
+    city.value = route.query.city || ''
+    province.value = route.query.province || ''
+    favorites.value = route.query.favorites || undefined
+    selectedTags.value = route.query.tags || []
 
     const response = await sitesStore.fetchSites({
       search: searchQuery.value,
       order_by: orderBy.value,
+      order_dir: orderDir.value,
+      city: city.value,
+      province: province.value,
+      favorites: favorites.value,
+      tags: toRaw(selectedTags.value),
       page: currentPage.value,
       per_page: 25,
     })
@@ -113,8 +313,67 @@ const handleQueryChange = () => {
   loadSites()
 }
 
-onMounted(loadSites)
+onMounted(async () => {
+  filterForm.search = route.query.search || ''
+  filterForm.orderBy = route.query.order_by || 'registration_date'
+  filterForm.orderDir = route.query.order_dir || undefined
+  filterForm.citySearch = route.query.city || undefined
+  filterForm.province = route.query.province || undefined
+  filterForm.favorites = route.query.favorites === 'true'
+
+  await fetchTags()
+
+  const tagsIds = route.query.tags
+    ? Array.isArray(route.query.tags)
+      ? route.query.tags
+      : [route.query.tags]
+    : []
+  filterForm.selectedTags = tags.value.filter((tag) => tagsIds.includes(String(tag.id)))
+
+  await loadSites()
+})
+
+const fetchTags = async () => {
+  const response = await api.get('/api/tags')
+  tags.value = response.data.map((tag) => ({
+    id: tag.id,
+    name: tag.name,
+  }))
+}
+
 watch(() => route.query, handleQueryChange)
+
+const sessionStore = useSessionStore()
+const isAuthenticated = ref(sessionStore.isAuthenticated)
+
+// Observar cambios en la autenticación
+watchEffect(() => {
+  isAuthenticated.value = sessionStore.isAuthenticated
+})
+
+// Configuración de clase para etiqueta de estado de sitio
+function stateConfig(site) {
+  const configMap = {
+    Bueno: {
+      classes: 'bg-success text-white',
+      icon: 'bi bi-check-circle-fill',
+    },
+    Regular: {
+      classes: 'bg-warning text-dark',
+      icon: 'bi bi-exclamation-triangle-fill',
+    },
+    Malo: {
+      classes: 'bg-danger text-white',
+      icon: 'bi bi-x-circle-fill',
+    },
+  }
+  return (
+    configMap[site.state] || {
+      classes: 'bg-secondary text-white',
+      icon: 'bi bi-question-circle-fill',
+    }
+  )
+}
 </script>
 
 <style scoped>

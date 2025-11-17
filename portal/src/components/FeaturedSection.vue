@@ -58,10 +58,10 @@
     <!-- Sites Grid/Carousel -->
     <div v-else-if="sites && sites.length > 0">
       <!-- Mobile: Carousel -->
-      <!-- d-md-none: visible solo en móvil 
+      <!-- d-md-none: visible solo en móvil
         d: display
         md: medium devices (a partir de dispositivos medianos (768px))
-        none: ninguno 
+        none: ninguno
       -->
       <div class="d-md-none">
         <div :id="`carousel-${sectionId}`" class="carousel slide" data-bs-ride="false">
@@ -146,7 +146,13 @@ const props = defineProps({
   orderBy: {
     type: String,
     required: true,
-    validator: (value) => ['rating-5-1', 'rating-1-5', 'latest', 'oldest'].includes(value)
+    validator: (value) => ['rating', 'registration_date', 'site_name'].includes(value)
+  },
+  orderDir: {
+    type: String,
+    required: true,
+    validator: (value) => ['desc', 'asc'].includes(value),
+    default: 'desc'
   },
   showIfEmpty: {
     type: Boolean,
@@ -181,7 +187,7 @@ onMounted(async () => {
       limit: 6,
     })
     }
-    
+
     console.log('[Featured] Response received:', response)
     sites.value = response.sites
   } catch (err) {

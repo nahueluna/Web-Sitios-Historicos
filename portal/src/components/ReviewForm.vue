@@ -21,7 +21,7 @@
               <label for="reviewText" class="form-label">Tu reseña</label>
               <textarea
                 id="reviewText"
-                v-model="text"
+                v-model="content"
                 class="form-control"
                 rows="4"
                 placeholder="Comparte tu experiencia en este sitio histórico..."
@@ -48,7 +48,7 @@ import { useReviewsStore } from '@/stores/reviewsStore'
 import { useSessionStore } from '@/stores/sessionStore'
 
 const props = defineProps({
-  siteId: {
+  siteId: {   // Recibo de SiteDetail.vue
     type: String,
     required: true
   }
@@ -60,31 +60,33 @@ const reviewsStore = useReviewsStore()
 const sessionStore = useSessionStore()
 
 const rating = ref(5)
-const text = ref('')
+const content = ref('')
 const loading = ref(false)
 
 const submitReview = async () => {
-  if (!sessionStore.user) {
-    alert('Debes iniciar sesión para escribir una reseña')
+  if (!sessionStore.isAuthenticated) {
+    alert('Debes iniciar sesión para enviar una reseña.')
+    
+    emit('close')
+    return
+  }
+  if (!content.value.trim()) {
+    alert('Por favor, escribe tu comentario antes de enviar la reseña.')
     return
   }
 
   loading.value = true
   try {
-    const reviewData = {
-      siteId: props.siteId,
-      userId: sessionStore.user.id,
-      text: text.value,
+    await reviewsStore.addReview(props.siteId, {
       rating: rating.value,
-      createdAt: new Date().toISOString()
-    }
+      content: content.value.trim()
+    })
 
-    await reviewsStore.addReview(reviewData)
     emit('reviewAdded')
     emit('close')
-    alert('Reseña enviada exitosamente')
-  } catch {
-    alert('Error al enviar la reseña')
+    alert('Tu reseña ha sido enviada exitosamente!')
+  } catch (err) {
+    alert('Error al enviar la reseña. Por favor, intenta nuevamente.')
   } finally {
     loading.value = false
   }

@@ -7,7 +7,7 @@
           <i class="bi bi-trash"></i>
         </button>
       </div>
-      <p class="card-text">{{ review.text }}</p>
+      <p class="card-text">{{ review.content }}</p>
       <p class="card-text"><small class="text-muted">Calificación: {{ review.rating }}/5</small></p>
       <p class="card-text"><small class="text-muted">Fecha: {{ formatDate(review.createdAt) }}</small></p>
     </div>

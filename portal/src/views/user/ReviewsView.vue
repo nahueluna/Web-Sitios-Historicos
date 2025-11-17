@@ -6,7 +6,7 @@
       No has escrito ninguna reseña aún.
     </div>
     <div v-else class="row g-3">
-      <div v-for="review in reviews" :key="review.id" class="col-md-6 col-lg-4">
+      <div v-for="review in reviews" class="col-md-6 col-lg-4">
         <ReviewComponent :review="review" />
       </div>
     </div>
@@ -17,17 +17,20 @@
 import ReviewComponent from '@/components/ReviewComponent.vue'
 import { useReviewsStore } from '@/stores/reviewsStore'
 import { useSessionStore } from '@/stores/sessionStore'
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import api from '@/service/api'
 
-const reviewsStore = useReviewsStore()
 const sessionStore = useSessionStore()
 
-const reviews = computed(() => {
-  if (!sessionStore.user) return []
-  return reviewsStore.getReviewsByUser(sessionStore.user.id)
-})
+const reviews = ref([])
+const ok = ref(false)
 
-onMounted(() => {
-  reviewsStore.fetchReviews()
+onMounted(async () => {
+  const response = await api.get(`/api/reviews/users/${sessionStore.user.id}/reviews`)
+  if (response.data.reviews){
+    reviews.value = response.data.reviews
+    ok.value = true
+  }
+  
 })
 </script>

@@ -69,19 +69,33 @@
             </div>
           </div>
 
-          <div v-if="reviews.length === 0" class="alert alert-info">
-            <!-- me-2: margen derecho 2 -->
+          <div v-if="favorites.length === 0" class="alert alert-info">
             <i class="bi bi-info-circle me-2"></i>
             No has agregado ningún favorito aún.
           </div>
           <div v-else>
-            <h3 class="h4 mb-3 mt-4">
-              <router-link to="/favorites" class="text-decoration-none">Mis Favoritos Recientes</router-link>
-            </h3>
+            <div class="d-flex justify-content-between align-items-start mb-4 mt-4">
+              <div>
+                <h3 class="h4 mb-1">Mis Favoritos Recientes</h3>
+                <p class="text-muted mb-0">Lugares que has marcado como favoritos recientemente</p>
+              </div>
+              <router-link to="/favorites" class="btn btn-outline-secondary d-none d-md-flex align-items-center">
+                Ver todos
+                <i class="bi bi-arrow-right ms-2"></i>
+              </router-link>
+            </div>
+
             <div class="row g-3">
               <div v-for="favorite in favorites" :key="favorite.id" class="col-md-6">
                 <SiteCard :site="favorite" />
               </div>
+            </div>
+
+            <div class="d-md-none text-center mt-4">
+              <router-link to="/favorites" class="btn btn-outline-secondary">
+                Ver todos
+                <i class="bi bi-arrow-right ms-2"></i>
+              </router-link>
             </div>
           </div>
         </div>
@@ -91,27 +105,40 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed , ref, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useSessionStore } from "@/stores/sessionStore"
-import { useReviewsStore } from '@/stores/reviewsStore'
-import { useFavoritesStore } from '@/stores/favoriteStore'
 import ReviewComponent from '@/components/ReviewComponent.vue'
 import SiteCard from '@/components/SiteCard.vue'
 import GoogleLogout from '@/components/google/GoogleLogoutComponent.vue'
+import api from '@/service/api'
+
 
 const sessionStore = useSessionStore()
-const reviewsStore = useReviewsStore()
-const favoritesStore = useFavoritesStore()
 
 const user = sessionStore.user
-const reviews = computed(() => {
-  if (!sessionStore.user) return []
-  return reviewsStore.getReviewsByUser(sessionStore.user.id).slice(0, 3)
-})
+const reviews = ref([])
+
 
 const favorites = computed(() => {
-  return []
-  //return favoritesStore.getFavorites(6)
+  // Intenta obtener los favoritos desde el store. Si la acción no está disponible o falla, devuelve array vacío.
+  try {
+    return typeof favoritesStore.getFavorites === 'function' ? favoritesStore.getFavorites(6) : []
+  } catch (e) {
+    return []
+  }
 })
+
+onMounted(async () => {
+  const reviews_response = await api.get(`/api/reviews/users/${sessionStore.user.id}/reviews`)
+  const favorites_response = await api.get(`/api/favorites/${sessionStore.user.id}`)
+
+  if (reviews_response.data.reviews){
+    reviews.value = reviews_response.data.reviews
+  }
+  if (favorites_response.data.favorites){
+    favorites.value = favorites_response.data.favorites
+  }
+})
+
 </script>

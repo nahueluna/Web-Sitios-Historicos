@@ -105,40 +105,29 @@
 </template>
 
 <script setup>
-import { computed , ref, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useSessionStore } from "@/stores/sessionStore"
+import { useProfileReviewStore } from '@/stores/profileReviewStore'
+import { useFavoritesStore } from '@/stores/profileFavoriteStore'
 import ReviewComponent from '@/components/ReviewComponent.vue'
 import SiteCard from '@/components/SiteCard.vue'
 import GoogleLogout from '@/components/google/GoogleLogoutComponent.vue'
-import api from '@/service/api'
 
 
 const sessionStore = useSessionStore()
+const profileReviewStore = useProfileReviewStore()
+const favoritesStore = useFavoritesStore()
 
 const user = sessionStore.user
 const reviews = ref([])
-
-
-const favorites = computed(() => {
-  // Intenta obtener los favoritos desde el store. Si la acción no está disponible o falla, devuelve array vacío.
-  try {
-    return typeof favoritesStore.getFavorites === 'function' ? favoritesStore.getFavorites(6) : []
-  } catch (e) {
-    return []
-  }
-})
+const favorites = ref([])
 
 onMounted(async () => {
-  const reviews_response = await api.get(`/api/reviews/users/${sessionStore.user.id}/reviews`)
-  const favorites_response = await api.get(`/api/favorites/${sessionStore.user.id}`)
-
-  if (reviews_response.data.reviews){
-    reviews.value = reviews_response.data.reviews
-  }
-  if (favorites_response.data.favorites){
-    favorites.value = favorites_response.data.favorites
-  }
+  //reviews.value = await profileReviewStore.loadRecentReviews(user.id) ?? profileReviewStore.getHardcodedReviews().slice(0, 4)
+  //favorites.value = await favoritesStore.loadRecentFavorites(user.id) ?? favoritesStore.getHardcodedFavorites().slice(0, 4)
+  reviews.value = profileReviewStore.getHardcodedReviews()
+  favorites.value = favoritesStore.getHardcodedFavorites()
 })
 
 </script>

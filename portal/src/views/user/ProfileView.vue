@@ -121,19 +121,27 @@
 import { ref, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useSessionStore } from "@/stores/sessionStore"
+import { useProfileReviewStore } from '@/stores/profileReviewStore'
+import { useFavoritesStore } from '@/stores/profileFavoriteStore'
 import ReviewComponent from '@/components/ReviewComponent.vue'
 import ReviewForm from '@/components/ReviewForm.vue'
 import SiteCard from '@/components/SiteCard.vue'
 import GoogleLogout from '@/components/google/GoogleLogoutComponent.vue'
+<<<<<<< HEAD
 import api from '@/service/api'
 import { transformReview } from '@/utils/reviewTransformer'
+=======
+>>>>>>> dev
 
 
 const sessionStore = useSessionStore()
+const profileReviewStore = useProfileReviewStore()
+const favoritesStore = useFavoritesStore()
 
 const user = sessionStore.user
 const reviews = ref([])
 const favorites = ref([])
+<<<<<<< HEAD
 const showEditModal = ref(false)
 const editingReview = ref(null)
 
@@ -189,6 +197,14 @@ onMounted(async () => {
   } catch (error) {
     console.error('Error al cargar datos del perfil:', error)
   }
+=======
+
+onMounted(async () => {
+  //reviews.value = await profileReviewStore.loadRecentReviews(user.id) ?? profileReviewStore.getHardcodedReviews().slice(0, 4)
+  //favorites.value = await favoritesStore.loadRecentFavorites(user.id) ?? favoritesStore.getHardcodedFavorites().slice(0, 4)
+  reviews.value = profileReviewStore.getHardcodedReviews()
+  favorites.value = favoritesStore.getHardcodedFavorites()
+>>>>>>> dev
 })
 
 </script>

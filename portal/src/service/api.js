@@ -1,8 +1,9 @@
 import axios from "axios";
 import { useSessionStore } from "../stores/sessionStore";
+import { useLoginModalStore } from "@/stores/LoginModalStore";
 
 const api = axios.create({
-  baseURL: "http://localhost:5000",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000",
   withCredentials: true, // para enviar cookies si es necesario
 });
 
@@ -29,11 +30,19 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
     
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401){
+      const sessionStore = useSessionStore();
+      if (sessionStore.user == null) {
+        console.log("User not logged in, redirecting to login");
+        const loginModalStore = useLoginModalStore();
+        loginModalStore.openLoginModal();
+        return Promise.reject(error);
+      }
+      else if ( !originalRequest._retry) {
       originalRequest._retry = true;
       
       try {
-        const sessionStore = useSessionStore();
+        
         const newToken = await sessionStore.refreshToken();
         
         if (newToken) {
@@ -49,7 +58,7 @@ api.interceptors.response.use(
     }
     
     return Promise.reject(error);
-  }
+  }}
 );
 
 

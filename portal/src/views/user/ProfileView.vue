@@ -52,12 +52,16 @@
                 <i class="bi bi-arrow-right ms-2"></i>
               </router-link>
             </div>
-            <!-- row: fila flexbox, g-3: gap 3 entre elementos -->
-            <div class="row g-3">
-              <!-- col-md-6: 6/12 columnas en medium y arriba -->
-              <div v-for="review in reviews" :key="review.id" class="col-md-6">
-                <!-- REVIEW COMPONENT -->
-                <ReviewComponent :review="review" />
+            <!-- Listado de reseñas recientes -->
+            <div class="reviews-list">
+              <div v-for="review in reviews.slice(0, 4)" :key="review.id" class="mb-3">
+                <ReviewComponent 
+                  :review="review" 
+                  :site-id="review.siteId" 
+                  :show-actions="true"
+                  @edit="openEditModal"
+                  @delete="handleDelete"
+                />
               </div>
             </div>
             <!-- d-md-none: visible solo en móvil, text-center: texto centrado, mt-4: margen superior 4 -->
@@ -101,43 +105,89 @@
         </div>
       </div>
     </div>
+
+    <!-- Edit Review Modal -->
+    <ReviewForm
+      v-if="showEditModal"
+      :review="editingReview"
+      :site-id="editingReview?.siteId"
+      @close="closeEditModal"
+      @review-updated="handleUpdate"
+    />
   </div>
 </template>
 
 <script setup>
-import { computed , ref, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useSessionStore } from "@/stores/sessionStore"
 import ReviewComponent from '@/components/ReviewComponent.vue'
+import ReviewForm from '@/components/ReviewForm.vue'
 import SiteCard from '@/components/SiteCard.vue'
 import GoogleLogout from '@/components/google/GoogleLogoutComponent.vue'
 import api from '@/service/api'
+import { transformReview } from '@/utils/reviewTransformer'
 
 
 const sessionStore = useSessionStore()
 
 const user = sessionStore.user
 const reviews = ref([])
+const favorites = ref([])
+const showEditModal = ref(false)
+const editingReview = ref(null)
 
-
-const favorites = computed(() => {
-  // Intenta obtener los favoritos desde el store. Si la acción no está disponible o falla, devuelve array vacío.
+const fetchReviews = async () => {
   try {
-    return typeof favoritesStore.getFavorites === 'function' ? favoritesStore.getFavorites(6) : []
-  } catch (e) {
-    return []
+    const response = await api.get(`/api/reviews/users/${sessionStore.user.id}/reviews`)
+    if (response.data.reviews) {
+      reviews.value = response.data.reviews.map(transformReview)
+    }
+  } catch (error) {
+    console.error('Error al cargar reseñas:', error)
   }
-})
+}
+
+const openEditModal = (review) => {
+  if (!review.siteId) {
+    alert('Error: No se puede editar esta reseña porque falta información del sitio.')
+    return
+  }
+  
+  editingReview.value = review
+  showEditModal.value = true
+}
+
+const closeEditModal = () => {
+  showEditModal.value = false
+  editingReview.value = null
+}
+
+const handleUpdate = () => {
+  closeEditModal()
+  fetchReviews()
+}
+
+const handleDelete = (reviewId) => {
+  reviews.value = reviews.value.filter(r => r.id !== reviewId)
+}
 
 onMounted(async () => {
-  const reviews_response = await api.get(`/api/reviews/users/${sessionStore.user.id}/reviews`)
-  const favorites_response = await api.get(`/api/favorites/${sessionStore.user.id}`)
+  try {
+    const [reviewsResponse, favoritesResponse] = await Promise.all([
+      api.get(`/api/reviews/users/${sessionStore.user.id}/reviews`),
+      api.get(`/api/favorites/${sessionStore.user.id}`)
+    ])
 
-  if (reviews_response.data.reviews){
-    reviews.value = reviews_response.data.reviews
-  }
-  if (favorites_response.data.favorites){
-    favorites.value = favorites_response.data.favorites
+    if (reviewsResponse.data.reviews) {
+      reviews.value = reviewsResponse.data.reviews.map(transformReview)
+    }
+
+    if (favoritesResponse.data.favorites) {
+      favorites.value = favoritesResponse.data.favorites
+    }
+  } catch (error) {
+    console.error('Error al cargar datos del perfil:', error)
   }
 })
 

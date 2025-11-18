@@ -94,6 +94,8 @@ def update_data_review(review_id, rating=None, content=None):
             review_obj.rating = rating
         if content is not None:
             review_obj.content = content
+        # Reset status to PENDING when review is edited
+        review_obj.status = ReviewStatus.PENDING
 
         try:
             db.session.commit()

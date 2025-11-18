@@ -15,22 +15,18 @@
 
 <script setup>
 import ReviewComponent from '@/components/ReviewComponent.vue'
-import { useReviewsStore } from '@/stores/reviewsStore'
 import { useSessionStore } from '@/stores/sessionStore'
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import api from '@/service/api'
 
 const sessionStore = useSessionStore()
 
 const reviews = ref([])
-const ok = ref(false)
 
 onMounted(async () => {
   const response = await api.get(`/api/reviews/users/${sessionStore.user.id}/reviews`)
   if (response.data.reviews){
     reviews.value = response.data.reviews
-    ok.value = true
   }
-  
 })
 </script>

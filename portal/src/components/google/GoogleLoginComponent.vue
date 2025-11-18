@@ -18,7 +18,7 @@ const callback = async (response) => {
 
     // Obtener tokens JWT
     const jwtResponse = await api.post("/api/auth", { email: user.email })
-    
+    console.log("JWT Tokens:", jwtResponse)
     // Almacenar los tokens en tu store de sesión
     sessionStore.setTokens(jwtResponse.data.access_token, jwtResponse.data.refresh_token)
     

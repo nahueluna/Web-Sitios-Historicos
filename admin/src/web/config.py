@@ -1,17 +1,27 @@
 from os import environ
 from dotenv import load_dotenv
+from datetime import timedelta
 
 load_dotenv()
 
 class Config:
     TESTING = False
-    SECRET_KEY = environ.get("SECRET_KEY")
+    SECRET_KEY = environ.get("BACKEND_SECRET_KEY")
     SESSION_TYPE = "filesystem"
     SQLALCHEMY_ENGINE_OPTIONS = {
         "pool_size": 10,
         "pool_recycle": 60,
         "pool_pre_ping": True,
     }
+
+    # Configuración para JWT, configurar secret key en env pls
+    JWT_SECRET_KEY = environ.get('BACKEND_JWT_SECRET_KEY')
+    JWT_ALGORITHM = 'HS256'  # Cifrado simetrico, como dice la teoria
+    JWT_TOKEN_LOCATION = ['headers']  # Solo se puede enviar por headers (Authorization: Bearer)
+    JWT_HEADER_NAME = 'Authorization'
+    JWT_HEADER_TYPE = 'Bearer'
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
+    JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=7)
 
 class ProductionConfig(Config):
 

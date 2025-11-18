@@ -44,14 +44,6 @@ def create_app(env='development', static_folder='../../static'):
 
     bcrypt.init_app(app)
 
-    # Configuración para JWT, configurar secret key en env pls
-    app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
-    app.config['JWT_ALGORITHM'] = 'HS256'  # Cifrado simetrico, como dice la teoria
-    app.config['JWT_TOKEN_LOCATION'] = ['headers']  # Solo se puede enviar por headers (Authorization: Bearer)
-    app.config['JWT_HEADER_NAME'] = 'Authorization'
-    app.config['JWT_HEADER_TYPE'] = 'Bearer'
-    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
-    app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=7)
     jwt.init_app(app)
 
     ## Necesario para el OAuth2 con Google
@@ -132,5 +124,9 @@ def create_app(env='development', static_folder='../../static'):
     @app.cli.command("seed-db")
     def seed_db():
         database.seed_db()
+
+    @app.cli.command("seed-images")
+    def seed_images():
+        database.seed_db_images()
 
     return app

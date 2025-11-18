@@ -53,15 +53,9 @@
               </router-link>
             </div>
             <!-- Listado de reseñas recientes -->
-            <div class="reviews-list">
-              <div v-for="review in reviews.slice(0, 4)" :key="review.id" class="mb-3">
-                <ReviewComponent 
-                  :review="review" 
-                  :site-id="review.siteId" 
-                  :show-actions="true"
-                  @edit="openEditModal"
-                  @delete="handleDelete"
-                />
+            <div class="row g-3">
+              <div v-for="review in reviews.slice(0, 4)" :key="review.id" class="col-md-6 col-lg-4">
+                <ReviewComponent :review="review" />
               </div>
             </div>
             <!-- d-md-none: visible solo en móvil, text-center: texto centrado, mt-4: margen superior 4 -->
@@ -106,14 +100,6 @@
       </div>
     </div>
 
-    <!-- Edit Review Modal -->
-    <ReviewForm
-      v-if="showEditModal"
-      :review="editingReview"
-      :site-id="editingReview?.siteId"
-      @close="closeEditModal"
-      @review-updated="handleUpdate"
-    />
   </div>
 </template>
 
@@ -124,14 +110,8 @@ import { useSessionStore } from "@/stores/sessionStore"
 import { useProfileReviewStore } from '@/stores/profileReviewStore'
 import { useFavoritesStore } from '@/stores/profileFavoriteStore'
 import ReviewComponent from '@/components/ReviewComponent.vue'
-import ReviewForm from '@/components/ReviewForm.vue'
 import SiteCard from '@/components/SiteCard.vue'
 import GoogleLogout from '@/components/google/GoogleLogoutComponent.vue'
-<<<<<<< HEAD
-import api from '@/service/api'
-import { transformReview } from '@/utils/reviewTransformer'
-=======
->>>>>>> dev
 
 
 const sessionStore = useSessionStore()
@@ -141,70 +121,12 @@ const favoritesStore = useFavoritesStore()
 const user = sessionStore.user
 const reviews = ref([])
 const favorites = ref([])
-<<<<<<< HEAD
-const showEditModal = ref(false)
-const editingReview = ref(null)
-
-const fetchReviews = async () => {
-  try {
-    const response = await api.get(`/api/reviews/users/${sessionStore.user.id}/reviews`)
-    if (response.data.reviews) {
-      reviews.value = response.data.reviews.map(transformReview)
-    }
-  } catch (error) {
-    console.error('Error al cargar reseñas:', error)
-  }
-}
-
-const openEditModal = (review) => {
-  if (!review.siteId) {
-    alert('Error: No se puede editar esta reseña porque falta información del sitio.')
-    return
-  }
-  
-  editingReview.value = review
-  showEditModal.value = true
-}
-
-const closeEditModal = () => {
-  showEditModal.value = false
-  editingReview.value = null
-}
-
-const handleUpdate = () => {
-  closeEditModal()
-  fetchReviews()
-}
-
-const handleDelete = (reviewId) => {
-  reviews.value = reviews.value.filter(r => r.id !== reviewId)
-}
-
-onMounted(async () => {
-  try {
-    const [reviewsResponse, favoritesResponse] = await Promise.all([
-      api.get(`/api/reviews/users/${sessionStore.user.id}/reviews`),
-      api.get(`/api/favorites/${sessionStore.user.id}`)
-    ])
-
-    if (reviewsResponse.data.reviews) {
-      reviews.value = reviewsResponse.data.reviews.map(transformReview)
-    }
-
-    if (favoritesResponse.data.favorites) {
-      favorites.value = favoritesResponse.data.favorites
-    }
-  } catch (error) {
-    console.error('Error al cargar datos del perfil:', error)
-  }
-=======
 
 onMounted(async () => {
   //reviews.value = await profileReviewStore.loadRecentReviews(user.id) ?? profileReviewStore.getHardcodedReviews().slice(0, 4)
   //favorites.value = await favoritesStore.loadRecentFavorites(user.id) ?? favoritesStore.getHardcodedFavorites().slice(0, 4)
   reviews.value = profileReviewStore.getHardcodedReviews()
   favorites.value = favoritesStore.getHardcodedFavorites()
->>>>>>> dev
 })
 
 </script>

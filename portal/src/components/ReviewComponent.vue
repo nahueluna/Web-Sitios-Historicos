@@ -1,53 +1,53 @@
-<template>
-  <div class="card review-card">
-    <div class="card-body">
-      <div class="d-flex justify-content-between align-items-start mb-2">
-        <h5 class="card-title mb-0">{{ review.siteName || 'Sitio' }}</h5>
-        <button @click="confirmDelete" class="btn btn-sm btn-outline-danger">
-          <i class="bi bi-trash"></i>
-        </button>
+  <template>
+    <router-link :to="`/sites/${review.historic_site?.id}`" class="text-decoration-none">
+      <div class="card h-100 review-card">
+        <div class="card-body d-flex flex-column">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <h5 class="card-title mb-0 text-truncate">{{ review.historic_site?.name || 'Sitio' }}</h5>
+            <span v-if="review.rating" class="badge bg-light text-dark align-self-start">
+              <i class="bi bi-star-fill text-warning"></i>
+              {{ Number(review.rating).toFixed(1) }}
+            </span>
+          </div>
+
+          <p class="card-text mb-0">{{ review.content }}</p>
+        </div>
       </div>
+<<<<<<< HEAD
       <p class="card-text">{{ review.content }}</p>
       <p class="card-text"><small class="text-muted">Calificación: {{ review.rating }}/5</small></p>
       <p class="card-text"><small class="text-muted">Fecha: {{ formatDate(review.createdAt) }}</small></p>
     </div>
   </div>
 </template>
+=======
+    </router-link>
+  </template>
+>>>>>>> dev
 
-<style scoped>
-.review-card {
-  transition: transform 0.2s ease;
-}
-
-.review-card:hover {
-  transform: translateY(-2px);
-}
-</style>
-
-<script setup>
-import { useReviewsStore } from '@/stores/reviewsStore'
-
-const props = defineProps({
-  review: {
-    type: Object,
-    required: true
+  <style scoped>
+  .review-card {
+    transition: all 0.2s ease;
+    border: 1px solid rgba(0, 0, 0, 0.06);
   }
-})
 
-const reviewsStore = useReviewsStore()
-
-const confirmDelete = async () => {
-  if (confirm('¿Estás seguro de que quieres eliminar esta reseña?')) {
-    try {
-      await reviewsStore.removeReview(props.review.id)
-      alert('Reseña eliminada exitosamente')
-    } catch {
-      alert('Error al eliminar la reseña')
-    }
+  .review-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 0.8rem rgba(0, 0, 0, 0.08);
   }
-}
 
-const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleDateString('es-ES')
-}
-</script>
+  .card-title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+
+  .badge {
+    font-size: 0.9rem;
+  }
+  </style>
+
+  <script setup>
+  const props = defineProps({
+    review: { type: Object, required: true }
+  })
+  </script>

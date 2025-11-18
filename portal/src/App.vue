@@ -2,6 +2,7 @@
 import { RouterView } from 'vue-router'
 import AppHeader from './components/AppHeader.vue'
 import AppFooter from './components/AppFooter.vue'
+import LoginModal from './components/LoginModal.vue';
 </script>
 
 <template>
@@ -12,6 +13,7 @@ import AppFooter from './components/AppFooter.vue'
     <!-- Main Content -->
     <main>
       <RouterView />
+      <LoginModal />
     </main>
 
     <!-- Footer -->

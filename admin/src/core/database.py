@@ -65,3 +65,10 @@ def seed_db_reviews():
     print("🌱 Seeding database with reviews data...")
     seed_reviews()
     print("✅ Reviews database seeding complete.")
+
+def seed_db_images():
+    # Solo llamar manualmente
+    from src.core.models.images.seeds import seed_images
+    print("🌱 Seeding database with images...")
+    seed_images()
+    print("✅ Images database seeding complete.")

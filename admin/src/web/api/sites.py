@@ -189,7 +189,7 @@ def get_historic_site_reviews(site_id):
                 "id": r.id,
                 "site_id": r.historic_site_id,
                 "rating": r.rating,
-                "comment": r.content,
+                "content": r.content,
                 "user_name": f"{r.user.nombre} {r.user.apellido}",
                 "inserted_at": r.inserted_at.isoformat() + 'Z',
             })
@@ -259,7 +259,7 @@ def create_site_review(site_id):
             "id": review.id,
             "site_id": review.historic_site_id,
             "rating": review.rating,
-            "comment": review.content,
+            "content": review.content,
             "user_name": f"{review.user.nombre} {review.user.apellido}",
             "inserted_at": review.inserted_at.isoformat() + 'Z',
             "message": "Reseña creada exitosamente. Será revisada por un moderador."
@@ -304,7 +304,7 @@ def update_site_review(site_id, review_id):
         "content": str      # Texto de la reseña (opcional)
     """
     try:
-        user_id = get_jwt_identity()
+        user_id = get_jwt_identity() # Devuelve un String
 
         # Verificar que el sitio existe
         site = get_visible_historic_site(site_id)
@@ -327,7 +327,8 @@ def update_site_review(site_id, review_id):
             }), 404
 
         # Verificar que el usuario es el autor
-        if review.user_id != user_id:
+        if str(review.user_id) != user_id:
+            print('forbidden', review.user_id, user_id)
             return jsonify({
                 "error": {
                     "code": "forbidden",
@@ -414,7 +415,7 @@ def delete_historic_site_review(site_id, review_id):
             }), 404
 
         # Verificar que el usuario es el autor
-        if review.user_id != user_id:
+        if str(review.user_id) != user_id:
             return jsonify({
                 "error": {
                     "code": "forbidden",

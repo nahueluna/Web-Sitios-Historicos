@@ -118,9 +118,13 @@
                   <i class="bi bi-heart"></i>
                   Agregar a Favoritos
                 </button>
-                <button class="btn btn-success" @click="showReviewForm = true" :disabled="!sessionStore.isAuthenticated">
+                <button 
+                  class="btn btn-success" 
+                  @click="handleWriteReview" 
+                  :disabled="!sessionStore.isAuthenticated"
+                >
                   <i class="bi bi-star"></i>
-                  Escribir Reseña
+                  {{ userReview ? 'Editar Reseña' : 'Escribir Reseña' }}
                 </button>
                 <router-link to="/sites" class="btn btn-outline-secondary">
                   <i class="bi bi-arrow-left"></i>
@@ -156,47 +160,93 @@
     <ReviewForm
       v-if="showReviewForm && site"
       :site-id="site.id"
-      @close="showReviewForm = false"
+      :review="editingReview"
+      @close="showReviewForm = false; editingReview = null"
       @review-added="onReviewAdded"
+      @review-updated="onReviewAdded"
     />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useSitesStore } from '@/stores/sitesStore'
 import { useSessionStore } from '@/stores/sessionStore'
+import { useReviewsStore } from '@/stores/reviewsStore'
 import ReviewForm from '@/components/ReviewForm.vue'
 import ReviewsList from '@/components/ReviewsList.vue'
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { LMap, LTileLayer, LMarker, LPopup} from "@vue-leaflet/vue-leaflet";
-import { computed } from "vue";
+import api from '@/service/api'
+import { transformReview } from '@/utils/reviewTransformer'
 
 const route = useRoute()
 const sitesStore = useSitesStore()
 const sessionStore = useSessionStore()
+const reviewsStore = useReviewsStore()
 const site = ref(null)
 const loading = ref(true)
 const showReviewForm = ref(false)
 const zoom = ref(12)
 const center = ref([0, 0])
 const reviewsList = ref(null)
+const userReview = ref(null)
+const editingReview = ref(null)
 
 const sortedImages = computed(() => {
   if (!site.value?.images) return [];
   return [...site.value.images].sort((a, b) => a.orden - b.orden);
 });
 
+const checkUserReview = async () => {
+  if (!sessionStore.isAuthenticated || !site.value) return
+  
+  try {
+    const response = await api.get(`/api/reviews/users/${sessionStore.user.id}/reviews`)
+    if (response.data.reviews) {
+      const existingReview = response.data.reviews.find(
+        r => r.historic_site?.id === site.value.id
+      )
+      
+      if (existingReview) {
+        userReview.value = transformReview(existingReview)
+      }
+    }
+  } catch (error) {
+    console.error('Error al verificar reseña del usuario:', error)
+  }
+}
+
+const handleWriteReview = () => {
+  if (!sessionStore.isAuthenticated) {
+    alert('Debes iniciar sesión para escribir una reseña.')
+    return
+  }
+  
+  if (userReview.value) {
+    // Usuario ya tiene una reseña, ofrecer editar
+    if (confirm('Ya tienes una reseña para este sitio. ¿Deseas editarla?')) {
+      editingReview.value = userReview.value
+      showReviewForm.value = true
+    }
+  } else {
+    // Nueva reseña
+    editingReview.value = null
+    showReviewForm.value = true
+  }
+}
+
 onMounted(async () => {
   const site_id = route.params.site_id
   try {
     loading.value = true
     site.value = await sitesStore.fetchSiteById(site_id)
-    console.log("site value: ",site.value)
+    
     if (site.value) {
       await sitesStore.trackSiteVisit(site.value.id)
+      await checkUserReview()
     }
   } catch (err) {
     console.error('[SiteDetail] Error loading site:', err)
@@ -205,11 +255,11 @@ onMounted(async () => {
   }
 })
 
-const onReviewAdded = () => {
-  // Refrescar las reseñas cuando se agrega una nueva
+const onReviewAdded = async () => {
   if (reviewsList.value && reviewsList.value.refresh) {
     reviewsList.value.refresh()
   }
+  await checkUserReview()
   showReviewForm.value = false
 }
 </script>

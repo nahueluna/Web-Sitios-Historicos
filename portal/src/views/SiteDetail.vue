@@ -123,8 +123,8 @@
                   @click="handleWriteReview" 
                   :disabled="!sessionStore.isAuthenticated"
                 >
-                  <i class="bi bi-star"></i>
-                  {{ userReview ? 'Editar Reseña' : 'Escribir Reseña' }}
+                  <i :class="userReview ? 'bi bi-pencil' : 'bi bi-star'"></i>
+                  {{ userReview ? 'Editar mi Reseña' : 'Escribir Reseña' }}
                 </button>
                 <router-link to="/sites" class="btn btn-outline-secondary">
                   <i class="bi bi-arrow-left"></i>

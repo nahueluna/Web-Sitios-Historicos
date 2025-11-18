@@ -18,6 +18,19 @@
         <CAccordionItem :item-key="1">
           <CAccordionHeader> Filtros y ordenamientos </CAccordionHeader>
           <CAccordionBody>
+            <CAccordion class="mb-4">
+              <CAccordionItem :item-key="2">
+                <CAccordionHeader> Mapa interactivo </CAccordionHeader>
+                <CAccordionBody>
+                  <div class="map-container mb-4">
+                    <LeafletMap
+                      :markers="markers"
+                      @update-map-params="handleMapSearch"
+                    />
+                  </div>
+                </CAccordionBody>
+              </CAccordionItem>
+            </CAccordion>
             <div class="row g-3">
               <!-- Búsqueda -->
               <div class="col-12">
@@ -198,6 +211,7 @@ import PaginationComponent from '@/components/PaginationComponent.vue'
 import TagList from '@/components/TagList.vue'
 import api from '@/service/api'
 import { useSessionStore } from '@/stores/sessionStore'
+import LeafletMap from '@/components/LeafletMap.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -212,8 +226,12 @@ const city = ref('')
 const province = ref(undefined)
 const selectedTags = ref([])
 const favorites = ref(false)
+const lat = ref(undefined)
+const long = ref(undefined)
+const radius = ref(undefined)
 const currentPage = ref(1)
 const totalPages = ref(1)
+const markers = ref([])
 
 // Construye un diccionario reactivo (dinámico con v-model)
 const filterForm = reactive({
@@ -224,7 +242,16 @@ const filterForm = reactive({
   province: undefined,
   selectedTags: [],
   favorites: false,
+  lat: undefined,
+  long: undefined,
+  radius: undefined,
 })
+
+const handleMapSearch = ({lat, long, radius}) => {
+  filterForm.lat = lat
+  filterForm.long = long
+  filterForm.radius = radius
+}
 
 const toggleOrder = () => {
   filterForm.orderDir = filterForm.orderDir === 'asc' ? 'desc' : 'asc'
@@ -242,6 +269,9 @@ const applyFilters = () => {
       province: filterForm.province || undefined,
       tags: filterForm.selectedTags.map((tag) => tag.id) || [],
       favorites: filterForm.favorites || undefined,
+      lat: filterForm.lat || undefined,
+      long: filterForm.long || undefined,
+      radius: filterForm.radius || undefined,
     },
   })
 }
@@ -254,6 +284,9 @@ const clearFilters = () => {
   filterForm.province = undefined
   filterForm.selectedTags = []
   filterForm.favorites = false
+  filterForm.lat = undefined
+  filterForm.long = undefined
+  filterForm.radius = undefined
   router.push({ name: 'sites' })
 }
 
@@ -285,6 +318,9 @@ const loadSites = async () => {
     province.value = route.query.province || ''
     favorites.value = route.query.favorites || undefined
     selectedTags.value = route.query.tags || []
+    lat.value = route.query.lat || undefined
+    long.value = route.query.long || undefined
+    radius.value = route.query.radius || undefined
 
     const response = await sitesStore.fetchSites({
       search: searchQuery.value,
@@ -294,12 +330,24 @@ const loadSites = async () => {
       province: province.value,
       favorites: favorites.value,
       tags: toRaw(selectedTags.value),
+      lat: lat.value,
+      long: long.value,
+      radius: radius.value,
       page: currentPage.value,
       per_page: 25,
     })
 
     sites.value = response.sites
     totalPages.value = Math.ceil(response.total / response.per_page)
+
+    markers.value = sites.value.map(site => ({
+      id: site.id,
+      lat: site.lat,
+      lon: site.long,
+      title: site.name,
+      description: site.short_description,
+      coverImage: site.coverImage,
+    }))
   } catch (err) {
     console.error('[SitesList] Error:', err)
   } finally {
@@ -320,6 +368,9 @@ onMounted(async () => {
   filterForm.citySearch = route.query.city || undefined
   filterForm.province = route.query.province || undefined
   filterForm.favorites = route.query.favorites === 'true'
+  filterForm.lat = route.query.lat || undefined
+  filterForm.long = route.query.long || undefined
+  filterForm.radius = route.query.radius || undefined
 
   await fetchTags()
 
@@ -380,5 +431,20 @@ function stateConfig(site) {
 .sites-list-page {
   min-height: 100vh;
   background-color: #f8f9fa;
+}
+
+.map-container {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  z-index: 1;
+}
+
+/* Asegurar que el mapa no se superponga */
+.map-container :deep(#map) {
+  position: relative !important;
+  width: 100%;
+  height: 600px !important;
 }
 </style>

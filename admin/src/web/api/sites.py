@@ -26,7 +26,6 @@ sites_api = Blueprint('sites_api', __name__, url_prefix='/api/sites')
 
 # ========================= SITIOS ========================
 
-@jwt_required(optional=True)
 @sites_api.route('', methods=['GET'])
 def get_historic_sites():
     try:
@@ -42,6 +41,9 @@ def get_historic_sites():
                     "details": err.messages
                 }
             }), 400
+
+        verify_jwt_in_request(optional=True)
+        user_id = get_jwt_identity()
 
         name = query_params.get('name')
         description = query_params.get('description')
@@ -79,6 +81,7 @@ def get_historic_sites():
             lat=lat,
             long=long,
             radius=radius,
+            user_id=user_id,
             order_by=order_by,
             order_dir=order_dir,
             page=page,

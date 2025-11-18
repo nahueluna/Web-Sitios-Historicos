@@ -13,17 +13,8 @@
           <p class="card-text mb-0">{{ review.content }}</p>
         </div>
       </div>
-<<<<<<< HEAD
-      <p class="card-text">{{ review.content }}</p>
-      <p class="card-text"><small class="text-muted">Calificación: {{ review.rating }}/5</small></p>
-      <p class="card-text"><small class="text-muted">Fecha: {{ formatDate(review.createdAt) }}</small></p>
-    </div>
-  </div>
-</template>
-=======
     </router-link>
   </template>
->>>>>>> dev
 
   <style scoped>
   .review-card {

@@ -20,15 +20,9 @@
 
 <script setup>
 import ReviewComponent from '@/components/ReviewComponent.vue'
-<<<<<<< HEAD
-import { useSessionStore } from '@/stores/sessionStore'
-import { onMounted, ref } from 'vue'
-import api from '@/service/api'
-=======
 import { useProfileReviewStore } from '@/stores/profileReviewStore'
 import { useSessionStore } from '@/stores/sessionStore'
 import { computed, onMounted, ref } from 'vue'
->>>>>>> dev
 
 const sessionStore = useSessionStore()
 const profileReviewStore = useProfileReviewStore()
@@ -36,14 +30,7 @@ const profileReviewStore = useProfileReviewStore()
 const reviews = ref([])
 
 onMounted(async () => {
-<<<<<<< HEAD
-  const response = await api.get(`/api/reviews/users/${sessionStore.user.id}/reviews`)
-  if (response.data.reviews){
-    reviews.value = response.data.reviews
-  }
-=======
   reviews.value = await profileReviewStore.loadAllReviews(sessionStore.user.id) 
   //reviews.value = profileReviewStore.getHardcodedReviews() // --> descomentar para testear
->>>>>>> dev
 })
 </script>

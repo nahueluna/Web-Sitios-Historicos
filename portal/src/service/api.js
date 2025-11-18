@@ -28,14 +28,14 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-      
+
       try {
         const sessionStore = useSessionStore();
         const newToken = await sessionStore.refreshToken();
-        
+
         if (newToken) {
           console.log("New token obtained, retrying request");
           originalRequest.headers.Authorization = `Bearer ${newToken}`;
@@ -47,7 +47,7 @@ api.interceptors.response.use(
         sessionStore.logout();
       }
     }
-    
+
     return Promise.reject(error);
   }
 );

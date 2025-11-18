@@ -15,6 +15,8 @@ from math import radians, sin, cos, sqrt, atan2
 from src.core.models.search.tags import Tag
 from src.core.models.historic_site_tags.hs_tags import HistoricSitesTags
 from src.core.models.review.review import Review, ReviewStatus
+from geoalchemy2.elements import WKTElement
+from geoalchemy2 import elements as geoelements, functions as geofunctions, Geography
 
 # Consulta para todos los sitios con su categoría
 def list_all_historic_sites(): 
@@ -201,7 +203,7 @@ def list_historic_sites_with_filters(q='', city='', province='', tags=None, stat
 
 ### --------- API PUBLICA --------- ###
 
-def list_historic_sites_with_advanced_filters(name='', description='', city='', province='', favorites=False, tag_ids=None, lat=None, long=None, radius=None, order_by='registration_date', order_dir='desc', page=1, per_page=25):
+def list_historic_sites_with_advanced_filters(name='', description='', city='', province='', favorites=False, tag_ids=None, lat=None, long=None, radius=None, user_id=None, order_by='registration_date', order_dir='desc', page=1, per_page=25):
 
     print(f"DEBUG MODEL - Filters received: name='{name}', description='{description}', city='{city}', province='{province}', tag_ids={tag_ids}")
     
@@ -215,20 +217,44 @@ def list_historic_sites_with_advanced_filters(name='', description='', city='', 
     if description and description != 'None':
         search_filters.append(HistoricSites.short_description.ilike(f'%{description}%'))
     if city and city != 'None':
-        search_filters.append(HistoricSites.city.ilike(f'%{city}%'))
+        query = query.filter(HistoricSites.city.ilike(f'%{city}%'))
     if province and province != 'None':
-        search_filters.append(HistoricSites.province.ilike(f'%{province}%'))
-    
-    # Aplicar AND solo si hay filtros de búsqueda
-    if search_filters:
-        query = query.filter(*search_filters)
-        print(f"DEBUG MODEL - Applied {len(search_filters)} filters with OR logic")
+        query = query.filter(HistoricSites.province.ilike(f'{province}%'))
 
-    if favorites:
-        query = query.join(usuario_favoritos, HistoricSites.id == usuario_favoritos.c.site_id).filter(usuario_favoritos.c.user_id == 1)
+    # Aplicar OR a nombre y descripción
+    if search_filters:
+        query = query.filter(or_(*search_filters))
+
+    if favorites and user_id:
+        query = query.join(usuario_favoritos, HistoricSites.id == usuario_favoritos.c.site_id).filter(usuario_favoritos.c.user_id == user_id)
 
     if tag_ids:
         query = query.join(HistoricSitesTags, HistoricSites.id == HistoricSitesTags.site_id).filter(HistoricSitesTags.tag_id.in_(tag_ids))
+
+    if lat is not None and long is not None and radius is not None:
+        try:
+            radius_m = float(radius) * 1000.0  # Convertir km a metros
+        except Exception:
+            radius_m = float(radius)
+
+        # Construir punto central: ST_SetSRID(ST_MakePoint(lon, lat), 4326)
+        center_point = func.ST_SetSRID(func.ST_MakePoint(float(long), float(lat)), 4326)
+
+        # Construir punto del sitio desde longitude y latitude
+        site_point = func.ST_SetSRID(
+            func.ST_MakePoint(HistoricSites.longitude, HistoricSites.latitude),
+            4326
+        )
+
+        # Usar ST_DWithin con Geography para distancias en metros
+        query = query.filter(
+            func.ST_DWithin(
+                site_point.cast(Geography),
+                center_point.cast(Geography),
+                radius_m,
+                use_spheroid=False
+            )
+        )
 
     if order_by == 'rating':
         subq = db.session.query(Review.historic_site_id, func.avg(Review.rating).label('avg_rating')).filter(
@@ -253,19 +279,6 @@ def list_historic_sites_with_advanced_filters(name='', description='', city='', 
 
         sites = query.group_by(HistoricSites.id).offset((page - 1) * per_page).limit(per_page).all()
         total = query.group_by(HistoricSites.id).count()
-
-    # Filter by geospatial radius if provided
-    if lat is not None and long is not None and radius is not None:
-        def haversine(lat1, lon1, lat2, lon2):
-            R = 6371  # Earth radius in km
-            dlat = radians(lat2 - lat1)
-            dlon = radians(lon2 - lon1)
-            a = sin(dlat/2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon/2)**2
-            c = 2 * atan2(sqrt(a), sqrt(1-a))
-            return R * c
-
-        sites = [s for s in sites if haversine(lat, long, s.latitude, s.longitude) <= radius]
-        total = len(sites)  # Update total after filtering (approximate for pagination)
 
     return sites, total
 

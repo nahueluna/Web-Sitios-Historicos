@@ -137,7 +137,7 @@
                 <ReviewsList
                   v-if="site"
                   :site-id="site.id"
-                  ref="reviewsList"
+                  :refresh-trigger="refreshTrigger"
                 />
               </div>
             </div>
@@ -197,9 +197,9 @@ const loading = ref(true)
 const showReviewForm = ref(false)
 const zoom = ref(12)
 const center = ref([0, 0])
-const reviewsList = ref(null)
 const userReview = ref(null)
 const editingReview = ref(null)
+const refreshTrigger = ref(0)
 
 const sortedImages = computed(() => {
   if (!site.value?.images) return [];
@@ -272,9 +272,7 @@ onMounted(async () => {
 })
 
 const onReviewAdded = async () => {
-  if (reviewsList.value && reviewsList.value.refresh) {
-    reviewsList.value.refresh()
-  }
+  refreshTrigger.value++
   await checkUserReview()
   showReviewForm.value = false
 }

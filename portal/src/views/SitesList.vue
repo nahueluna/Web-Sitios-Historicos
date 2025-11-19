@@ -60,41 +60,6 @@
                 />
               </div>
 
-              <!-- Ordenamiento -->
-              <div class="col-md-6">
-                <label for="orderBySelect" class="form-label">Ordenar por</label>
-                <div class="input-group">
-                  <select id="orderBySelect" v-model="filterForm.orderBy" class="form-select">
-                    <option value="registration_date">Fecha de registro</option>
-                    <option value="site_name">Nombre</option>
-                    <option value="rating">Calificación</option>
-                  </select>
-                  <button
-                    type="button"
-                    class="btn btn-outline-secondary"
-                    @click="toggleOrder"
-                    :disabled="!filterForm.orderBy"
-                    :title="filterForm.orderDir === 'asc' ? 'Ascendente' : 'Descendente'"
-                  >
-                    <i
-                      :class="filterForm.orderDir === 'asc' ? 'bi bi-sort-up' : 'bi bi-sort-down'"
-                    ></i>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Búsqueda por ciudad -->
-              <div class="col-md-6">
-                <label for="citySearchInput" class="form-label">Ciudad</label>
-                <input
-                  id="citySearchInput"
-                  v-model="filterForm.citySearch"
-                  type="text"
-                  class="form-control"
-                  placeholder="Ej.: La Plata"
-                />
-              </div>
-
               <!-- Selector de provincia -->
               <div class="col-md-6">
                 <label for="provinceSelect" class="form-label">Provincia</label>
@@ -128,6 +93,18 @@
                 </div>
               </div>
 
+              <!-- Búsqueda por ciudad -->
+              <div class="col-md-6">
+                <label for="citySearchInput" class="form-label">Ciudad</label>
+                <input
+                  id="citySearchInput"
+                  v-model="filterForm.citySearch"
+                  type="text"
+                  class="form-control"
+                  placeholder="Ej.: La Plata"
+                />
+              </div>
+
               <!-- Multiselector de etiquetas -->
               <div class="col-md-6">
                 <label class="form-label">Etiquetas</label>
@@ -142,6 +119,29 @@
                   label="name"
                   track-by="id"
                 />
+              </div>
+
+              <!-- Ordenamiento -->
+              <div class="col-md-6">
+                <label for="orderBySelect" class="form-label">Ordenar por</label>
+                <div class="input-group">
+                  <select id="orderBySelect" v-model="filterForm.orderBy" class="form-select">
+                    <option value="registration_date">Fecha de registro</option>
+                    <option value="site_name">Nombre</option>
+                    <option value="rating">Calificación</option>
+                  </select>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    @click="toggleOrder"
+                    :disabled="!filterForm.orderBy"
+                    :title="filterForm.orderDir === 'asc' ? 'Ascendente' : 'Descendente'"
+                  >
+                    <i
+                      :class="filterForm.orderDir === 'asc' ? 'bi bi-sort-up' : 'bi bi-sort-down'"
+                    ></i>
+                  </button>
+                </div>
               </div>
 
               <div v-if="isAuthenticated" class="col-md-6">

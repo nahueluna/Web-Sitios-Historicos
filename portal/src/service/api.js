@@ -3,7 +3,7 @@ import { useSessionStore } from "../stores/sessionStore";
 import { useLoginModalStore } from "@/stores/LoginModalStore";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000",
+  baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true, // para enviar cookies si es necesario
 });
 
@@ -39,27 +39,26 @@ api.interceptors.response.use(
         return Promise.reject(error);
       }
       else if ( !originalRequest._retry) {
-      originalRequest._retry = true;
+        originalRequest._retry = true;
 
-      try {
+        try {
 
-        const newToken = await sessionStore.refreshToken();
+          const newToken = await sessionStore.refreshToken();
 
-        if (newToken) {
-          console.log("New token obtained, retrying request");
-          originalRequest.headers.Authorization = `Bearer ${newToken}`;
-          return api(originalRequest);
+          if (newToken) {
+            console.log("New token obtained, retrying request");
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+            return api(originalRequest);
+          }
+        } catch (refreshError) {
+          console.error("Failed to refresh token:", refreshError);
+          const sessionStore = useSessionStore();
+          sessionStore.logout();
         }
-      } catch (refreshError) {
-        console.error("Failed to refresh token:", refreshError);
-        const sessionStore = useSessionStore();
-        sessionStore.logout();
       }
     }
-
     return Promise.reject(error);
-  }}
-);
+  });
 
 
 export default api;

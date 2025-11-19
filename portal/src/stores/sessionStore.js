@@ -53,7 +53,7 @@ export const useSessionStore = defineStore('session', {
       this._refreshToken = refreshToken;
       // Usar axios directamente para evitar problemas de interceptor
       const response = await axios.post(
-        'http://localhost:5000/api/auth/refresh',
+        `${api.defaults.baseURL}/api/auth/refresh`,
         {}, // Body vacío
         {
           headers: {

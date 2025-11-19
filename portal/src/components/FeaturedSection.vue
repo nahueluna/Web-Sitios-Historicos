@@ -10,7 +10,7 @@
       <!-- d-none d-md-flex: oculto en móvil, flex en tablet+, align-items-center: centra verticalmente -->
       <router-link
         v-if="!loading && sites &&  sites.length > 0"
-        :to="{ name: 'sites', query: { order_by: orderBy } }"
+        :to="{ name: 'sites', query: { order_by: orderBy, ...(props.sectionId === 'favorites' ? { favorites: true } : {}) } }"
         class="btn btn-outline-secondary d-none d-md-flex align-items-center"
       >
         Ver todos
@@ -113,7 +113,7 @@
       <!-- d-md-none: visible solo en móvil, text-center: texto centrado, mt-4: margen superior 4 -->
       <div class="d-md-none text-center mt-4">
         <router-link
-          :to="{ name: 'sites', query: { order_by: orderBy } }"
+          :to="{ name: 'sites', query: { order_by: orderBy, ...(props.sectionId === 'favorites' ? { favorites: true } : {}) } }"
           class="btn btn-outline-secondary"
         >
           Ver todos
@@ -176,10 +176,11 @@ onMounted(async () => {
     error.value = null
     let response = null
     if (props.requireAuth && props.sectionId === 'favorites') {
-       response = await sitesStore.fetchFavoriteSites({
+       response = await sitesStore.fetchSites({
+        favorites: true,
         order_by: props.orderBy,
         limit: 6,
-      }, sessionStore.user.email)
+      })
     }
     else {
       response = await sitesStore.fetchSites({

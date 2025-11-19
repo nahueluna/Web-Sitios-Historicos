@@ -79,15 +79,6 @@ export const useSitesStore = defineStore('sites', {
         this.loading = false;
       }
     },
-    async fetchSiteBySlug(slug) {
-      try {
-        const response = await this.fetchSites({ per_page: 100 });
-        return response.sites.find(site => site.slug === slug) || null;
-      } catch (error) {
-        console.error('[SitesStore] Error:', error);
-        return null;
-      }
-    },
     async fetchSiteById(site_id) {
       try {
         const response = await api.get(`/api/sites/${site_id}`);
@@ -96,17 +87,6 @@ export const useSitesStore = defineStore('sites', {
         console.error('[SitesStore] Error:', error);
         return null;
       }
-    },
-
-    async trackSiteVisit(siteId) {
-      try {
-        console.log(`[API] Tracked visit for site: ${siteId}`);
-      } catch (error) {
-        console.error('[SitesStore] Error:', error);
-      }
-    },
-    async fetchFavoriteSites(params = {}) {
-      return []; // Implementar la lógica para obtener los sitios favoritos del usuario
     }
   },
 });

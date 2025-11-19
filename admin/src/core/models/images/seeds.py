@@ -24,6 +24,16 @@ IMAGENES = [
     "8.jpg",
     "9.jpg",
     "10.jpg",
+    "11.jpg",
+    "12.jpg",
+    "13.jpg",
+    "14.jpg",
+    "15.jpg",
+    "16.jpg",
+    "17.jpg",
+    "18.jpg",
+    "19.jpg",
+    "20.jpg",
 ]
 
 
@@ -35,9 +45,8 @@ def seed_images():
     client = current_app.storage
     bucket_name = current_app.config["MINIO_BUCKET"]
 
-    print(sitios)
     for site in sitios:
-        current = random.randint(0, IMAGES_PER_SITE - 1)
+        current = random.randint(0, len(IMAGENES) - 1)
         for j in range(IMAGES_PER_SITE):
 
             file_name = IMAGENES[current]
@@ -68,7 +77,7 @@ def seed_images():
                 imagenes.append(imagen)
 
                 current += 1
-                if current == IMAGES_PER_SITE:
+                if current == len(IMAGENES):
                     current = 0
 
     db.session.add_all(imagenes)

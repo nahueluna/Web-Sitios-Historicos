@@ -6,15 +6,15 @@ export const useFavoritesStore = defineStore('favorites', {
     favorites: [],
   }),
   actions: {
-    async loadAllFavorites(userId) {
+    async loadAllFavorites() {
       const id = userId
       const response = await api.get(`/api/favorites/${id}`)
       this.favorites = response.data.favorites ?? []
       return this.favorites
         },
 
-        async loadRecentFavorites(userId, count = 4) {
-            const favorites = await this.loadAllFavorites(userId)
+        async loadRecentFavorites(count = 4) {
+            const favorites = await this.loadAllFavorites()
             this.favorites = Array.isArray(favorites) ? favorites.slice(0, count) : []
             return this.favorites
         },

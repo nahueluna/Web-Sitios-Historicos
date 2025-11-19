@@ -36,7 +36,7 @@
                 <CAccordionHeader> Mapa interactivo </CAccordionHeader>
                 <CAccordionBody>
                   <div v-if="mapShouldRender" class="map-container mb-4">
-                    <div class="ratio ratio-16x9 ratio-md-4x3 ratio-lg-21x9">
+                    <div>
                       <LeafletMap
                         :markers="markers"
                         :initialParams="mapParams"
@@ -325,6 +325,10 @@ const applyFilters = async () => {
   activeAccordionItem.value = 1
   await nextTick()
   activeAccordionItem.value = undefined
+
+  setTimeout(() => {
+    window.scrollTo(0, 0)
+  }, 50)
 }
 
 const clearFilters = () => {

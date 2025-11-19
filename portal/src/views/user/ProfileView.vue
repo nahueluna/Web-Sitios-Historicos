@@ -107,6 +107,7 @@
 import { ref, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useSessionStore } from "@/stores/sessionStore"
+import { useSitesStore } from '@/stores/sitesStore'
 import { useProfileReviewStore } from '@/stores/profileReviewStore'
 import { useFavoritesStore } from '@/stores/profileFavoriteStore'
 import ReviewComponent from '@/components/ReviewComponent.vue'
@@ -115,6 +116,7 @@ import GoogleLogout from '@/components/google/GoogleLogoutComponent.vue'
 
 
 const sessionStore = useSessionStore()
+const sitesStore = useSitesStore()
 const profileReviewStore = useProfileReviewStore()
 const profileFavoritesStore = useFavoritesStore()
 
@@ -123,8 +125,20 @@ const reviews = ref([])
 const favorites = ref([])
 
 onMounted(async () => {
-  reviews.value = await profileReviewStore.loadRecentReviews(user.id) 
-  favorites.value = await profileFavoritesStore.loadRecentFavorites() 
+  reviews.value = await profileReviewStore.loadRecentReviews(user.id)
+
+  try {
+    let response = null
+    response = await sitesStore.fetchSites({
+        favorites: true,
+        limit: 4,
+    })
+
+    console.log('[Featured] Response received:', response)
+    favorites.value = response.sites
+  } catch (err) {
+    console.error('[Featured] Error loading sites:', err)
+  }
   //reviews.value = profileReviewStore.getHardcodedReviews() // --> descomentar para testear
   // favorites.value = favoritesStore.getHardcodedFavorites() // --> descomentar para testear
 })

@@ -21,14 +21,12 @@
 <script setup>
 import SiteCard from '@/components/SiteCard.vue'
 import { computed, onMounted, ref } from 'vue'
-import { useSessionStore } from '@/stores/sessionStore'
 import { useFavoritesStore } from '@/stores/profileFavoriteStore'
-const sessionStore = useSessionStore()
 const favoritesStore = useFavoritesStore()
 const favoritesList = ref([])
 
 onMounted(async () => {
-    favoritesList.value = await favoritesStore.loadAllFavorites(sessionStore.user.id) 
+    favoritesList.value = await favoritesStore.loadAllFavorites() 
     //favoritesList.value = favoritesStore.getHardcodedFavorites() // --> descomentar para testear
 })
 </script>

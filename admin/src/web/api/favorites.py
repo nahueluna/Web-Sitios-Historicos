@@ -12,17 +12,15 @@ favorites_api = Blueprint('favorites_api', __name__, url_prefix='/api/favorites'
 
 # ========================= RESEÑAS ========================
 
-@favorites_api.route('/<int:user_id>', methods=['GET'])
+@favorites_api.route('/', methods=['GET'])
 @jwt_required()
-def get_favorite_sites(user_id):
+def get_favorite_sites():
     """
     Obtiene los favoritos del usuario.
     """
     try:
-        #user_id = get_jwt_identity()
-        print("User ID for favorites:", user_id)
+        user_id = get_jwt_identity()
         sites, msg = get_favoritos(user_id)
-        print("Favorites ", sites)
         if sites is None:
             return jsonify({"error": msg}), 404
 

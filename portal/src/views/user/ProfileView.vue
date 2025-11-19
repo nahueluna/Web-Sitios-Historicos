@@ -124,10 +124,10 @@ const reviews = ref([])
 const favorites = ref([])
 
 onMounted(async () => {
-  //reviews.value = await profileReviewStore.loadRecentReviews(user.id) ?? profileReviewStore.getHardcodedReviews().slice(0, 4)
-  //favorites.value = await favoritesStore.loadRecentFavorites(user.id) ?? favoritesStore.getHardcodedFavorites().slice(0, 4)
-  reviews.value = profileReviewStore.getHardcodedReviews()
-  favorites.value = favoritesStore.getHardcodedFavorites()
+  reviews.value = await profileReviewStore.loadRecentReviews(user.id) 
+  favorites.value = await favoritesStore.loadRecentFavorites() 
+  //reviews.value = profileReviewStore.getHardcodedReviews() // --> descomentar para testear
+  // favorites.value = favoritesStore.getHardcodedFavorites() // --> descomentar para testear
 })
 
 </script>

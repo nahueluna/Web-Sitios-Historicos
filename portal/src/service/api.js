@@ -3,7 +3,7 @@ import { useSessionStore } from "../stores/sessionStore";
 import { useLoginModalStore } from "@/stores/LoginModalStore";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000",
+  baseURL: import.meta.env.VITE_API_URL || 'https://admin-grupo03.proyecto2025.linti.unlp.edu.ar',
   withCredentials: true, // para enviar cookies si es necesario
 });
 

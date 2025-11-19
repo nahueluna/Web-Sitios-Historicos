@@ -17,23 +17,27 @@
       />
 
       <l-control>
-        <button v-if="showUpdateRadiusButton" @click="updateSearchRadius">
+        <button v-if="showUpdateRadiusButton" @click="updateSearchRadius" class="btn btn-primary">
           Actualizar radio de búsqueda
         </button>
       </l-control>
       <l-circle :lat-lng="radiusCenter" :radius="radius" color="blue" />
       <div v-for="marker in markers" :key="marker.id">
         <l-marker :lat-lng="[marker.lat, marker.lon]">
-          <l-popup>
-            <h3>{{ marker.title }}</h3>
-            <p>
+          <l-popup :options="{ maxWidth: 400, className: 'custom-popup' }">
+            <div class="card border-0 shadow-sm">
               <img
-                :src="marker.coverImage || '/placeholder.svg'"
+                v-if="marker.coverImage"
+                :src="marker.coverImage"
                 :alt="marker.title"
-                class="card-img-top mb-3"
+                class="card-img-top rounded-top"
+                style="max-height: 200px; object-fit: cover;"
               />
-              <span>{{ marker.description }}</span>
-            </p>
+              <div class="card-body p-3">
+                <h5 class="card-title mb-2 text-primary fw-bold">{{ marker.title }}</h5>
+                <p class="card-text text-muted mb-0 small">{{ marker.description }}</p>
+              </div>
+            </div>
           </l-popup>
         </l-marker>
       </div>
@@ -98,7 +102,12 @@ export default {
       this.zoom = newZoom
     },
     centerUpdated(newCenter) {
-      this.center = [newCenter.lat, newCenter.lng]
+      // Normalizar longitud
+      let lng = newCenter.lng;
+      while (lng > 180) lng -= 360;
+      while (lng < -180) lng += 360;
+
+      this.center = [newCenter.lat, lng]
     },
     async updateSearchRadius() {
       this.radius = this.calculateNewRadius()
@@ -135,5 +144,45 @@ export default {
   border-radius: 6px;
   border: 1px solid #ddd;
   margin-top: 1em;
+}
+
+/* Eliminar estilos por defecto del popup de Leaflet */
+:deep(.leaflet-popup-content-wrapper) {
+  padding: 0 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 3px 14px rgba(0, 0, 0, 0.15) !important;
+  overflow: hidden;
+  min-width: 250px !important;
+}
+
+:deep(.leaflet-popup-content) {
+  margin: 0 !important;
+  width: 100% !important;
+}
+
+:deep(.leaflet-popup-tip) {
+  background: white !important;
+}
+
+/* Personalizar markers */
+:deep(.leaflet-marker-icon) {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  transition: transform 0.2s ease;
+}
+
+:deep(.leaflet-marker-icon:hover) {
+  transform: scale(1.1);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+/* Mejorar el botón de cierre del popup */
+:deep(.leaflet-popup-close-button) {
+  color: #6c757d !important;
+  font-size: 20px !important;
+  padding: 4px 8px !important;
+}
+
+:deep(.leaflet-popup-close-button:hover) {
+  color: #dc3545 !important;
 }
 </style>

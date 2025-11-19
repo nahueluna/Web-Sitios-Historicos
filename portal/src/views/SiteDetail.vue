@@ -27,9 +27,18 @@
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-start mb-3">
                 <h1 class="h2 fw-bold mb-0">{{ site.name }}</h1>
-                <span v-if="site.rating" class="badge bg-warning text-dark fs-6">
-                  <i class="bi bi-star-fill"></i>
-                  {{ site.rating.toFixed(1) }}
+              </div>
+
+              <!-- Estado de conservación -->
+              <div class="my-1 d-flex align-items-center gap-2">
+                <span class="fw-semibold">Estado de conservación:</span>
+
+                <span
+                  :class="stateConfig(site.state_of_conservation).classes"
+                  class="d-inline-flex align-items-center gap-1 px-2 py-1 rounded-pill"
+                >
+                  <i :class="stateConfig(site.state_of_conservation).icon"></i>
+                  {{ site.state_of_conservation }}
                 </span>
               </div>
 
@@ -95,9 +104,23 @@
                 />
               </div>
 
-              <p v-if="site.description" class="lead">
-                {{ site.description }}
-              </p>
+              <!-- DESCRIPCIÓN -->
+              <div v-if="site.short_description || site.description" class="mb-3">
+
+                <!-- Texto visible -->
+                <p class="lead">
+                  {{ showFullDescription ? site.description : site.short_description }}
+                </p>
+
+                <!-- Botón Ver Más / Ver Menos -->
+                <button
+                  class="btn btn-link p-0"
+                  @click="showFullDescription = !showFullDescription"
+                >
+                  {{ showFullDescription ? "Ver menos" : "Ver más" }}
+                </button>
+
+              </div>
 
               <!-- Mapa -->
               <div class="map-wrapper">
@@ -201,6 +224,7 @@ const center = ref([0, 0])
 const userReview = ref(null)
 const editingReview = ref(null)
 const refreshTrigger = ref(0)
+const showFullDescription = ref(false)
 
 const sortedImages = computed(() => {
   if (!site.value?.images) return [];
@@ -296,6 +320,31 @@ const handleFavorite = async () => {
     console.error("[SiteDetail] Error toggling favorite:", error);
   }
 };
+
+function stateConfig(state) {
+  const configMap = {
+    Bueno: {
+      classes: 'badge bg-success text-white',
+      icon: 'bi bi-check-circle-fill'
+    },
+    Regular: {
+      classes: 'badge bg-warning text-dark',
+      icon: 'bi bi-exclamation-triangle-fill'
+    },
+    Malo: {
+      classes: 'badge bg-danger text-white',
+      icon: 'bi bi-x-circle-fill'
+    }
+  }
+
+  // fallback
+  return (
+    configMap[state] || {
+      classes: 'badge bg-secondary text-white',
+      icon: 'bi bi-question-circle-fill'
+    }
+  )
+}
 </script>
 
 <style scoped>

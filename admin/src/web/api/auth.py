@@ -5,6 +5,7 @@ from src.core.models.auth import get_usuario_by_email, get_usuario_by_id
 
 auth_api = Blueprint('auth_api', __name__, url_prefix='/api/auth')
 
+# Generar JWT token
 @auth_api.post('')
 def generate_jwt_token():
     user_email = request.json.get('email')
@@ -36,6 +37,7 @@ def generate_jwt_token():
         "refresh_token": refresh_token,
     }), 200
 
+# Refresh JWT token
 @auth_api.post('/refresh')
 @jwt_required(refresh=True)  # Deberia verificar automaticamente el refresh token
 def refresh():

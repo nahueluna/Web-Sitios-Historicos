@@ -17,8 +17,11 @@
       />
 
       <l-control>
-        <button v-if="showUpdateRadiusButton" @click="updateSearchRadius" class="btn btn-primary">
+        <button v-if="showUpdateRadiusButton" @click="updateSearchRadius" class="btn btn-primary d-none d-md-inline">
           Actualizar radio de búsqueda
+        </button>
+        <button v-if="showUpdateRadiusButton" @click="updateSearchRadius" class="btn btn-primary btn-sm d-inline d-md-none">
+          Actualizar radio
         </button>
       </l-control>
       <l-circle :lat-lng="radiusCenter" :radius="radius" color="blue" />
@@ -142,7 +145,7 @@ export default {
   height: 600px !important;
   width: 100%;
   border-radius: 6px;
-  border: 1px solid #ddd;
+  border: 1px solid #c9c0c0;
   margin-top: 1em;
 }
 

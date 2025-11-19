@@ -176,6 +176,7 @@ const submitReview = async () => {
     } else {
       alert('✗ Error al ' + (isEditMode.value ? 'actualizar' : 'enviar') + ' la reseña. Por favor, intenta nuevamente.')
     }
+    emit('reviewAdded')
   } finally {
     loading.value = false
   }

@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import ForeignKey, String, Boolean, Enum, DateTime, func
+from sqlalchemy import ForeignKey, String, Boolean, Enum, DateTime, func, Column, Table
 from src.core.database import Base
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
@@ -14,6 +14,14 @@ class RolUsuario(enum.Enum):
     PUBLICO = "Usuario público"
     EDITOR = "Editor"
     ADMIN = "Administrador"
+
+
+usuario_favoritos = Table(
+    "usuario_favoritos",
+    Base.metadata,
+    Column("user_id", ForeignKey("usuarios.id")),
+    Column("site_id", ForeignKey("historic_sites.id")),
+)
 
 # Modelo Usuario
 class Usuario(Base):
@@ -35,6 +43,9 @@ class Usuario(Base):
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
     )
+
+    # Relacion con tabla HistoricSites
+    favoritos = relationship("HistoricSites", secondary=usuario_favoritos)
 
     # Relación con Role
     role: Mapped["Role"] = relationship("Role", back_populates="users")

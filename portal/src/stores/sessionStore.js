@@ -1,30 +1,93 @@
-import { defineStore } from "pinia";
+import { defineStore } from 'pinia';
+import router from '../router';
+import api from '../service/api';
 import { useLoginModalStore } from "@/stores/LoginModalStore";
-import router from '@/router'
+import axios from 'axios';
 
 export const useSessionStore = defineStore('session', {
   state: () => ({
     user: null,
     redirect_uri: null,
+    accessToken: null,
+    _refreshToken: null,
+    isLoading: false, // Para controlar estados de carga
   }),
+
+  getters: {
+    isAuthenticated: (state) => state.user !== null,
+  },
+
   actions: {
+    setTokens(accessToken, refreshToken) {
+      this.accessToken = accessToken;
+      this._refreshToken = refreshToken;
+      localStorage.setItem('accessToken', accessToken);
+      localStorage.setItem('refreshToken', refreshToken);
+    },
+
     login(user) {
       this.user = user;
       localStorage.setItem('user', JSON.stringify(user));
       useLoginModalStore().closeLoginModal();
-      router.push(this.redirect_uri || '/');
+      if (this.redirect_uri) {
+        router.push(this.redirect_uri);
+        this.redirect_uri = null;
+      } else {
+        router.push('/');
+      }
     },
+
     logout() {
       this.user = null;
-      // Limpiar cookie
-      localStorage.clear()
-      sessionStorage.clear()
-
-      // No limpia el historial del router
-      router.replace("/")
+      this.accessToken = null;
+      this._refreshToken = null;
+      this.isLoading = false;
+      localStorage.removeItem('user');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      router.replace("/");
     },
-    isAuthenticated() {
-      return this.user !== null;
+
+    async refreshToken() {
+      const refreshToken = localStorage.getItem('refreshToken');
+      this._refreshToken = refreshToken;
+      // Usar axios directamente para evitar problemas de interceptor
+      const response = await axios.post(
+        'http://localhost:5000/api/auth/refresh',
+        {}, // Body vacío
+        {
+          headers: {
+            'Authorization': `Bearer ${refreshToken}`
+          }
+        }
+      );
+      const newAccessToken = response.data.access_token;
+      this.accessToken = newAccessToken;
+      localStorage.setItem('accessToken', newAccessToken);
+    },
+
+    // Método para restaurar sesión completa
+    async restoreSession() {
+      const userData = localStorage.getItem('user');
+      const storedAccessToken = localStorage.getItem('accessToken');
+      const storedRefreshToken = localStorage.getItem('refreshToken');
+
+      if (userData && storedAccessToken && storedRefreshToken) {
+        try {
+          this.user = JSON.parse(userData);
+          this.accessToken = storedAccessToken;
+          this._refreshToken = storedRefreshToken;
+
+          // Verificar si el token actual sigue siendo válido
+          await this.refreshToken();
+          return true;
+        } catch (error) {
+          console.error("Error restaurando sesión:", error);
+          this.logout();
+          return false;
+        }
+      }
+      return false;
     }
   },
 });

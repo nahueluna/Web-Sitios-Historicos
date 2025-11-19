@@ -8,7 +8,7 @@
         v-model="searchQuery"
         type="search"
         class="form-control"
-        placeholder="Buscar sitios históricos por nombre, ubicación o categoría..."
+        placeholder="Buscar sitios históricos por nombre, ciudad o provincia."
       />
     </div>
     <button type="submit" class="btn btn-primary px-4">
@@ -27,7 +27,7 @@ const router = useRouter()
 const handleSearch = () => {
   if (searchQuery.value.trim()) {
     router.push({
-      name: 'sites',
+      name: 'sites',    //SiteList
       query: { search: searchQuery.value.trim() },
     })
   }

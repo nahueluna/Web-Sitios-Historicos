@@ -22,8 +22,7 @@ app.use(router)
 app.use(BootstrapVueNext.BootstrapVueNext)
 
 app.use(vue3GoogleLogin, {
-  clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+  clientId: "293951950999-3o52dhr2ouqr0rdp54lcrplj9d9m7h82.apps.googleusercontent.com"
 })
-
 
 app.mount('#app')

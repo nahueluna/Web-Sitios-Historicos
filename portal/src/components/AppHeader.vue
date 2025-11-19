@@ -56,11 +56,11 @@ import GoogleLogin from './google/GoogleLoginComponent.vue'
 import GoogleLogout from './google/GoogleLogoutComponent.vue'
 
 const sessionStore = useSessionStore()
-const isAuthenticated = ref(sessionStore.isAuthenticated())
+const isAuthenticated = ref(sessionStore.isAuthenticated)
 const user = ref(sessionStore.user)
 
 watchEffect(() => {
-  isAuthenticated.value = sessionStore.isAuthenticated()
+  isAuthenticated.value = sessionStore.isAuthenticated
   user.value = sessionStore.user
 })
 </script>

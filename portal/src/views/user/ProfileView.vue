@@ -52,11 +52,9 @@
                 <i class="bi bi-arrow-right ms-2"></i>
               </router-link>
             </div>
-            <!-- row: fila flexbox, g-3: gap 3 entre elementos -->
+            <!-- Listado de reseñas recientes -->
             <div class="row g-3">
-              <!-- col-md-6: 6/12 columnas en medium y arriba -->
-              <div v-for="review in reviews" :key="review.id" class="col-md-6">
-                <!-- REVIEW COMPONENT -->
+              <div v-for="review in reviews.slice(0, 4)" :key="review.id" class="col-md-6 col-lg-4">
                 <ReviewComponent :review="review" />
               </div>
             </div>
@@ -69,49 +67,66 @@
             </div>
           </div>
 
-          <div v-if="reviews.length === 0" class="alert alert-info">
-            <!-- me-2: margen derecho 2 -->
+          <div v-if="favorites.length === 0" class="alert alert-info">
             <i class="bi bi-info-circle me-2"></i>
             No has agregado ningún favorito aún.
           </div>
           <div v-else>
-            <h3 class="h4 mb-3 mt-4">
-              <router-link to="/favorites" class="text-decoration-none">Mis Favoritos Recientes</router-link>
-            </h3>
+            <div class="d-flex justify-content-between align-items-start mb-4 mt-4">
+              <div>
+                <h3 class="h4 mb-1">Mis Favoritos Recientes</h3>
+                <p class="text-muted mb-0">Lugares que has marcado como favoritos recientemente</p>
+              </div>
+              <router-link to="/favorites" class="btn btn-outline-secondary d-none d-md-flex align-items-center">
+                Ver todos
+                <i class="bi bi-arrow-right ms-2"></i>
+              </router-link>
+            </div>
+
             <div class="row g-3">
               <div v-for="favorite in favorites" :key="favorite.id" class="col-md-6">
                 <SiteCard :site="favorite" />
               </div>
             </div>
+
+            <div class="d-md-none text-center mt-4">
+              <router-link to="/favorites" class="btn btn-outline-secondary">
+                Ver todos
+                <i class="bi bi-arrow-right ms-2"></i>
+              </router-link>
+            </div>
           </div>
         </div>
       </div>
     </div>
+
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useSessionStore } from "@/stores/sessionStore"
-import { useReviewsStore } from '@/stores/reviewsStore'
-import { useFavoritesStore } from '@/stores/favoriteStore'
+import { useProfileReviewStore } from '@/stores/profileReviewStore'
+import { useFavoritesStore } from '@/stores/profileFavoriteStore'
 import ReviewComponent from '@/components/ReviewComponent.vue'
 import SiteCard from '@/components/SiteCard.vue'
 import GoogleLogout from '@/components/google/GoogleLogoutComponent.vue'
 
+
 const sessionStore = useSessionStore()
-const reviewsStore = useReviewsStore()
+const profileReviewStore = useProfileReviewStore()
 const favoritesStore = useFavoritesStore()
 
 const user = sessionStore.user
-const reviews = computed(() => {
-  if (!sessionStore.user) return []
-  return reviewsStore.getReviewsByUser(sessionStore.user.id).slice(0, 3)
+const reviews = ref([])
+const favorites = ref([])
+
+onMounted(async () => {
+  reviews.value = await profileReviewStore.loadRecentReviews(user.id) 
+  favorites.value = await favoritesStore.loadRecentFavorites() 
+  //reviews.value = profileReviewStore.getHardcodedReviews() // --> descomentar para testear
+  // favorites.value = favoritesStore.getHardcodedFavorites() // --> descomentar para testear
 })
 
-const favorites = computed(() => {
-  return []
-  //return favoritesStore.getFavorites(6)
-})
 </script>

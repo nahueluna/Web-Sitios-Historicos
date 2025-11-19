@@ -1,5 +1,5 @@
 from functools import wraps
-from flask import session, redirect, url_for, flash, abort, render_template
+from flask import session, redirect, url_for, flash, abort, jsonify, request, render_template
 from src.core.models.auth import get_usuario_by_email
 from src.core.models.feature_flag import is_active, find_flag_by_name
 
@@ -57,13 +57,13 @@ def require_feature(flag_name: str):
     Uso: Funcionalidades opcionales del sistema
     - reviews_enabled
     - export_csv_enabled
-    - new_search_algorithm
     
     Comportamiento:
     - Si flag está OFF → Bloquea acceso (403)
     - Si flag está ON → Permite acceso
     - System admins siempre tienen acceso
     
+    Responde con JSON para consumo del frontend.
     """
     def decorator(f):
         @wraps(f)
@@ -77,13 +77,15 @@ def require_feature(flag_name: str):
             
             # Verificar si el feature no está habilitado
             if not is_active(flag_name):
-                
                 flag = find_flag_by_name(flag_name)
                 
-                return render_template(
-                    'maintenance.html',
-                    maintenance_message=flag.maintenance_message
-                ), 403  # 403 Forbidden: La funcionalidad existe pero está deshabilitada (feature flag OFF)
+                return jsonify({
+                    "error": {
+                        "code": "feature_disabled",
+                        "message": "Feature not available",
+                        "details": flag.maintenance_message if flag else "This feature is currently disabled"
+                    }
+                }), 403
             
             return f(*args, **kwargs)
         
@@ -144,11 +146,12 @@ def block_portal_maintenance(f):
     Comportamiento:
     - Si portal_maintenance_mode está ON → Bloquea acceso (503)
     - Si portal_maintenance_mode está OFF → Permite acceso
-    - System Admins y roles exentos pueden acceder durante mantenimiento
+    - System Admins pueden acceder durante mantenimiento
+    
+    Responde con JSON para consumo del frontend.
     """
     @wraps(f)
     def decorated_function(*args, **kwargs):
-
         
         # Verificar si el modo mantenimiento de portal está ACTIVO (ON)
         if is_active('portal_maintenance_mode'):
@@ -159,18 +162,19 @@ def block_portal_maintenance(f):
                 # System Admin puede acceder durante mantenimiento
                 return f(*args, **kwargs)
             
-            
             # Usuario NO tiene rol exento → Bloquear acceso
             
             # Obtener mensaje personalizado del flag
             flag = find_flag_by_name('portal_maintenance_mode')
-
-            # Renderizar template de mantenimiento
-            return render_template(
-                'maintenance.html',
-                maintenance_message=flag.maintenance_message
-            ), 503  # 503 Service Unavailable: El servicio está temporalmente en mantenimiento
-        
+            maintenance_msg = flag.maintenance_message if flag else "Portal en mantenimiento"
+            
+            return jsonify({
+                "error": {
+                    "code": "service_unavailable",
+                    "message": "Service temporarily unavailable",
+                    "details": maintenance_msg
+                }
+            }), 503
         
         # Portal operando normalmente → Permitir acceso
         return f(*args, **kwargs)

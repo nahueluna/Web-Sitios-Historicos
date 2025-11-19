@@ -1,5 +1,5 @@
 <template>
-  <router-link :to="`/sites/${site.slug}`" class="text-decoration-none">
+  <router-link :to="`/sites/${site.id}`" class="text-decoration-none">
     <div class="card h-100 site-card">
       <div class="position-relative card-img-wrapper">
         <img
@@ -14,10 +14,11 @@
       </div>
       <div class="card-body">
         <h5 class="card-title text-truncate">{{ site.name }}</h5>
-        <p class="card-text text-muted small mb-0">
+        <p class="card-text text-muted small mb-3">
           <i class="bi bi-geo-alt"></i>
           {{ site.city }}, {{ site.province }}
         </p>
+        <slot></slot>
       </div>
     </div>
   </router-link>

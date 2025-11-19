@@ -21,6 +21,7 @@ from src.web.decorator import block_portal_maintenance, require_feature
 from src.web.schemas.sites import (
     HistoricSiteSearchSchema,
     HistoricSiteCreateSchema,
+    HistoricSiteReviewsSchema,
 )
 from src.web.schemas.review import (
     ReviewCreateSchema,
@@ -67,7 +68,7 @@ def get_historic_sites():
 
         tags = [tag.strip() for tag in tags_str.split(',') if tag.strip()] if tags_str else []
 
-        # Tira error si no hay lat y long
+        # Tira error si no hay lat y long (sin marshmallow)
         if radius is not None and (lat is None or long is None):
             return jsonify({
                 "error": {
@@ -127,6 +128,7 @@ def get_historic_sites():
         print(str(e))
         return jsonify({"error": {"code": "server_error", "message": "Ocurrió un error inesperado"}}), 500
 
+# Obtener sitio por id
 @sites_api.route('/<int:site_id>', methods=['GET'])
 @block_portal_maintenance
 def get_historic_site(site_id):
@@ -155,32 +157,32 @@ def get_historic_site(site_id):
     except Exception as e:
         return jsonify({"error": {"code": "server_error", "message": "An unexpected error occurred"}}), 500
 
-
+# Obtener reviews de un sitio
 @sites_api.route('/<int:site_id>/reviews', methods=['GET'])
 @block_portal_maintenance
 @require_feature('reviews_enabled')
 def get_historic_site_reviews(site_id):
-    """
-    Obtiene las reseñas aprobadas de un sitio histórico específico (público).
-    Query params:
-        - page: Número de página (default: 1)
-        - per_page: Items por página (default: 10)
-    Responde con el esquema { data: [...], meta: { page, per_page, total } }
-    """
     try:
         # Validar que el sitio exista y sea visible
         site = get_visible_historic_site(site_id)
         if not site:
             return jsonify({"error": {"code": "not_found", "message": "Site not found"}}), 404
 
-        page = request.args.get('page', 1, type=int)
-        per_page = request.args.get('per_page', 10, type=int)
+        # Validar query params con Marshmallow
+        reviews_schema = HistoricSiteReviewsSchema()
+        try:
+            query_params = reviews_schema.load(request.args)
+        except ValidationError as err:
+            return jsonify({
+                "error": {
+                    "code": "invalid_query",
+                    "message": "Parameter validation failed",
+                    "details": err.messages
+                }
+            }), 400
 
-        # Validaciones de paginación
-        if page < 1:
-            return jsonify({"error": {"code": "invalid_data", "message": "Invalid input data", "details": {"page": ["Must be at least 1"]}}}), 400
-        if per_page < 1 or per_page > 100:
-            return jsonify({"error": {"code": "invalid_data", "message": "Invalid input data", "details": {"per_page": ["Must be between 1 and 100"]}}}), 400
+        page = query_params['page']
+        per_page = query_params['per_page']
 
         reviews, total = list_reviews_with_filters(
             site=site_id,
@@ -213,20 +215,13 @@ def get_historic_site_reviews(site_id):
     except Exception as e:
         return jsonify({"error": {"code": "server_error", "message": "An unexpected error occurred"}}), 500
 
-
+# Crear review de un sitio
 @sites_api.route('/<int:site_id>/reviews', methods=['POST'])
 @block_portal_maintenance
 @jwt_required()
 def create_site_review(site_id):
-    """
-    Crea una nueva reseña para un sitio histórico específico.
-    Requiere autenticación JWT.
-    Request Body (JSON):
-        "rating": int,      # Puntuación 1-5 (requerido)
-        "content": str      # Texto de la reseña, max 1000 chars (requerido)
-    """
     try:
-        user_id = get_jwt_identity()    # Verificar si anda cuando funciona la autenticación en el frontend
+        user_id = get_jwt_identity()
 
         # Verificar que el sitio existe y es visible
         site = get_visible_historic_site(site_id)
@@ -297,22 +292,14 @@ def create_site_review(site_id):
             }
         }), 500
 
-
+# Actualizar review de un sitio
 @sites_api.route('/<int:site_id>/reviews/<int:review_id>', methods=['PUT'])
 @block_portal_maintenance
 @require_feature('reviews_enabled')
 @jwt_required()
 def update_site_review(site_id, review_id):
-    """
-    Actualiza una reseña existente de un sitio histórico.
-    Solo el autor de la reseña puede actualizarla.
-    Requiere autenticación JWT.
-    Request Body (JSON):
-        "rating": int,      # Puntuación 1-5 (requerido)
-        "content": str      # Texto de la reseña (opcional)
-    """
     try:
-        user_id = get_jwt_identity() # Devuelve un String
+        user_id = get_jwt_identity() 
 
         # Verificar que el sitio existe
         site = get_visible_historic_site(site_id)
@@ -388,17 +375,12 @@ def update_site_review(site_id, review_id):
             }
         }), 500
 
-
+# Eliminar review de un sitio
 @sites_api.route('/<int:site_id>/reviews/<int:review_id>', methods=['DELETE'])
 @jwt_required()
 @block_portal_maintenance
 @require_feature('reviews_enabled')
 def delete_historic_site_review(site_id, review_id):
-    """
-    Elimina una reseña específica de un sitio histórico.
-    Solo el autor de la reseña puede eliminarla.
-    Requiere autenticación JWT.
-    """
     try:
         user_id = get_jwt_identity()
         
@@ -456,12 +438,6 @@ def delete_historic_site_review(site_id, review_id):
 @jwt_required()
 @block_portal_maintenance
 def create_historic_site():
-    """
-    Crea un nuevo sitio histórico.
-    Requiere autenticación JWT.
-    
-    Usa HistoricSiteCreateSchema para validación automática.
-    """
     try:
         # Obtener user_id del JWT token (ya validado por @jwt_required())
         user_id = get_jwt_identity()
@@ -509,7 +485,7 @@ def create_historic_site():
             latitude=float(data['lat']),
             longitude=float(data['long']),
             conservation_status=estado.id,
-            inauguration_year=datetime.now(),  # O se podría agregar al request
+            inauguration_year=datetime.now(), 
             category=categoria.id,
             user_id=user_id,
             visible=False,  # Los sitios creados por usuarios públicos están ocultos por defecto

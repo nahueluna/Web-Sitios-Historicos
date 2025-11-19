@@ -121,7 +121,6 @@
                 <button
                   class="btn btn-success"
                   @click="handleWriteReview"
-                  :disabled="!sessionStore.isAuthenticated"
                 >
                   <i :class="userReview ? 'bi bi-pencil' : 'bi bi-star'"></i>
                   {{ userReview ? 'Editar mi Reseña' : 'Escribir Reseña' }}
@@ -175,6 +174,7 @@ import { useSitesStore } from '@/stores/sitesStore'
 import { useSessionStore } from '@/stores/sessionStore'
 import { useReviewsStore } from '@/stores/reviewsStore'
 import { useFavoritesStore } from '@/stores/favoritesStore'
+import { useLoginModalStore } from '@/stores/LoginModalStore'
 import ReviewForm from '@/components/ReviewForm.vue'
 import ReviewsList from '@/components/ReviewsList.vue'
 import L from "leaflet";
@@ -187,6 +187,7 @@ const route = useRoute()
 const sitesStore = useSitesStore()
 const sessionStore = useSessionStore()
 const favoritesStore = useFavoritesStore()
+const loginModalStore = useLoginModalStore()
 const isAuthenticated = ref(sessionStore.isAuthenticated)
 const isFavorite = ref(false)
 const favoriteLoading = ref(false)
@@ -232,7 +233,10 @@ const checkUserReview = async () => {
 
 const handleWriteReview = () => {
   if (!sessionStore.isAuthenticated) {
-    alert('Debes iniciar sesión para escribir una reseña.')
+    loginModalStore.openLoginModal()
+
+    sessionStore.redirect_uri = `/sites/${route.params.site_id}`
+
     return
   }
 

@@ -42,6 +42,19 @@
                 </span>
               </div>
 
+              <!-- TAGS -->
+              <div class="mt-2">
+                <span
+                  v-for="tag in mappedTags"
+                  :key="tag.id"
+                  @click="onTagClick(tag.id)"
+                  class="badge fs-8 me-1 mb-1 tag-clickable"
+                  style="border: 1px solid #71898d; cursor: pointer"
+                >
+                  {{ tag.name }}
+                </span>
+              </div>
+
               <p class="text-muted mb-3">
                 <i class="bi bi-geo-alt"></i>
                 {{ site.city }}, {{ site.province }}
@@ -192,7 +205,7 @@
 
 <script setup>
 import { ref, onMounted, computed, watchEffect} from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useSitesStore } from '@/stores/sitesStore'
 import { useSessionStore } from '@/stores/sessionStore'
 import { useReviewsStore } from '@/stores/reviewsStore'
@@ -207,6 +220,7 @@ import api from '@/service/api'
 import { transformReview } from '@/utils/reviewTransformer'
 
 const route = useRoute()
+const router = useRouter()
 const sitesStore = useSitesStore()
 const sessionStore = useSessionStore()
 const favoritesStore = useFavoritesStore()
@@ -280,6 +294,9 @@ const handleWriteReview = () => {
 onMounted(async () => {
   const site_id = route.params.site_id
   try {
+    if (!sitesStore.allTags.length) {
+      await sitesStore.fetchAllTags()
+    }
     loading.value = true
     site.value = await sitesStore.fetchSiteById(site_id)
     console.log("site: ",site.value)
@@ -298,6 +315,17 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+const mappedTags = computed(() => {
+  if (!site.value || !site.value.tags || !sitesStore.allTags) return []
+  return site.value.tags
+    .map(tagName => sitesStore.allTags.find(t => t.name === tagName))
+    .filter(Boolean)
+})
+
+function onTagClick(tagId) {
+  router.push(`/sites?tags=${tagId}`)
+}
 
 const onReviewAdded = async () => {
   refreshTrigger.value++
@@ -367,5 +395,10 @@ function stateConfig(state) {
   .map-wrapper {
     height: 350px;
   }
+}
+
+.badge {
+  color: #594747;
+  background-color: #a2bec2;
 }
 </style>

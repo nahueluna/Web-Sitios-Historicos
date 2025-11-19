@@ -87,3 +87,16 @@ class HistoricSiteCreateSchema(Schema):
     )
     tags = fields.List(fields.Str(), load_default=[], allow_none=True)
     country = fields.Str(load_default='AR', validate=validate.Length(max=3))
+
+# Schema para endpoint de obtener reviews de un sitio histórico 
+class HistoricSiteReviewsSchema(Schema):
+    page = fields.Int(
+        load_default=1,
+        validate=validate.Range(min=1),
+        error_messages={'invalid': 'Page must be at least 1'}
+    )
+    per_page = fields.Int(
+        load_default=10,
+        validate=validate.Range(min=1, max=100),
+        error_messages={'invalid': 'per_page must be between 1 and 100'}
+    )

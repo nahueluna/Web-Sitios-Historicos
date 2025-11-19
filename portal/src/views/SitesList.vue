@@ -11,23 +11,38 @@
             Ordenado por: <strong>{{ getOrderByLabel(orderBy) }}</strong>
           </p>
           <p v-else class="text-muted">Sitios históricos ordenados por fecha de registro</p>
+          <div v-if="!loading && total !== 0" class="col">
+            <p v-if="total === 1" class="text-muted">
+              Se encontró <strong>{{ total }}</strong> resultado
+            </p>
+            <p v-else-if="total > 1" class="text-muted">
+              Se encontraron <strong>{{ total }}</strong> resultados
+            </p>
+          </div>
         </div>
       </div>
 
-      <CAccordion class="mb-4">
-        <CAccordionItem :item-key="1">
-          <CAccordionHeader> Filtros y ordenamientos </CAccordionHeader>
+      <CAccordion v-model:active-item-key="activeAccordionItem" class="mb-4">
+        <CAccordionItem :item-key="1" :class="{ 'filters-active': hasActiveFilters }">
+          <CAccordionHeader>
+            Filtros y ordenamientos
+            <span v-if="hasActiveFilters" class="badge bg-primary ms-2">
+              {{ activeFiltersCount }}
+            </span>
+          </CAccordionHeader>
           <CAccordionBody>
             <CAccordion class="mb-4">
               <CAccordionItem :item-key="2" @click="renderMap">
                 <CAccordionHeader> Mapa interactivo </CAccordionHeader>
                 <CAccordionBody>
                   <div v-if="mapShouldRender" class="map-container mb-4">
-                    <LeafletMap
-                      :markers="markers"
-                      :initialParams="mapParams"
-                      @update-map-params="handleMapSearch"
-                    />
+                    <div class="ratio ratio-16x9 ratio-md-4x3 ratio-lg-21x9">
+                      <LeafletMap
+                        :markers="markers"
+                        :initialParams="mapParams"
+                        @update-map-params="handleMapSearch"
+                      />
+                    </div>
                   </div>
                 </CAccordionBody>
               </CAccordionItem>
@@ -218,7 +233,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, reactive, toRaw, watchEffect } from 'vue'
+import { ref, onMounted, watch, reactive, toRaw, watchEffect, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Multiselect } from 'vue-multiselect'
 import 'vue-multiselect/dist/vue-multiselect.css'
@@ -235,6 +250,7 @@ const route = useRoute()
 const router = useRouter()
 const sitesStore = useSitesStore()
 const sites = ref([])
+const total = ref(0)
 const tags = ref([])
 const loading = ref(true)
 const searchQuery = ref('')
@@ -254,6 +270,9 @@ const mapParams = ref(undefined)
 const mapZoom = ref(16)
 const errorMessage = ref('')
 const showErrorToast = ref(false)
+const activeAccordionItem = ref(null)
+const hasActiveFilters = ref(false)
+const activeFiltersCount = ref(0)
 
 // Construye un diccionario reactivo (dinámico con v-model)
 const filterForm = reactive({
@@ -282,8 +301,8 @@ const toggleOrder = () => {
 }
 
 // Navega a la ruta definida de nombre 'sites' con los parámetros indicados. Dispara el watch de route.query
-const applyFilters = () => {
-  router.push({
+const applyFilters = async () => {
+  await router.push({
     name: 'sites',
     query: {
       search: filterForm.search || undefined,
@@ -298,8 +317,14 @@ const applyFilters = () => {
       radius: filterForm.radius || undefined,
     },
   })
-
   localStorage.setItem('mapZoom', mapZoom.value.toString())
+
+  calculateActiveFilters()
+
+  // Permite cerrar el acordeón al aplicar filtros
+  activeAccordionItem.value = 1
+  await nextTick()
+  activeAccordionItem.value = undefined
 }
 
 const clearFilters = () => {
@@ -313,8 +338,11 @@ const clearFilters = () => {
   filterForm.lat = undefined
   filterForm.long = undefined
   filterForm.radius = undefined
-
   localStorage.removeItem('mapZoom')
+
+  hasActiveFilters.value = false
+  activeFiltersCount.value = 0
+
   router.push({ name: 'sites' })
 }
 
@@ -343,7 +371,7 @@ const loadSites = async () => {
     orderBy.value = route.query.order_by || 'registration_date'
     orderDir.value = route.query.order_dir || 'desc'
     city.value = route.query.city || ''
-    province.value = route.query.province || ''
+    province.value = route.query.province || undefined
     favorites.value = route.query.favorites || undefined
     selectedTags.value = route.query.tags || []
     lat.value = route.query.lat || undefined
@@ -367,6 +395,7 @@ const loadSites = async () => {
 
     sites.value = response.sites
     totalPages.value = Math.ceil(response.total / response.per_page)
+    total.value = response.total
 
     markers.value = sites.value.map(site => ({
       id: site.id,
@@ -410,7 +439,7 @@ onMounted(async () => {
   filterForm.search = route.query.search || ''
   filterForm.orderBy = route.query.order_by || 'registration_date'
   filterForm.orderDir = route.query.order_dir || undefined
-  filterForm.citySearch = route.query.city || undefined
+  filterForm.citySearch = route.query.city || ''
   filterForm.province = route.query.province || undefined
   filterForm.favorites = route.query.favorites === 'true'
   filterForm.lat = route.query.lat || undefined
@@ -437,6 +466,8 @@ onMounted(async () => {
   }
 
   await loadSites()
+
+  calculateActiveFilters()
 })
 
 const fetchTags = async () => {
@@ -481,6 +512,21 @@ function stateConfig(site) {
   )
 }
 
+const calculateActiveFilters = () => {
+  let count = 0
+
+  if (filterForm.search) count++
+  if (filterForm.orderBy !== 'registration_date') count++
+  if (filterForm.citySearch) count++
+  if (filterForm.province) count++
+  if (filterForm.selectedTags.length > 0) count++
+  if (filterForm.favorites) count++
+  if (filterForm.lat && filterForm.long && filterForm.radius) count++
+
+  activeFiltersCount.value = count
+  hasActiveFilters.value = count > 0
+}
+
 const mapShouldRender = ref(false)
 const renderMap = () => {
   if(!mapShouldRender.value) {
@@ -504,9 +550,24 @@ const renderMap = () => {
 }
 
 /* Asegurar que el mapa no se superponga */
+/*
 .map-container :deep(#map) {
   position: relative !important;
   width: 100%;
   height: 600px !important;
+}*/
+
+.filters-active :deep(.accordion-header) {
+  background-color: #e7f3ff;
+  border-left: 4px solid #0d6efd;
+}
+
+.filters-active :deep(.accordion-button) {
+  font-weight: 600;
+  color: #0d6efd;
+}
+
+.filters-active :deep(.accordion-button)::after {
+  filter: brightness(0) saturate(100%) invert(27%) sepia(98%) saturate(2898%) hue-rotate(206deg);
 }
 </style>

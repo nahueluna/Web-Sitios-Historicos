@@ -10,6 +10,7 @@ export const useSitesStore = defineStore('sites', {
   state: () => ({
     sites: [],
     loading: false,
+    allTags: [],
   }),
   actions: {
     async fetchSites(params = {}) {
@@ -87,6 +88,20 @@ export const useSitesStore = defineStore('sites', {
         console.error('[SitesStore] Error:', error);
         return null;
       }
-    }
+    },
+    async fetchAllTags() {
+      try {
+        const response = await api.get('/api/tags')
+        this.allTags = response.data.map(tag => ({
+          id: tag.id,
+          name: tag.name,
+        }))
+        return this.allTags
+      } catch (error) {
+        console.error("Error loading tags:", error)
+        return []
+      }
+    },
+
   },
 });

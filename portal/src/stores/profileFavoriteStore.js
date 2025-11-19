@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import api from "@/service/api";
 
-export const useFavoritesStore = defineStore('favorites', {
+export const useFavoritesStore = defineStore('profile_favorites', {
   state: () => ({
     favorites: [],
   }),

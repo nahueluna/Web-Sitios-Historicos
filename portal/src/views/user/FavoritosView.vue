@@ -22,11 +22,24 @@
 import SiteCard from '@/components/SiteCard.vue'
 import { computed, onMounted, ref } from 'vue'
 import { useFavoritesStore } from '@/stores/profileFavoriteStore'
+import { useSitesStore } from '@/stores/sitesStore'
+
 const profileFavoritesStore = useFavoritesStore()
 const favoritesList = ref([])
+const sitesStore = useSitesStore()
 
 onMounted(async () => {
-    favoritesList.value = await profileFavoritesStore.loadAllFavorites() 
+  try {
+    let response = null
+    response = await sitesStore.fetchSites({
+        favorites: true,
+    })
+
+    console.log('[Featured] Response received:', response)
+    favoritesList.value = response.sites
+  } catch (err) {
+    console.error('[Featured] Error loading sites:', err)
+  }
     //favoritesList.value = profileFavoritesStore.getHardcodedFavorites() // --> descomentar para testear
 })
 </script>

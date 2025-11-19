@@ -2,6 +2,7 @@ from datetime import datetime
 from sqlalchemy import func, or_
 from src.core.models.search.tags import Tag
 from src.core.models.historic_site_tags.hs_tags import HistoricSitesTags
+from src.core.models.auth.user import usuario_favoritos
 from src.core.models.historic_sites_logs import add_log, add_log_no_commit
 from src.core.models.historic_site_tags import add_historic_site_tag, reset_tags, add_historic_site_tag_no_commit, reset_tags_no_commit
 from src.core.models.historic_sites_state.hs_states import HistoricSitesStates
@@ -14,6 +15,8 @@ from math import radians, sin, cos, sqrt, atan2
 from src.core.models.search.tags import Tag
 from src.core.models.historic_site_tags.hs_tags import HistoricSitesTags
 from src.core.models.review.review import Review, ReviewStatus
+from geoalchemy2.elements import WKTElement
+from geoalchemy2 import elements as geoelements, functions as geofunctions, Geography
 
 # Consulta para todos los sitios con su categoría
 def list_all_historic_sites(): 
@@ -200,62 +203,83 @@ def list_historic_sites_with_filters(q='', city='', province='', tags=None, stat
 
 ### --------- API PUBLICA --------- ###
 
-def list_historic_sites_with_advanced_filters(name='', description='', city='', province='', tag_names=None, lat=None, long=None, radius=None, order_by='latest', page=1, per_page=25):
+def list_historic_sites_with_advanced_filters(name='', description='', city='', province='', favorites=False, tag_ids=None, lat=None, long=None, radius=None, user_id=None, order_by='registration_date', order_dir='desc', page=1, per_page=25):
 
-    print(f"DEBUG MODEL - Filters received: name='{name}', description='{description}', city='{city}', province='{province}', tag_names={tag_names}")
+    print(f"DEBUG MODEL - Filters received: name='{name}', description='{description}', city='{city}', province='{province}', tag_ids={tag_ids}")
     
     query = db.session.query(HistoricSites).filter(HistoricSites.delete == False, HistoricSites.visible == True)
     
-    # Aplicar filtros con OR (cualquier criterio coincide)
+    # Aplicar filtros con AND (todos los criterios deben coincidir)
     search_filters = []
     
     if name and name != 'None':
         search_filters.append(HistoricSites.site_name.ilike(f'%{name}%'))
     if description and description != 'None':
-        search_filters.append(HistoricSites.long_description.ilike(f'%{description}%'))
+        search_filters.append(HistoricSites.short_description.ilike(f'%{description}%'))
     if city and city != 'None':
-        search_filters.append(HistoricSites.city.ilike(f'%{city}%'))
+        query = query.filter(HistoricSites.city.ilike(f'%{city}%'))
     if province and province != 'None':
-        search_filters.append(HistoricSites.province.ilike(f'%{province}%'))
-    
-    # Aplicar OR solo si hay filtros de búsqueda
+        query = query.filter(HistoricSites.province.ilike(f'{province}%'))
+
+    # Aplicar OR a nombre y descripción
     if search_filters:
         query = query.filter(or_(*search_filters))
-        print(f"DEBUG MODEL - Applied {len(search_filters)} filters with OR logic")
 
-    if tag_names:
-        tag_ids = db.session.query(Tag.id).filter(Tag.name.in_(tag_names)).all()
-        tag_ids = [t[0] for t in tag_ids]
-        if tag_ids:
-            query = query.join(HistoricSitesTags, HistoricSites.id == HistoricSitesTags.site_id).filter(HistoricSitesTags.tag_id.in_(tag_ids))
+    if favorites and user_id:
+        query = query.join(usuario_favoritos, HistoricSites.id == usuario_favoritos.c.site_id).filter(usuario_favoritos.c.user_id == user_id)
 
-    # Handle ordering
-    if order_by in ['rating-5-1', 'rating-1-5']:
-        order_dir = 'desc' if order_by == 'rating-5-1' else 'asc'
-        subq = db.session.query(Review.historic_site_id, func.avg(Review.rating).label('avg_rating')).filter(Review.status == ReviewStatus.APPROVED).group_by(Review.historic_site_id).subquery()
-        query = query.outerjoin(subq, HistoricSites.id == subq.c.historic_site_id).order_by(func.coalesce(subq.c.avg_rating, 0).desc() if order_dir == 'desc' else func.coalesce(subq.c.avg_rating, 0).asc())
-    elif order_by == 'latest':
-        query = query.order_by(HistoricSites.registration_date.desc())
-    elif order_by == 'oldest':
-        query = query.order_by(HistoricSites.registration_date.asc())
-    else:
-        query = query.order_by(HistoricSites.site_name)  # default
-    
-    sites = query.offset((page - 1) * per_page).limit(per_page).all()
-    total = query.count()
+    if tag_ids:
+        query = query.join(HistoricSitesTags, HistoricSites.id == HistoricSitesTags.site_id).filter(HistoricSitesTags.tag_id.in_(tag_ids))
 
-    # Filter by geospatial radius if provided
     if lat is not None and long is not None and radius is not None:
-        def haversine(lat1, lon1, lat2, lon2):
-            R = 6371  # Earth radius in km
-            dlat = radians(lat2 - lat1)
-            dlon = radians(lon2 - lon1)
-            a = sin(dlat/2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon/2)**2
-            c = 2 * atan2(sqrt(a), sqrt(1-a))
-            return R * c
+        try:
+            radius_m = float(radius) * 1000.0  # Convertir km a metros
+        except Exception:
+            radius_m = float(radius)
 
-        sites = [s for s in sites if haversine(lat, long, s.latitude, s.longitude) <= radius]
-        total = len(sites)  # Update total after filtering (approximate for pagination)
+        # Construir punto central: ST_SetSRID(ST_MakePoint(lon, lat), 4326)
+        center_point = func.ST_SetSRID(func.ST_MakePoint(float(long), float(lat)), 4326)
+
+        # Construir punto del sitio desde longitude y latitude
+        site_point = func.ST_SetSRID(
+            func.ST_MakePoint(HistoricSites.longitude, HistoricSites.latitude),
+            4326
+        )
+
+        # Usar ST_DWithin con Geography para distancias en metros
+        query = query.filter(
+            func.ST_DWithin(
+                site_point.cast(Geography),
+                center_point.cast(Geography),
+                radius_m,
+                use_spheroid=False
+            )
+        )
+
+    if order_by == 'rating':
+        subq = db.session.query(Review.historic_site_id, func.avg(Review.rating).label('avg_rating')).filter(
+            Review.status == ReviewStatus.APPROVED).group_by(Review.historic_site_id).subquery()
+        query = query.outerjoin(subq, HistoricSites.id == subq.c.historic_site_id).order_by(
+            func.coalesce(subq.c.avg_rating, 0).desc() if order_dir == 'desc' else func.coalesce(subq.c.avg_rating, 0).asc())
+
+        # Segundo criterio de ordenamiento. Desempate
+        query = query.order_by(HistoricSites.registration_date.desc())
+
+        sites = query.group_by(HistoricSites.id, subq.c.avg_rating).offset((page - 1) * per_page).limit(per_page).all()
+        total = query.group_by(HistoricSites.id, subq.c.avg_rating).count()
+    else:
+        if order_by in ['registration_date', 'site_name']:
+            order_column = getattr(HistoricSites, order_by)
+            if order_dir == 'desc':
+                order_column = order_column.desc()
+            else:
+                order_column = order_column.asc()
+            query = query.order_by(order_column)
+        else:
+            query.order_by(HistoricSites.registration_date.desc())
+
+        sites = query.group_by(HistoricSites.id).offset((page - 1) * per_page).limit(per_page).all()
+        total = query.group_by(HistoricSites.id).count()
 
     return sites, total
 

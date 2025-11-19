@@ -13,7 +13,7 @@ from src.core.models.review.review import Review, ReviewStatus
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 from src.core.models.auth import get_usuario_by_email
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity, verify_jwt_in_request
 from marshmallow import ValidationError
 from datetime import datetime
 from src.web.decorator import block_portal_maintenance, require_feature
@@ -48,12 +48,17 @@ def get_historic_sites():
                 }
             }), 400
 
+        verify_jwt_in_request(optional=True)
+        user_id = get_jwt_identity()
+
         name = query_params.get('name')
         description = query_params.get('description')
         city = query_params.get('city')
         province = query_params.get('province')
+        favorites = query_params.get('favorites')
         tags_str = query_params.get('tags')
         order_by = query_params['order_by']
+        order_dir = query_params['order_dir']
         lat = query_params.get('lat')
         long = query_params.get('long')
         radius = query_params.get('radius')
@@ -77,11 +82,14 @@ def get_historic_sites():
             description=description,
             city=city,
             province=province,
-            tag_names=tags, 
+            favorites=favorites,
+            tag_ids=tags,
             lat=lat,
             long=long,
             radius=radius,
+            user_id=user_id,
             order_by=order_by,
+            order_dir=order_dir,
             page=page,
             per_page=per_page
         )
@@ -106,7 +114,7 @@ def get_historic_sites():
                 "thumbnail_alt": thumbnail.titulo if thumbnail else None
             }
             data.append(site_data)
-        
+
         return jsonify({
             "data": data,
             "meta": {

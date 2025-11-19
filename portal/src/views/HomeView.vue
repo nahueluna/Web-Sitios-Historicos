@@ -29,7 +29,8 @@
           section-id="favorites"
           title="Tus Favoritos"
           description="Sitios que has guardado para después"
-          order-by="latest"
+          order-by="registration_date"
+          order-dir="desc"
           :show-if-empty="false"
           :require-auth="true"
         />
@@ -42,7 +43,8 @@
         section-id="top-rated"
         title="Mejor Puntuados"
         description="Destinos con mejor calificación amados por los visitantes"
-        order-by="rating-5-1"
+        order-by="rating"
+        order-dir="desc"
       />
 
       <hr class="my-5" />
@@ -52,7 +54,8 @@
         section-id="recently-added"
         title="Recientemente Agregados"
         description="Nuevos lugares por descubrir"
-        order-by="latest"
+        order-by="registration_date"
+        order-dir="desc"
       />
     </div>
   </div>

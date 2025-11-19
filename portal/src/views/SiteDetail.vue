@@ -100,7 +100,7 @@
               </p>
 
               <!-- Mapa -->
-              <div style="height:600px; width:800px">
+              <div class="map-wrapper">
                 <l-map ref="map" v-model:zoom="zoom" :center="[site.lat, site.long]">
                   <l-tile-layer
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -305,5 +305,17 @@ const handleFavorite = async () => {
 .carousel-control-prev-icon,
 .carousel-control-next-icon {
   filter: invert(1) brightness(0.2);
+}
+
+.map-wrapper {
+  width: 100%;
+  max-width: 100%;
+  height: 500px;
+}
+
+@media (max-width: 760px) {
+  .map-wrapper {
+    height: 350px;
+  }
 }
 </style>

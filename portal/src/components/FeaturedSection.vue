@@ -176,6 +176,10 @@ onMounted(async () => {
     error.value = null
     let response = null
     if (props.requireAuth && props.sectionId === 'favorites') {
+
+      // Retraso para esperar a que se genere el JWT
+      await new Promise(resolve => setTimeout(resolve, 100))
+
        response = await sitesStore.fetchSites({
         favorites: true,
         order_by: props.orderBy,

@@ -1,6 +1,7 @@
 from src.core.database import db
 from src.core.bcrypt import bcrypt
 from src.core.models.auth.user import Usuario, RolUsuario
+from src.core.models.historic_sites.historic_sites import HistoricSites
 from src.core.models.auth.role_permission import Role, Permission, RolePermission
 from src.core.database import db
 from sqlalchemy.exc import IntegrityError
@@ -253,3 +254,57 @@ def remove_permission_from_role(role: Role, permission_name: str) -> bool:
     db.session.commit()
     print(f"Permiso '{permission_name}' removido exitosamente del rol '{role.name}'")
     return True
+
+def agregar_favorito(user_id: int, site_id: int):
+    """Agrega un sitio a los favoritos del usuario."""
+    usuario = db.session.query(Usuario).filter_by(id=user_id, eliminado=False).first()
+    if not usuario:
+        return None, "Usuario no encontrado"
+
+    sitio = db.session.query(HistoricSites).filter_by(id=site_id, delete=False).first()
+    if not sitio:
+        return None, "Sitio no encontrado"
+
+    # Si ya es favorito, no duplicar
+    if sitio in usuario.favoritos:
+        return usuario, "Ya era favorito"
+
+    usuario.favoritos.append(sitio)
+    db.session.commit()
+    return usuario, "Agregado correctamente"
+
+
+def quitar_favorito(user_id: int, site_id: int):
+    """Quita un sitio de los favoritos del usuario."""
+    usuario = db.session.query(Usuario).filter_by(id=user_id, eliminado=False).first()
+    if not usuario:
+        return None, "Usuario no encontrado"
+
+    sitio = db.session.query(HistoricSites).filter_by(id=site_id, delete=False).first()
+    if not sitio:
+        return None, "Sitio no encontrado"
+
+    if sitio not in usuario.favoritos:
+        return usuario, "No estaba en favoritos"
+
+    usuario.favoritos.remove(sitio)
+    db.session.commit()
+    return usuario, "Eliminado de favoritos"
+
+
+def get_favoritos(user_id: int):
+    """Obtiene todos los sitios favoritos del usuario."""
+    usuario = db.session.query(Usuario).filter_by(id=user_id, eliminado=False).first()
+    if not usuario:
+        return None, "Usuario no encontrado"
+
+    return usuario.favoritos, "OK"
+
+
+def es_favorito(user_id: int, site_id: int):
+    """Indica si un sitio es favorito del usuario."""
+    usuario = db.session.query(Usuario).filter_by(id=user_id, eliminado=False).first()
+    if not usuario:
+        return False
+
+    return any(s.id == site_id for s in usuario.favoritos)

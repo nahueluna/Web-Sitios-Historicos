@@ -14,23 +14,26 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
-    "bootstrap": "^5.3.8",
-    "bootstrap-vue-next": "^0.40.6",
+    "@coreui/vue": "^5.7.0",
     "axios": "^1.13.0",
     "bootstrap": "^5.3.8",
     "bootstrap-vue-next": "^0.40.6",
     "pinia": "^3.0.3",
+    "qs": "^6.14.0",
     "vue": "^3.5.22",
+    "vue-multiselect": "^3.4.0",
     "vue-router": "^4.5.1",
     "vue3-google-login": "^2.0.34"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
     "@vitejs/plugin-vue": "^6.0.1",
+    "@vue-leaflet/vue-leaflet": "^0.10.1",
     "@vue/eslint-config-prettier": "^10.2.0",
     "eslint": "^9.33.0",
     "eslint-plugin-vue": "~10.4.0",
     "globals": "^16.3.0",
+    "leaflet": "^1.9.4",
     "prettier": "3.6.2",
     "vite": "^7.1.7",
     "vite-plugin-vue-devtools": "^8.0.2"

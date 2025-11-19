@@ -23,6 +23,8 @@ from src.web.controllers.feature_flag import feature_flag_bp
 from src.web.api.sites import sites_api
 from src.web.api.reviews import reviews_api
 from src.web.api.auth import auth_api
+from src.web.api.favorites import favorites_api
+from src.web.api.tags import tags_api
 from src.core.bcrypt import bcrypt
 from flask_cors import CORS
 from src.web.storage import storage
@@ -43,17 +45,15 @@ def create_app(env='development', static_folder='../../static'):
 
     bcrypt.init_app(app)
 
-    # Configuración para JWT, configurar secret key en env pls
-    app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
-    app.config['JWT_ALGORITHM'] = 'HS256'  # Cifrado simetrico, como dice la teoria
-    app.config['JWT_TOKEN_LOCATION'] = ['headers']  # Solo se puede enviar por headers (Authorization: Bearer)
-    app.config['JWT_HEADER_NAME'] = 'Authorization'
-    app.config['JWT_HEADER_TYPE'] = 'Bearer'
-    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=24)
     jwt.init_app(app)
 
     ## Necesario para el OAuth2 con Google
-    CORS(app, origins=["http://localhost:5173",  "http://127.0.0.1:5173"], supports_credentials=True)  # URL de tu frontend Vue
+    CORS(
+        app, 
+        allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
+        methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        origins=["http://localhost:5173",  "http://127.0.0.1:5173", "https://admin-grupo03.proyecto2025.linti.unlp.edu.ar", "https://grupo03.proyecto2025.linti.unlp.edu.ar"], 
+        supports_credentials=True)  # URL de tu frontend Vue
     app.secret_key = app.config["SECRET_KEY"]
     app.config["SESSION_COOKIE_SAMESITE"] = "None"
     app.config["SESSION_COOKIE_SECURE"] = True
@@ -109,6 +109,8 @@ def create_app(env='development', static_folder='../../static'):
     app.register_blueprint(reviews_api)
     app.register_blueprint(sites_api)
     app.register_blueprint(auth_api)
+    app.register_blueprint(favorites_api)
+    app.register_blueprint(tags_api)
     
     app.register_blueprint(bp_google_auth)
     app.register_blueprint(review_bp)
@@ -124,5 +126,9 @@ def create_app(env='development', static_folder='../../static'):
     @app.cli.command("seed-db")
     def seed_db():
         database.seed_db()
+
+    @app.cli.command("seed-images")
+    def seed_images():
+        database.seed_db_images()
 
     return app

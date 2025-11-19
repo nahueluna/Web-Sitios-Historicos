@@ -9,7 +9,7 @@
       </div>
       <!-- d-none d-md-flex: oculto en móvil, flex en tablet+, align-items-center: centra verticalmente -->
       <router-link
-        v-if="!loading && sites.length > 0"
+        v-if="!loading && sites &&  sites.length > 0"
         :to="{ name: 'sites', query: { order_by: orderBy } }"
         class="btn btn-outline-secondary d-none d-md-flex align-items-center"
       >
@@ -49,19 +49,19 @@
 
     <!-- Empty State -->
     <!-- text-center: texto centrado, py-5: padding vertical 5 -->
-    <div v-else-if="sites.length === 0 && showIfEmpty" class="text-center py-5">
+    <div v-else-if="sites && sites.length === 0 && showIfEmpty" class="text-center py-5">
       <i class="bi bi-inbox display-1 text-muted"></i>
       <h4 class="mt-3">No se encontraron sitios</h4>
       <p class="text-muted">Vuelve más tarde para ver nuevo contenido</p>
     </div>
 
     <!-- Sites Grid/Carousel -->
-    <div v-else-if="sites.length > 0">
+    <div v-else-if="sites && sites.length > 0">
       <!-- Mobile: Carousel -->
-      <!-- d-md-none: visible solo en móvil 
+      <!-- d-md-none: visible solo en móvil
         d: display
         md: medium devices (a partir de dispositivos medianos (768px))
-        none: ninguno 
+        none: ninguno
       -->
       <div class="d-md-none">
         <div :id="`carousel-${sectionId}`" class="carousel slide" data-bs-ride="false">
@@ -146,7 +146,13 @@ const props = defineProps({
   orderBy: {
     type: String,
     required: true,
-    validator: (value) => ['rating-5-1', 'rating-1-5', 'latest', 'oldest'].includes(value)
+    validator: (value) => ['rating', 'registration_date', 'site_name'].includes(value)
+  },
+  orderDir: {
+    type: String,
+    required: true,
+    validator: (value) => ['desc', 'asc'].includes(value),
+    default: 'desc'
   },
   showIfEmpty: {
     type: Boolean,
@@ -168,26 +174,27 @@ onMounted(async () => {
   try {
     loading.value = true
     error.value = null
-
+    let response = null
     if (props.requireAuth && props.sectionId === 'favorites') {
-      const response = await sitesStore.fetchFavoriteSites({
+       response = await sitesStore.fetchFavoriteSites({
         order_by: props.orderBy,
         limit: 6,
       }, sessionStore.user.email)
     }
     else {
-      const response = await sitesStore.fetchSites({
+      response = await sitesStore.fetchSites({
       order_by: props.orderBy,
       limit: 6,
     })
     }
-    
 
+    console.log('[Featured] Response received:', response)
     sites.value = response.sites
   } catch (err) {
     console.error('[Featured] Error loading sites:', err)
     error.value = 'Error al cargar los sitios'
   } finally {
+    //await new Promise(resolve => setTimeout(resolve, 3500))   // Retraso para simular tiempos de carga
     loading.value = false
   }
 })

@@ -1,122 +1,78 @@
 import { defineStore } from "pinia";
 import api from "@/service/api";
-import { useSitesStore } from "@/stores/sitesStore";
 
 /**
  * Reviews Store
- *
- * Estado actual:
- * - ✅ fetchReviewsBySite: Implementado con nuevo endpoint /api/historic-sites/<site_id>/reviews
- * - 
- * TODO: Actualizar funciones obsoletas, ya están los endpoints del backend
+ * 
+ * Gestiona las reseñas de sitios históricos.
+ * Endpoints:
+ * - GET /api/sites/<site_id>/reviews
+ * - POST /api/sites/<site_id>/reviews
+ * - PUT /api/sites/<site_id>/reviews/<review_id>
+ * - DELETE /api/sites/<site_id>/reviews/<review_id>
  */
 
 export const useReviewsStore = defineStore('reviews', {
   state: () => ({
-    reviews: [], // Mantener para compatibilidad con componentes existentes
-    siteReviews: [], // Reviews específicas de un sitio
-    siteReviewsMeta: { // Metadata de paginación para reviews de sitio
+    siteReviews: [],
+    siteReviewsMeta: {
       page: 1,
-      per_page: 25,
+      per_page: 10,
       total: 0
     },
     loading: false,
+    error: null, // Nuevo estado para errores
   }),
+  
   getters: {
     getSiteReviews: (state) => state.siteReviews,
     getSiteReviewsMeta: (state) => state.siteReviewsMeta,
     hasMoreSiteReviews: (state) => {
       const { page, per_page, total } = state.siteReviewsMeta;
       return (page * per_page) < total;
-    }
+    },
+    averageRating: (state) => {
+      if (state.siteReviews.length === 0) return 0;
+      const sum = state.siteReviews.reduce((acc, review) => acc + review.rating, 0);
+      return (sum / state.siteReviews.length).toFixed(1);
+    },
+    reviewCount: (state) => state.siteReviewsMeta.total,
+    getError: (state) => state.error, // Nuevo getter para el error
   },
+  
   actions: {
-    // TODO: Esta función usa el endpoint antiguo /reviews - necesita actualizarse cuando esté disponible el nuevo endpoint
-    async fetchReviews() {
-      this.loading = true;
-      try {
-        const response = await api.get('/reviews');
-        const apiReviews = await Promise.all(response.data.map(async review => ({
-          ...review,
-          siteName: await this.getSiteName(review.siteId),
-          userName: this.getUserName(review.userId)
-        })));
-
-        this.reviews = apiReviews;
-      } catch (error) {
-        console.error('Error fetching reviews:', error);
-        this.reviews = [];
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    // TODO: Esta función usa el endpoint antiguo /reviews - necesita actualizarse cuando esté disponible el nuevo endpoint
-    async addReview(reviewData) {
-      try {
-        const response = await api.post('/reviews', reviewData);
-        const reviewWithSiteName = {
-          ...response.data,
-          siteName: await this.getSiteName(response.data.siteId),
-          userName: this.getUserName(response.data.userId)
-        };
-        this.reviews.push(reviewWithSiteName);
-      } catch (error) {
-        console.error('Error adding review:', error);
-        throw error;
-      }
-    },
-
-    // TODO: Esta función usa el endpoint antiguo /reviews/{id} - necesita actualizarse cuando esté disponible el nuevo endpoint
-    async removeReview(reviewId) {
-      try {
-        await api.delete(`/reviews/${reviewId}`);
-        this.reviews = this.reviews.filter(review => review.id !== reviewId);
-      } catch (error) {
-        console.error('Error removing review:', error);
-        throw error;
-      }
-    },
+    // Obtener reseñas para un sitio específico
     async fetchReviewsBySite(siteId, params = {}) {
       this.loading = true;
+      this.error = null;
       try {
         const queryParams = {
           page: params.page || 1,
           per_page: params.per_page || 10,
         };
 
-        console.log('📤 [Reviews Store] Fetching reviews for site:', siteId, 'with params:', queryParams);
-
-        const response = await api.get(`/api/historic-sites/${siteId}/reviews`, { params: queryParams });
-
-        console.log('📥 [Reviews Store] Response received:', response.data);
+        const response = await api.get(`/api/sites/${siteId}/reviews`, { 
+          params: queryParams 
+        });
 
         const { data: reviewsData, meta } = response.data;
 
-        // Transformar las reseñas del backend al formato interno
-        const transformedReviews = await Promise.all(reviewsData.map(async review => ({
+        const transformedReviews = reviewsData.map(review => ({
           id: review.id,
-          siteId: siteId,
           userId: review.user_id,
-          text: review.comment,
+          siteId: review.site_id,
           rating: review.rating,
-          createdAt: review.created_at,
-          // Agregar información adicional si está disponible
-          userName: review.user_name || this.getUserName(review.user_id),
-          siteName: await this.getSiteName(siteId)
-        })));
+          content: review.content,
+          userName: review.user_name,
+          insertedAt: review.inserted_at,
+        }));
 
-        // Actualizar estado
         if (queryParams.page > 1) {
-          // Agregar reseñas a las existentes para paginación
           this.siteReviews = [...this.siteReviews, ...transformedReviews];
         } else {
-          // Reemplazar reseñas para la primera página
           this.siteReviews = transformedReviews;
         }
         this.siteReviewsMeta = meta;
-
-        console.log('✅ [Reviews Store] Reviews loaded:', transformedReviews.length, 'Total:', meta.total);
 
         return {
           reviews: transformedReviews,
@@ -124,9 +80,12 @@ export const useReviewsStore = defineStore('reviews', {
         };
 
       } catch (error) {
-        console.error('❌ [Reviews Store] Error fetching reviews by site:', error);
+        console.error('Error al cargar reseñas:', error);
 
-        // En caso de error, devolver datos vacíos pero con estructura correcta
+        if (error.response?.status === 403 && error.response?.data?.error) {
+          this.error = error.response.data.error;
+        }
+
         this.siteReviews = [];
         this.siteReviewsMeta = { page: 1, per_page: 10, total: 0 };
 
@@ -138,20 +97,102 @@ export const useReviewsStore = defineStore('reviews', {
         this.loading = false;
       }
     },
-    getReviewsByUser(userId) {
-      return this.reviews.filter(review => review.userId === userId);
-    },
-    async getSiteName(siteId) {
-      const sitesStore = useSitesStore();
 
-      // Si no hay sites cargados, cargarlos
-      if (!sitesStore.sites || sitesStore.sites.length === 0) {
-        await sitesStore.fetchSites({ per_page: 100 });
+    // Agregar una nueva reseña para un sitio
+    async addReview(siteId, reviewData) {
+      this.loading = true;
+      this.error = null;
+
+      try {
+        const payload = {
+          rating: reviewData.rating,
+          content: reviewData.content
+        };
+
+        const response = await api.post(`/api/sites/${siteId}/reviews`, payload);
+
+        await this.fetchReviewsBySite(siteId, { page: 1, per_page: this.siteReviewsMeta.per_page });
+        
+        return response.data;
+
+      } catch (error) {
+        console.error('Error al agregar reseña:', error);
+        if (error.response?.status === 401) {
+          this.error = { message: 'Debes iniciar sesión para agregar una reseña.' };
+        } else if (error.response?.data?.error) {
+          this.error = error.response.data.error;
+        } else {
+          this.error = { message: 'Error al agregar la reseña. Por favor, intenta de nuevo.' };
+        }
+        throw error;
+      } finally {
+        this.loading = false;
       }
-
-      const site = sitesStore.sites.find(s => s.id === siteId);
-      return site ? site.name : 'Sitio Desconocido';
     },
-    
+
+    // Actualizar una reseña existente
+    async updateReview(siteId, reviewId, reviewData) {
+      this.loading = true;
+      this.error = null;
+      try {
+        const payload = {
+          rating: reviewData.rating,
+          content: reviewData.content
+        };
+
+        const response = await api.put(`/api/sites/${siteId}/reviews/${reviewId}`, payload);
+
+        await this.fetchReviewsBySite(siteId, { page: 1, per_page: this.siteReviewsMeta.per_page });
+        
+        return response.data;
+
+      } catch (error) {
+        console.error('Error al actualizar reseña:', error);
+        
+        if (error.response?.status === 403) {
+          this.error = { message: 'No tienes permiso para editar esta reseña.' };
+        } else if (error.response?.status === 404) {
+          this.error = { message: 'La reseña no existe o fue eliminada.' };
+        } else if (error.response?.data?.error) {
+          this.error = error.response.data.error;
+        } else {
+          this.error = { message: 'Error al actualizar la reseña. Por favor, intenta de nuevo.' };
+        }
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // Eliminar una reseña
+    async removeReview(siteId, reviewId) {
+      this.loading = true;
+      this.error = null;
+      try {
+        await api.delete(`/api/sites/${siteId}/reviews/${reviewId}`);
+
+        await this.fetchReviewsBySite(siteId, { page: 1, per_page: this.siteReviewsMeta.per_page });
+        
+        return true;
+
+      } catch (error) {
+        console.error('Error al eliminar reseña:', error);
+        if (error.response?.data?.error) {
+          this.error = error.response.data.error;
+        } else {
+          this.error = { message: 'Error al eliminar la reseña. Por favor, intenta de nuevo.' };
+        }
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // Limpia las reseñas del store
+    clearReviews() {
+      this.siteReviews = [];
+      this.siteReviewsMeta = { page: 1, per_page: 10, total: 0 };
+      this.error = null;
+    }
   }
 });

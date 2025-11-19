@@ -116,7 +116,7 @@ import GoogleLogout from '@/components/google/GoogleLogoutComponent.vue'
 
 const sessionStore = useSessionStore()
 const profileReviewStore = useProfileReviewStore()
-const favoritesStore = useFavoritesStore()
+const profileFavoritesStore = useFavoritesStore()
 
 const user = sessionStore.user
 const reviews = ref([])
@@ -124,7 +124,7 @@ const favorites = ref([])
 
 onMounted(async () => {
   reviews.value = await profileReviewStore.loadRecentReviews(user.id) 
-  favorites.value = await favoritesStore.loadRecentFavorites() 
+  favorites.value = await profileFavoritesStore.loadRecentFavorites() 
   //reviews.value = profileReviewStore.getHardcodedReviews() // --> descomentar para testear
   // favorites.value = favoritesStore.getHardcodedFavorites() // --> descomentar para testear
 })

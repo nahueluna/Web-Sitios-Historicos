@@ -39,13 +39,6 @@
         <p class="text-muted small">¡Sé el primero en compartir tu experiencia!</p>
       </div>
     </div>
-    <div v-else-if="reviews.length === 0" class="alert alert-info" role="alert">
-      <div class="text-center py-3">
-        <i class="bi bi-chat-square-text fs-1 text-muted" aria-hidden="true"></i>
-        <p class="mb-0 mt-2">No hay reseñas para este sitio aún.</p>
-        <p class="text-muted small">¡Sé el primero en compartir tu experiencia!</p>
-      </div>
-    </div>
 
     <!-- Reviews List -->
     <div v-else class="reviews-list">
@@ -126,6 +119,10 @@ const props = defineProps({
   siteId: {
     type: [String, Number],
     required: true
+  },
+  refreshTrigger: {
+    type: Number,
+    default: 0
   }
 })
 
@@ -147,6 +144,11 @@ const totalPages = computed(() => {
 
 watch(error, (newError) => {
   if (newError && newError.message) {
+    // No mostrar alert ni limpiar para errores que se manejan en la UI
+    if (newError.code === 'feature_disabled') {
+      return
+    }
+    
     alert(`Error al cargar reseñas: ${newError.message}${newError.code ? ` Código: ${newError.code}` : ''}`)
     dismissError()
   }
@@ -189,10 +191,6 @@ const fetchUserReviewIds = async () => {
 
 const dismissError = () => {
   reviewsStore.clearReviews()
-}
-
-const retryFetch = async () => {
-  await fetchReviews(1)
 }
 
 const formatDate = (dateString) => {
@@ -259,9 +257,9 @@ watch(() => props.siteId, () => {
   fetchReviews()
 })
 
-// Expose method for parent component to refresh
-defineExpose({
-  refresh: fetchReviews
+// Watch for refresh trigger
+watch(() => props.refreshTrigger, () => {
+  fetchReviews()
 })
 </script>
 

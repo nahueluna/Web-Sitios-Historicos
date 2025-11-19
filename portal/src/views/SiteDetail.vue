@@ -100,7 +100,7 @@
               </p>
 
               <!-- Mapa -->
-              <div style="height:600px; width:800px">
+              <div class="map-wrapper">
                 <l-map ref="map" v-model:zoom="zoom" :center="[site.lat, site.long]">
                   <l-tile-layer
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -121,7 +121,6 @@
                 <button
                   class="btn btn-success"
                   @click="handleWriteReview"
-                  :disabled="!sessionStore.isAuthenticated"
                 >
                   <i :class="userReview ? 'bi bi-pencil' : 'bi bi-star'"></i>
                   {{ userReview ? 'Editar mi Reseña' : 'Escribir Reseña' }}
@@ -137,7 +136,7 @@
                 <ReviewsList
                   v-if="site"
                   :site-id="site.id"
-                  ref="reviewsList"
+                  :refresh-trigger="refreshTrigger"
                 />
               </div>
             </div>
@@ -175,6 +174,7 @@ import { useSitesStore } from '@/stores/sitesStore'
 import { useSessionStore } from '@/stores/sessionStore'
 import { useReviewsStore } from '@/stores/reviewsStore'
 import { useFavoritesStore } from '@/stores/favoritesStore'
+import { useLoginModalStore } from '@/stores/LoginModalStore'
 import ReviewForm from '@/components/ReviewForm.vue'
 import ReviewsList from '@/components/ReviewsList.vue'
 import L from "leaflet";
@@ -187,6 +187,7 @@ const route = useRoute()
 const sitesStore = useSitesStore()
 const sessionStore = useSessionStore()
 const favoritesStore = useFavoritesStore()
+const loginModalStore = useLoginModalStore()
 const isAuthenticated = ref(sessionStore.isAuthenticated)
 const isFavorite = ref(false)
 const favoriteLoading = ref(false)
@@ -197,9 +198,9 @@ const loading = ref(true)
 const showReviewForm = ref(false)
 const zoom = ref(12)
 const center = ref([0, 0])
-const reviewsList = ref(null)
 const userReview = ref(null)
 const editingReview = ref(null)
+const refreshTrigger = ref(0)
 
 const sortedImages = computed(() => {
   if (!site.value?.images) return [];
@@ -232,7 +233,10 @@ const checkUserReview = async () => {
 
 const handleWriteReview = () => {
   if (!sessionStore.isAuthenticated) {
-    alert('Debes iniciar sesión para escribir una reseña.')
+    loginModalStore.openLoginModal()
+
+    sessionStore.redirect_uri = `/sites/${route.params.site_id}`
+
     return
   }
 
@@ -257,7 +261,6 @@ onMounted(async () => {
     console.log("site: ",site.value)
     console.log("user: ",user.value)
     if (site.value) {
-      await sitesStore.trackSiteVisit(site.value.id)
       await checkUserReview()
       if (isAuthenticated.value) {
         isFavorite.value = await favoritesStore.checkFavorite(site.value.id);
@@ -273,9 +276,7 @@ onMounted(async () => {
 })
 
 const onReviewAdded = async () => {
-  if (reviewsList.value && reviewsList.value.refresh) {
-    reviewsList.value.refresh()
-  }
+  refreshTrigger.value++
   await checkUserReview()
   showReviewForm.value = false
 }
@@ -305,5 +306,17 @@ const handleFavorite = async () => {
 .carousel-control-prev-icon,
 .carousel-control-next-icon {
   filter: invert(1) brightness(0.2);
+}
+
+.map-wrapper {
+  width: 100%;
+  max-width: 100%;
+  height: 500px;
+}
+
+@media (max-width: 760px) {
+  .map-wrapper {
+    height: 350px;
+  }
 }
 </style>

@@ -281,7 +281,7 @@ def add_site(user):
             latitude=float(form.get("latitude")),
             longitude=float(form.get("longitude")),
             inauguration_year=inauguration_date,
-            visible=(form.get("visible") == "True"),
+            visible=(form.get("visible").lower() == "true"),
             conservation_status=form.get("conservation_status"),
             category=form.get("category"),
             tags=form.getlist("tags"),

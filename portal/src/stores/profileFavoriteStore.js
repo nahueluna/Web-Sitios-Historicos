@@ -7,8 +7,7 @@ export const useFavoritesStore = defineStore('favorites', {
   }),
   actions: {
     async loadAllFavorites() {
-      const id = userId
-      const response = await api.get(`/api/favorites/${id}`)
+      const response = await api.get(`/api/favorites/`)
       this.favorites = response.data.favorites ?? []
       return this.favorites
         },

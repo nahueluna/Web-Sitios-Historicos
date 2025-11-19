@@ -114,13 +114,13 @@
               </div>
 
               <div class="d-flex gap-3 mt-4">
-                <button class="btn btn-primary">
-                  <i class="bi bi-heart"></i>
-                  Agregar a Favoritos
+                <button class="btn btn-primary" @click="handleFavorite">
+                  <i :class="isFavorite ? 'bi bi-heart-fill' : 'bi bi-heart'"></i>
+                  {{ isFavorite ? "Quitar de Favoritos" : "Agregar a Favoritos" }}
                 </button>
-                <button 
-                  class="btn btn-success" 
-                  @click="handleWriteReview" 
+                <button
+                  class="btn btn-success"
+                  @click="handleWriteReview"
                   :disabled="!sessionStore.isAuthenticated"
                 >
                   <i :class="userReview ? 'bi bi-pencil' : 'bi bi-star'"></i>
@@ -169,11 +169,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watchEffect} from 'vue'
 import { useRoute } from 'vue-router'
 import { useSitesStore } from '@/stores/sitesStore'
 import { useSessionStore } from '@/stores/sessionStore'
 import { useReviewsStore } from '@/stores/reviewsStore'
+import { useFavoritesStore } from '@/stores/favoritesStore'
 import ReviewForm from '@/components/ReviewForm.vue'
 import ReviewsList from '@/components/ReviewsList.vue'
 import L from "leaflet";
@@ -185,8 +186,13 @@ import { transformReview } from '@/utils/reviewTransformer'
 const route = useRoute()
 const sitesStore = useSitesStore()
 const sessionStore = useSessionStore()
+const favoritesStore = useFavoritesStore()
+const isAuthenticated = ref(sessionStore.isAuthenticated)
+const isFavorite = ref(false)
+const favoriteLoading = ref(false)
 const reviewsStore = useReviewsStore()
 const site = ref(null)
+const user = ref(sessionStore.user)
 const loading = ref(true)
 const showReviewForm = ref(false)
 const zoom = ref(12)
@@ -200,16 +206,21 @@ const sortedImages = computed(() => {
   return [...site.value.images].sort((a, b) => a.orden - b.orden);
 });
 
+watchEffect(() => {
+    isAuthenticated.value = sessionStore.isAuthenticated
+    user.value = sessionStore.user
+})
+
 const checkUserReview = async () => {
   if (!sessionStore.isAuthenticated || !site.value) return
-  
+
   try {
     const response = await api.get(`/api/reviews/users/${sessionStore.user.id}/reviews`)
     if (response.data.reviews) {
       const existingReview = response.data.reviews.find(
         r => r.historic_site?.id === site.value.id
       )
-      
+
       if (existingReview) {
         userReview.value = transformReview(existingReview)
       }
@@ -224,7 +235,7 @@ const handleWriteReview = () => {
     alert('Debes iniciar sesión para escribir una reseña.')
     return
   }
-  
+
   if (userReview.value) {
     // Usuario ya tiene una reseña, ofrecer editar
     if (confirm('Ya tienes una reseña para este sitio. ¿Deseas editarla?')) {
@@ -243,10 +254,16 @@ onMounted(async () => {
   try {
     loading.value = true
     site.value = await sitesStore.fetchSiteById(site_id)
-    
+    console.log("site: ",site.value)
+    console.log("user: ",user.value)
     if (site.value) {
       await sitesStore.trackSiteVisit(site.value.id)
       await checkUserReview()
+      if (isAuthenticated.value) {
+        isFavorite.value = await favoritesStore.checkFavorite(site.value.id);
+      } else {
+        isFavorite.value = false
+      }
     }
   } catch (err) {
     console.error('[SiteDetail] Error loading site:', err)
@@ -262,6 +279,22 @@ const onReviewAdded = async () => {
   await checkUserReview()
   showReviewForm.value = false
 }
+
+const handleFavorite = async () => {
+  if (!site.value) return;
+
+  try {
+    if (isFavorite.value) {
+      const ok = await favoritesStore.removeFavorite(site.value.id);
+      if (ok) isFavorite.value = false;
+    } else {
+      const ok = await favoritesStore.addFavorite(site.value.id);
+      if (ok) isFavorite.value = true;
+    }
+  } catch (error) {
+    console.error("[SiteDetail] Error toggling favorite:", error);
+  }
+};
 </script>
 
 <style scoped>

@@ -1,6 +1,5 @@
 import { defineStore } from "pinia";
 import api from "@/service/api";
-import { useSitesStore } from "@/stores/sites";
 
 export const useFavoritesStore = defineStore('favorites', {
   state: () => ({
@@ -58,13 +57,12 @@ export const useFavoritesStore = defineStore('favorites', {
       try {
         const response = await api.post(`/api/favorites/${siteId}`);
 
-        // Update local state
-        this.favoriteIds.add(siteId);
+        if (response.status === 200 || response.status === 201) {
+          this.favoriteIds.add(siteId);
+          return true;  // success
+        }
 
-        // Optional: re-fetch favorites if you need complete objects
-        // await this.fetchFavorites();
-
-        return response.data.message;
+        return false;  // unexpected status
       } catch (error) {
         console.error("[FavoritesStore] Error adding favorite:", error);
         return null;
@@ -76,25 +74,15 @@ export const useFavoritesStore = defineStore('favorites', {
       try {
         const response = await api.delete(`/api/favorites/${siteId}`);
 
-        // Update local state
-        this.favoriteIds.delete(siteId);
+        if (response.status === 200) {
+          this.favoriteIds.delete(siteId);
+          return true; // success
+        }
 
-        // Optional: re-fetch favorites
-        // await this.fetchFavorites();
-
-        return response.data.message;
+        return false;
       } catch (error) {
         console.error("[FavoritesStore] Error removing favorite:", error);
         return null;
-      }
-    },
-
-    // Toggle favorite state
-    async toggleFavorite(siteId) {
-      if (this.favoriteIds.has(siteId)) {
-        return await this.removeFavorite(siteId);
-      } else {
-        return await this.addFavorite(siteId);
       }
     },
   },

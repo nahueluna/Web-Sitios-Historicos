@@ -11,7 +11,7 @@ from src.web.decorator import block_portal_maintenance
 
 favorites_api = Blueprint('favorites_api', __name__, url_prefix='/api/favorites')
 
-# ========================= RESEÑAS ========================
+# ========================= Favoritos ========================
 
 @favorites_api.route('/<int:user_id>', methods=['GET'])
 @jwt_required()

@@ -68,6 +68,12 @@ export const useSitesStore = defineStore('sites', {
         return { sites, total: meta.total, page: meta.page, per_page: meta.per_page };
       } catch (error) {
         console.error('[SitesStore] Error:', error);
+
+        const details = error?.response?.data?.error?.details;
+        if(error.status === 400 && (details?.long || details?.lat || details?.radius)) {
+          throw error;
+        }
+
         return { sites: [], total: 0, page: 1, per_page: 25 };
       } finally {
         this.loading = false;

@@ -50,6 +50,10 @@ export default {
     markers: {
       type: Array,
       default: () => []
+    },
+    initialParams: {
+      type: Object,
+      default: () => undefined
     }
   },
   components: {
@@ -62,10 +66,16 @@ export default {
   },
   data() {
     return {
-      zoom: 16,
-      center: [-34.9225692, -57.9531812],
-      radius: 500,
-      radiusCenter: [-34.9225692, -57.9531812],
+      zoom: this.initialParams?.zoom || 16,
+      center: this.initialParams?.lat && this.initialParams?.long
+        ? [this.initialParams.lat, this.initialParams.long]
+        : [-34.9225692, -57.9531812],
+      radius: this.initialParams?.radius
+        ? this.initialParams.radius * 1000
+        : 500,
+      radiusCenter: this.initialParams?.lat && this.initialParams?.long
+        ? [this.initialParams.lat, this.initialParams.long]
+        : [-34.9225692, -57.9531812],
       showErrorMessage: false,
       mapReady: false,
     }
@@ -97,7 +107,8 @@ export default {
       this.$emit('update-map-params', {
         lat: this.radiusCenter[0],
         long: this.radiusCenter[1],
-        radius: this.radius / 1000 // conversión a km
+        radius: this.radius / 1000, // conversión a km
+        zoom: this.zoom
       })
     },
     calculateNewRadius() {

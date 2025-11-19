@@ -257,7 +257,6 @@ onMounted(async () => {
     console.log("site: ",site.value)
     console.log("user: ",user.value)
     if (site.value) {
-      await sitesStore.trackSiteVisit(site.value.id)
       await checkUserReview()
       if (isAuthenticated.value) {
         isFavorite.value = await favoritesStore.checkFavorite(site.value.id);

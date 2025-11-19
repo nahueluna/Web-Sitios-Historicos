@@ -270,6 +270,7 @@ def agregar_favorito(user_id: int, site_id: int):
         return usuario, "Ya era favorito"
 
     usuario.favoritos.append(sitio)
+    db.session.commit()
     return usuario, "Agregado correctamente"
 
 
@@ -287,6 +288,7 @@ def quitar_favorito(user_id: int, site_id: int):
         return usuario, "No estaba en favoritos"
 
     usuario.favoritos.remove(sitio)
+    db.session.commit()
     return usuario, "Eliminado de favoritos"
 
 

@@ -19,12 +19,13 @@
           <CAccordionHeader> Filtros y ordenamientos </CAccordionHeader>
           <CAccordionBody>
             <CAccordion class="mb-4">
-              <CAccordionItem :item-key="2">
+              <CAccordionItem :item-key="2" @click="renderMap">
                 <CAccordionHeader> Mapa interactivo </CAccordionHeader>
                 <CAccordionBody>
-                  <div class="map-container mb-4">
+                  <div v-if="mapShouldRender" class="map-container mb-4">
                     <LeafletMap
                       :markers="markers"
+                      :initialParams="mapParams"
                       @update-map-params="handleMapSearch"
                     />
                   </div>
@@ -196,6 +197,23 @@
         <p class="text-muted">Intenta ajustar tu búsqueda</p>
       </div>
     </div>
+
+    <CToast
+      v-if="showErrorToast"
+      :visible="showErrorToast"
+      @close="showErrorToast = false"
+      color="danger"
+      class="position-fixed top-0 end-0 m-3"
+      style="z-index: 9999"
+    >
+      <CToastHeader closeButton>
+        <strong class="me-auto">Error de búsqueda</strong>
+      </CToastHeader>
+      <CToastBody>
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        {{ errorMessage }}
+      </CToastBody>
+    </CToast>
   </div>
 </template>
 
@@ -204,7 +222,7 @@ import { ref, onMounted, watch, reactive, toRaw, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Multiselect } from 'vue-multiselect'
 import 'vue-multiselect/dist/vue-multiselect.css'
-import { CAccordion, CAccordionHeader, CAccordionBody, CAccordionItem } from '@coreui/vue'
+import { CAccordion, CAccordionHeader, CAccordionBody, CAccordionItem, CToast, CToastBody, CToastHeader } from '@coreui/vue'
 import { useSitesStore } from '@/stores/sitesStore'
 import SiteCard from '../components/SiteCard.vue'
 import PaginationComponent from '@/components/PaginationComponent.vue'
@@ -232,6 +250,10 @@ const radius = ref(undefined)
 const currentPage = ref(1)
 const totalPages = ref(1)
 const markers = ref([])
+const mapParams = ref(undefined)
+const mapZoom = ref(16)
+const errorMessage = ref('')
+const showErrorToast = ref(false)
 
 // Construye un diccionario reactivo (dinámico con v-model)
 const filterForm = reactive({
@@ -247,10 +269,12 @@ const filterForm = reactive({
   radius: undefined,
 })
 
-const handleMapSearch = ({lat, long, radius}) => {
+const handleMapSearch = ({lat, long, radius, zoom}) => {
   filterForm.lat = lat
   filterForm.long = long
   filterForm.radius = radius
+  mapZoom.value = zoom
+
 }
 
 const toggleOrder = () => {
@@ -274,6 +298,8 @@ const applyFilters = () => {
       radius: filterForm.radius || undefined,
     },
   })
+
+  localStorage.setItem('mapZoom', mapZoom.value.toString())
 }
 
 const clearFilters = () => {
@@ -287,6 +313,8 @@ const clearFilters = () => {
   filterForm.lat = undefined
   filterForm.long = undefined
   filterForm.radius = undefined
+
+  localStorage.removeItem('mapZoom')
   router.push({ name: 'sites' })
 }
 
@@ -350,6 +378,23 @@ const loadSites = async () => {
     }))
   } catch (err) {
     console.error('[SitesList] Error:', err)
+
+    if (err?.status === 400) {
+      errorMessage.value = 'Los valores de coordenadas y/o radio exceden los permitidos. Por favor, ajusta el área de búsqueda.'
+      // Limpia los parámetros del mapa
+      filterForm.lat = undefined
+      filterForm.long = undefined
+      filterForm.radius = undefined
+      mapParams.value = undefined
+    } else {
+      errorMessage.value = 'Error al cargar los sitios. Intenta nuevamente.'
+    }
+
+    showErrorToast.value = true
+
+    setTimeout(() => {
+      showErrorToast.value = false
+    }, 10000)
   } finally {
     loading.value = false
   }
@@ -380,6 +425,16 @@ onMounted(async () => {
       : [route.query.tags]
     : []
   filterForm.selectedTags = tags.value.filter((tag) => tagsIds.includes(String(tag.id)))
+
+  const savedZoom = localStorage.getItem('mapZoom')
+  mapZoom.value = savedZoom ? Number(savedZoom) : 16
+
+  mapParams.value = {
+    lat: route.query.lat || undefined,
+    long: route.query.long || undefined,
+    radius: route.query.radius || undefined,
+    zoom: mapZoom.value,
+  }
 
   await loadSites()
 })
@@ -424,6 +479,13 @@ function stateConfig(site) {
       icon: 'bi bi-question-circle-fill',
     }
   )
+}
+
+const mapShouldRender = ref(false)
+const renderMap = () => {
+  if(!mapShouldRender.value) {
+    mapShouldRender.value = true
+  }
 }
 </script>
 

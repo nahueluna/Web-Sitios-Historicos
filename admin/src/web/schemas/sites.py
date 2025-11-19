@@ -26,7 +26,7 @@ class HistoricSiteSearchSchema(Schema):
     )
     radius = fields.Float(
         allow_none=True,
-        validate=validate.Range(0.1, 1000)
+        validate=validate.Range(0.1, 3000)
     )
     page = fields.Int(
         load_default=1,

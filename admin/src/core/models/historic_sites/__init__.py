@@ -260,8 +260,9 @@ def list_historic_sites_with_advanced_filters(name='', description='', city='', 
         subq = db.session.query(Review.historic_site_id, func.avg(Review.rating).label('avg_rating')).filter(
             Review.status == ReviewStatus.APPROVED).group_by(Review.historic_site_id).subquery()
         query = query.outerjoin(subq, HistoricSites.id == subq.c.historic_site_id).order_by(
-            func.coalesce(subq.c.avg_rating, 0).desc() if order_dir == 'desc' else func.coalesce(subq.c.avg_rating,
-                                                                                                 0).asc())
+            func.coalesce(subq.c.avg_rating, 0).desc() if order_dir == 'desc' else func.coalesce(subq.c.avg_rating, 0).asc())
+
+        # Segundo criterio de ordenamiento. Desempate
         query = query.order_by(HistoricSites.registration_date.desc())
 
         sites = query.group_by(HistoricSites.id, subq.c.avg_rating).offset((page - 1) * per_page).limit(per_page).all()

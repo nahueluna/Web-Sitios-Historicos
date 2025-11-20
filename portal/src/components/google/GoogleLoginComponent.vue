@@ -1,4 +1,4 @@
-<script setup> 
+<script setup>
 import { decodeCredential } from 'vue3-google-login'
 import { useSessionStore } from "@/stores/sessionStore"
 import router from '@/router'
@@ -12,7 +12,7 @@ const callback = async (response) => {
     const token = response.credential
     const googleResponse = await api.post('/google/auth', { credential: token })
     console.log(googleResponse.data.user)
-    
+
     const user = googleResponse.data.user
     sessionStore.login(user)
 
@@ -21,10 +21,10 @@ const callback = async (response) => {
     console.log("JWT Tokens:", jwtResponse)
     // Almacenar los tokens en tu store de sesión
     sessionStore.setTokens(jwtResponse.data.access_token, jwtResponse.data.refresh_token)
-    
+
   } catch (error) {
     console.error("Error durante el login:", error)
-    alert(error)
+    //alert(error)
   }
 }
 </script>

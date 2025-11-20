@@ -124,14 +124,15 @@ const user = sessionStore.user
 const reviews = ref([])
 const favorites = ref([])
 
-onMounted(async () => {
+async function loadData() {
+  // Load reviews
   reviews.value = await profileReviewStore.loadRecentReviews(user.id)
 
+  // Load favorite sites
   try {
-    let response = null
-    response = await sitesStore.fetchSites({
-        favorites: true,
-        limit: 4,
+    const response = await sitesStore.fetchSites({
+      favorites: true,
+      limit: 4,
     })
 
     console.log('[Featured] Response received:', response)
@@ -139,13 +140,11 @@ onMounted(async () => {
   } catch (err) {
     console.error('[Featured] Error loading sites:', err)
   }
-  //reviews.value = profileReviewStore.getHardcodedReviews() // --> descomentar para testear
-  // favorites.value = favoritesStore.getHardcodedFavorites() // --> descomentar para testear
-})
+}
 
-watchEffect(async() => {
-  reviews.value = await profileReviewStore.loadRecentReviews(user.id) 
-  favorites.value = await profileFavoritesStore.loadRecentFavorites() 
-})
+onMounted(loadData)
 
+watchEffect(() => {
+  loadData()
+})
 </script>

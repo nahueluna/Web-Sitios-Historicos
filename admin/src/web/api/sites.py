@@ -35,6 +35,25 @@ sites_api = Blueprint('sites_api', __name__, url_prefix='/api/sites')
 @sites_api.route('', methods=['GET'])
 @block_portal_maintenance
 def get_historic_sites():
+    """
+    Obtiene lista de sitios históricos con filtros opcionales.
+    
+    Query params:
+        name, description, city, province (str): Filtros de texto
+        favorites (bool): Solo favoritos del usuario (requiere autenticación)
+        tags (str): Nombres de tags separados por comas
+        order_by (str): Campo de ordenamiento (registration_date, rating, site_name)
+        order_dir (str): Dirección (asc, desc)
+        lat, long (float): Coordenadas para búsqueda geográfica
+        radius (float): Radio en kilómetros (requiere lat/long)
+        page (int): Número de página
+        per_page (int): Items por página
+    
+    Retorna:
+        200: Lista de sitios históricos
+        400: Parámetros inválidos
+        500: Error del servidor
+    """
     try:
         # Cargo el schema y los parametros, marshmallow se encarga de cargar los errores si los hay
         search_schema = HistoricSiteSearchSchema()
@@ -132,6 +151,17 @@ def get_historic_sites():
 @sites_api.route('/<int:site_id>', methods=['GET'])
 @block_portal_maintenance
 def get_historic_site(site_id):
+    """
+    Obtiene información detallada de un sitio histórico específico.
+    
+    Args:
+        site_id (int): ID del sitio histórico
+    
+    Retorna:
+        200: Datos completos del sitio con imágenes
+        404: Sitio no encontrado
+        500: Error del servidor
+    """
     try:
         site = get_visible_historic_site(site_id)
         if site:
@@ -162,6 +192,22 @@ def get_historic_site(site_id):
 @block_portal_maintenance
 @require_feature('reviews_enabled')
 def get_historic_site_reviews(site_id):
+    """
+    Obtiene reseñas aprobadas de un sitio histórico específico.
+    
+    Args:
+        site_id (int): ID del sitio histórico
+    
+    Query params:
+        page (int): Número de página (default: 1)
+        per_page (int): Items por página (default: 10)
+    
+    Retorna:
+        200: Lista de reseñas aprobadas
+        400: Parámetros inválidos
+        404: Sitio no encontrado
+        500: Error del servidor
+    """
     try:
         # Validar que el sitio exista y sea visible
         site = get_visible_historic_site(site_id)
@@ -220,6 +266,23 @@ def get_historic_site_reviews(site_id):
 @block_portal_maintenance
 @jwt_required()
 def create_site_review(site_id):
+    """
+    Crea una nueva reseña para un sitio histórico específico.
+    
+    Args:
+        site_id (int): ID del sitio histórico
+    
+    Request Body:
+        rating (int): Puntuación 1-5
+        content (str): Texto de la reseña
+    
+    Retorna:
+        201: Reseña creada exitosamente
+        400: Datos inválidos
+        404: Sitio no encontrado
+        409: Ya tenes una reseña para este sitio
+        500: Error del servidor
+    """
     try:
         user_id = get_jwt_identity()
 
@@ -298,6 +361,24 @@ def create_site_review(site_id):
 @require_feature('reviews_enabled')
 @jwt_required()
 def update_site_review(site_id, review_id):
+    """
+    Actualiza una reseña existente (solo el autor puede actualizarla).
+    
+    Args:
+        site_id (int): ID del sitio histórico
+        review_id (int): ID de la reseña
+    
+    Request Body:
+        rating (int): Puntuación 1-5
+        content (str): Texto de la reseña (opcional)
+    
+    Retorna:
+        200: Reseña actualizada exitosamente
+        400: Datos inválidos
+        403: No tenes permisos
+        404: Sitio o reseña no encontrada
+        500: Error del servidor
+    """
     try:
         user_id = get_jwt_identity() 
 
@@ -381,6 +462,19 @@ def update_site_review(site_id, review_id):
 @block_portal_maintenance
 @require_feature('reviews_enabled')
 def delete_historic_site_review(site_id, review_id):
+    """
+    Elimina una reseña específica (solo el autor puede eliminarla).
+    
+    Args:
+        site_id (int): ID del sitio histórico
+        review_id (int): ID de la reseña
+    
+    Retorna:
+        204: Reseña eliminada exitosamente
+        403: No tienes permisos
+        404: Sitio o reseña no encontrada
+        500: Error del servidor
+    """
     try:
         user_id = get_jwt_identity()
         
@@ -438,6 +532,26 @@ def delete_historic_site_review(site_id, review_id):
 @jwt_required()
 @block_portal_maintenance
 def create_historic_site():
+    """
+    Crea un nuevo sitio histórico (requiere moderación antes de ser visible).
+    
+    Request Body:
+        name (str): Nombre del sitio
+        short_description (str): Descripción breve
+        description (str): Descripción completa
+        city (str): Ciudad
+        province (str): Provincia
+        lat (float): Latitud
+        long (float): Longitud
+        state_of_conservation (str): Estado de conservación
+        tags (list): Lista de tags (opcional)
+        country (str): País (default: 'AR')
+    
+    Retorna:
+        201: Sitio creado exitosamente
+        400: Datos inválidos
+        500: Error del servidor
+    """
     try:
         # Obtener user_id del JWT token (ya validado por @jwt_required())
         user_id = get_jwt_identity()

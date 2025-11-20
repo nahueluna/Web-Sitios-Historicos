@@ -17,6 +17,14 @@ favorites_api = Blueprint('favorites_api', __name__, url_prefix='/api/favorites'
 @favorites_api.route('/', methods=['GET'])
 @jwt_required()
 def get_favorite_sites():
+    """
+    Obtiene la lista de sitios favoritos del usuario autenticado.
+    
+    Retorna:
+        200: Lista de sitios favoritos
+        404: Usuario no encontrado
+        500: Error del servidor
+    """
     try:
         user_id = get_jwt_identity()
         sites, msg = get_favoritos(user_id)
@@ -36,6 +44,17 @@ def get_favorite_sites():
 @block_portal_maintenance
 @jwt_required()
 def add_favorite(site_id):
+    """
+    Agrega un sitio histórico a los favoritos del usuario.
+    
+    Args:
+        site_id (int): ID del sitio histórico
+
+    Retorna:
+        200: Sitio agregado a favoritos
+        404: Usuario o sitio no encontrado
+        500: Error del servidor
+    """
     try:
         user_id = get_jwt_identity()
         usuario, msg = agregar_favorito(user_id, site_id)
@@ -57,6 +76,17 @@ def add_favorite(site_id):
 @block_portal_maintenance
 @jwt_required()
 def remove_favorite(site_id):
+    """
+    Quita un sitio histórico de los favoritos del usuario.
+    
+    Args:
+        site_id (int): ID del sitio histórico
+
+    Retorna:
+        200: Sitio quitado de favoritos
+        404: Usuario o sitio no encontrado
+        500: Error del servidor
+    """
     try:
         user_id = get_jwt_identity()
         usuario, msg = quitar_favorito(user_id, site_id)
@@ -78,6 +108,16 @@ def remove_favorite(site_id):
 @block_portal_maintenance
 @jwt_required()
 def check_favorite(site_id):
+    """
+    Verifica si un sitio histórico está en los favoritos del usuario.
+    
+    Args:
+        site_id (int): ID del sitio histórico
+    
+    Retorna:
+        200: Estado del favorito (is_favorite: true/false)
+        500: Error del servidor
+    """
     try:
         user_id = get_jwt_identity()
         is_fav = es_favorito(user_id, site_id)

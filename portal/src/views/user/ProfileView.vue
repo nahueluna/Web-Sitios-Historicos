@@ -104,7 +104,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watchEffect } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useSessionStore } from "@/stores/sessionStore"
 import { useSitesStore } from '@/stores/sitesStore'
@@ -141,6 +141,11 @@ onMounted(async () => {
   }
   //reviews.value = profileReviewStore.getHardcodedReviews() // --> descomentar para testear
   // favorites.value = favoritesStore.getHardcodedFavorites() // --> descomentar para testear
+})
+
+watchEffect(async() => {
+  reviews.value = await profileReviewStore.loadRecentReviews(user.id) 
+  favorites.value = await profileFavoritesStore.loadRecentFavorites() 
 })
 
 </script>

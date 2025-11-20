@@ -10,7 +10,7 @@
                 <GoogleLogin />
             </div>
             <div v-else class="d-flex align-items-center gap-2">
-                <RouterLink to="/mis-reseñas" class="nav-link text-white">Mis Reseñas</RouterLink>
+                <RouterLink to="/my-reviews" class="nav-link text-white">Mis Reseñas</RouterLink>
                 <RouterLink to="/mis-favoritos" class="nav-link text-white">Mis Favoritos</RouterLink>
                 <img :src="user.picture" alt="Foto de perfil" width="30" height="30" class="rounded-circle"/>
                 <RouterLink to="/perfil" class="nav-link text-white">{{ user.name }}</RouterLink>

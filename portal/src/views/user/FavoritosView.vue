@@ -35,9 +35,40 @@ import { useSitesStore } from '@/stores/sitesStore'
 
 const sitesStore = useSitesStore()
 const favoritesList = ref([])
+const loading = ref(true)
+const currentPage = ref(1)
+const perPage = 12
+const totalPages = ref(1)
+const total = ref(0)
+
+const loadFavorites = async () => {
+    loading.value = true
+    try {
+        const response = await sitesStore.fetchSites({ favorites: true, page: currentPage.value, per_page: perPage })
+        favoritesList.value = response.sites || []
+        total.value = response.total || (response.per_page ? (response.per_page * (response.page || 1)) : favoritesList.value.length)
+        totalPages.value = response.per_page ? Math.ceil((response.total || favoritesList.value.length) / response.per_page) : 1
+    } catch (err) {
+        console.error('[FavoritosView] Error cargando favoritos:', err)
+        favoritesList.value = []
+        total.value = 0
+        totalPages.value = 1
+    } finally {
+        loading.value = false
+    }
+}
+
+const handlePageChange = async (page) => {
+    currentPage.value = page
+    await loadFavorites()
+    setTimeout(() => window.scrollTo(0, 0), 50)
+}
 
 onMounted(async () => {
-    favoritesList.value = await profileFavoritesStore.loadAllFavorites() 
-    //favoritesList.value = profileFavoritesStore.getHardcodedFavorites() // --> descomentar para testear
+    await loadFavorites()
+})
+
+watchEffect(async() => {
+  await loadFavorites()
 })
 </script>

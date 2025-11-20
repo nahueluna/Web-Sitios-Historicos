@@ -7,6 +7,11 @@
         <h2 class="h3 fw-bold mb-1">{{ title }}</h2>
         <p v-if="description" class="text-muted mb-0">{{ description }}</p>
       </div>
+
+      <div v-if="!loading && sites &&  sites.length === 0" class="alert alert-info">
+        <i class="bi bi-info-circle me-2"></i>
+        Actualmente no hay sitios disponibles en esta sección.
+      </div>
       <!-- d-none d-md-flex: oculto en móvil, flex en tablet+, align-items-center: centra verticalmente -->
       <router-link
         v-if="!loading && sites &&  sites.length > 0"

@@ -8,6 +8,17 @@ auth_api = Blueprint('auth_api', __name__, url_prefix='/api/auth')
 # Generar JWT token
 @auth_api.post('')
 def generate_jwt_token():
+    """
+    Genera tokens JWT (access y refresh) para un usuario autenticado.
+    
+    Request Body:
+        email (str): Email del usuario
+    
+    Retorna:
+        200: access_token y refresh_token
+        401: Credenciales inválidas o usuario no existe
+        403: Usuario bloqueado
+    """
     user_email = request.json.get('email')
     if not is_authenticated():
         return jsonify({"error": {
@@ -41,6 +52,15 @@ def generate_jwt_token():
 @auth_api.post('/refresh')
 @jwt_required(refresh=True)  # Deberia verificar automaticamente el refresh token
 def refresh():
+    """
+    Renueva un access token utilizando un refresh token válido.
+
+    Retorna:
+        200: Nuevo access_token
+        401: Usuario no existe
+        403: Usuario bloqueado
+        422: Refresh token inválido
+    """
     try:
         current_user_id = get_jwt_identity()
         print(f"🔐 Refreshing token for user ID: {current_user_id}")

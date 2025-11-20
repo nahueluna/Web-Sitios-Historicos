@@ -127,10 +127,11 @@
 
                 <!-- Botón Ver Más / Ver Menos -->
                 <button
-                  class="btn btn-link p-0"
+                  class="btn btn-link text-decoration-none p-0 d-inline-flex align-items-center gap-1"
                   @click="showFullDescription = !showFullDescription"
                 >
-                  {{ showFullDescription ? "Ver menos" : "Ver más" }}
+                  <span>{{ showFullDescription ? 'Ver menos' : 'Ver más' }}</span>
+                  <i :class="showFullDescription ? 'bi bi-chevron-up' : 'bi bi-chevron-down'"></i>
                 </button>
 
               </div>

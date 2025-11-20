@@ -27,6 +27,19 @@ reviews_api = Blueprint('reviews_api', __name__, url_prefix='/api/reviews')
 @require_feature('reviews_enabled')
 @jwt_required()
 def get_approved_reviews():
+    """
+    Obtiene reseñas aprobadas con filtros opcionales.
+    
+    Query params:
+        site (int): ID del sitio histórico (opcional)
+        page (int): Número de página (default: 1)
+        per_page (int): Items por página (default: 25)
+    
+    Retorna:
+        200: Lista de reseñas aprobadas
+        400: Parámetros inválidos
+        500: Error del servidor
+    """
     try:
         search_schema = ReviewSearchSchema()
         try:
@@ -66,6 +79,17 @@ def get_approved_reviews():
 @require_feature('reviews_enabled')
 @jwt_required()
 def get_review(review_id):
+    """
+    Obtiene una reseña específica por ID (solo aprobadas).
+    
+    Args:
+        review_id (int): ID de la reseña
+    
+    Retorna:
+        200: Datos de la reseña
+        404: Reseña no encontrada o no aprobada
+        500: Error del servidor
+    """
     try:
         review = get_specific_review(review_id)
         if review:
@@ -84,6 +108,23 @@ def get_review(review_id):
 @require_feature('reviews_enabled')
 @jwt_required()
 def update_review(review_id):
+    """
+    Actualiza una reseña existente (solo el autor puede actualizarla).
+    
+    Args:
+        review_id (int): ID de la reseña
+    
+    Request Body:
+        rating (int): Calificación 1-5
+        content (str): Contenido de la reseña (opcional)
+    
+    Retorna:
+        200: Reseña actualizada exitosamente
+        400: Datos inválidos
+        403: No tenes permisos
+        404: Reseña no encontrada
+        500: Error del servidor
+    """
     try:
         user_id = get_jwt_identity()
 
@@ -126,6 +167,20 @@ def update_review(review_id):
 @require_feature('reviews_enabled')
 @jwt_required()
 def create_review():
+    """
+    Crea una nueva reseña para un sitio histórico.
+    
+    Request Body:
+        content (str): Contenido de la reseña
+        rating (int): Calificación 1-5
+        historic_site_id (int): ID del sitio histórico
+    
+    Retorna:
+        201: Reseña creada exitosamente
+        400: Datos inválidos
+        409: Ya tenes una reseña para este sitio
+        500: Error del servidor
+    """
     try:
         user_id = get_jwt_identity()
 
@@ -169,6 +224,21 @@ def create_review():
 @require_feature('reviews_enabled')
 @jwt_required()
 def get_user_reviews(user_id):
+    """
+    Obtiene las reseñas aprobadas de un usuario específico.
+    
+    Args:
+        user_id (int): ID del usuario
+    
+    Query params:
+        page (int): Número de página (default: 1)
+        per_page (int): Items por página (default: 25)
+    
+    Retorna:
+        200: Lista de reseñas del usuario
+        400: Parámetros inválidos
+        500: Error del servidor
+    """
     try:
         search_schema = UserReviewsSearchSchema()
         try:

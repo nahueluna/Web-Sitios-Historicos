@@ -46,7 +46,7 @@
                 <p class="text-muted mb-0">Reseñas que has escrito recientemente</p>
               </div>
               <!-- d-none d-md-flex: oculto en móvil, flex en tablet/desktop, align-items-center: centra verticalmente -->
-              <router-link to="/mis-reseñas" class="btn btn-outline-secondary d-none d-md-flex align-items-center">
+              <router-link to="/my-reviews" class="btn btn-outline-secondary d-none d-md-flex align-items-center">
                 Ver todos
                 <!-- ms-2: margen izquierdo 2 -->
                 <i class="bi bi-arrow-right ms-2"></i>
@@ -60,7 +60,7 @@
             </div>
             <!-- d-md-none: visible solo en móvil, text-center: texto centrado, mt-4: margen superior 4 -->
             <div class="d-md-none text-center mt-4">
-              <router-link to="/mis-reseñas" class="btn btn-outline-secondary">
+              <router-link to="/my-reviews" class="btn btn-outline-secondary">
                 Ver todos
                 <i class="bi bi-arrow-right ms-2"></i>
               </router-link>
@@ -104,7 +104,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watchEffect } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useSessionStore } from "@/stores/sessionStore"
 import { useSitesStore } from '@/stores/sitesStore'
@@ -124,14 +124,15 @@ const user = sessionStore.user
 const reviews = ref([])
 const favorites = ref([])
 
-onMounted(async () => {
+async function loadData() {
+  // Load reviews
   reviews.value = await profileReviewStore.loadRecentReviews(user.id)
 
+  // Load favorite sites
   try {
-    let response = null
-    response = await sitesStore.fetchSites({
-        favorites: true,
-        limit: 4,
+    const response = await sitesStore.fetchSites({
+      favorites: true,
+      limit: 4,
     })
 
     console.log('[Featured] Response received:', response)
@@ -139,8 +140,11 @@ onMounted(async () => {
   } catch (err) {
     console.error('[Featured] Error loading sites:', err)
   }
-  //reviews.value = profileReviewStore.getHardcodedReviews() // --> descomentar para testear
-  // favorites.value = favoritesStore.getHardcodedFavorites() // --> descomentar para testear
-})
+}
 
+onMounted(loadData)
+
+watchEffect(() => {
+  loadData()
+})
 </script>

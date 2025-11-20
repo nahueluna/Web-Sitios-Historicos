@@ -147,9 +147,12 @@ watch(error, (newError) => {
     // No mostrar alert ni limpiar para errores que se manejan en la UI
     if (newError.code === 'feature_disabled') {
       return
+    } else if(newError.code === 'duplicate') {
+      return
+    } else {
+      alert('Error al cargar reseñas')
     }
 
-    alert('Error al cargar reseñas')
     //alert(`Error al cargar reseñas: ${newError.message}${newError.code ? ` Código: ${newError.code}` : ''}`)
     dismissError()
   }

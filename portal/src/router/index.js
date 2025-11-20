@@ -53,8 +53,8 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
-      path: '/mis-reseñas',
-      name: 'mis-reseñas',
+      path: '/my-reviews',
+      name: 'my-reviews',
       component: () => import('../views/user/ReviewsView.vue'),
       meta: { requiresAuth: true },
     },

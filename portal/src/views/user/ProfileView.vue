@@ -46,7 +46,7 @@
                 <p class="text-muted mb-0">Reseñas que has escrito recientemente</p>
               </div>
               <!-- d-none d-md-flex: oculto en móvil, flex en tablet/desktop, align-items-center: centra verticalmente -->
-              <router-link to="/mis-reseñas" class="btn btn-outline-secondary d-none d-md-flex align-items-center">
+              <router-link to="/my-reviews" class="btn btn-outline-secondary d-none d-md-flex align-items-center">
                 Ver todos
                 <!-- ms-2: margen izquierdo 2 -->
                 <i class="bi bi-arrow-right ms-2"></i>
@@ -60,7 +60,7 @@
             </div>
             <!-- d-md-none: visible solo en móvil, text-center: texto centrado, mt-4: margen superior 4 -->
             <div class="d-md-none text-center mt-4">
-              <router-link to="/mis-reseñas" class="btn btn-outline-secondary">
+              <router-link to="/my-reviews" class="btn btn-outline-secondary">
                 Ver todos
                 <i class="bi bi-arrow-right ms-2"></i>
               </router-link>

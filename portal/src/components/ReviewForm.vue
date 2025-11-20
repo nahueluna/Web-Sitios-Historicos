@@ -11,8 +11,8 @@
             <div class="mb-3">
               <label class="form-label" for="rating-stars">Calificación</label>
               <div id="rating-stars" class="rating-stars" role="radiogroup" aria-label="Calificación de 1 a 5 estrellas">
-                <button 
-                  v-for="i in 5" 
+                <button
+                  v-for="i in 5"
                   :key="i"
                   type="button"
                   class="btn-star"
@@ -27,7 +27,7 @@
             </div>
             <div class="mb-3">
               <label for="reviewText" class="form-label">
-                Tu reseña 
+                Tu reseña
                 <span class="text-muted small">({{ content.length }}/1000 caracteres)</span>
               </label>
               <textarea
@@ -98,22 +98,22 @@ const isEditMode = computed(() => props.review !== null)
 
 const validateContent = () => {
   const trimmedContent = content.value.trim()
-  
+
   if (!trimmedContent) {
     contentError.value = 'La reseña no puede estar vacía.'
     return false
   }
-  
+
   if (trimmedContent.length < 20) {
     contentError.value = `La reseña debe tener al menos 20 caracteres (actual: ${trimmedContent.length}).`
     return false
   }
-  
+
   if (trimmedContent.length > 1000) {
     contentError.value = `La reseña no puede superar los 1000 caracteres (actual: ${trimmedContent.length}).`
     return false
   }
-  
+
   contentError.value = ''
   return true
 }
@@ -163,7 +163,7 @@ const submitReview = async () => {
     emit('close')
   } catch (error) {
     console.error('Error al procesar reseña:', error)
-    
+
     // Manejar errores específicos
     if (error.response?.status === 403) {
       alert('✗ No tienes permiso para ' + (isEditMode.value ? 'editar' : 'crear') + ' esta reseña.')
@@ -171,9 +171,11 @@ const submitReview = async () => {
       alert('✗ La reseña o el sitio no existe.')
     } else if (error.response?.status === 409) {
       alert('✗ Ya has enviado una reseña para este sitio. Puedes editarla desde "Mis Reseñas".')
-    } else if (error.response?.data?.error?.message) {
+    }
+    /*else if (error.response?.data?.error?.message) {
       alert('✗ ' + error.response.data.error.message)
-    } else {
+    }*/
+    else {
       alert('✗ Error al ' + (isEditMode.value ? 'actualizar' : 'enviar') + ' la reseña. Por favor, intenta nuevamente.')
     }
     emit('reviewAdded')

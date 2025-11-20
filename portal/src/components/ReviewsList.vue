@@ -7,7 +7,7 @@
         <div v-if="reviewCount > 0" class="text-muted">
           <span class="fw-bold text-warning fs-5">{{ averageRating }}</span>
           <span class="ms-2" role="img" :aria-label="`Calificación promedio: ${averageRating} de 5 estrellas`">
-            <i v-for="i in 5" :key="i" 
+            <i v-for="i in 5" :key="i"
                :class="i <= Math.round(averageRating) ? 'bi bi-star-fill text-warning' : 'bi bi-star text-warning'"
                aria-hidden="true">
             </i>
@@ -58,7 +58,7 @@
                   </div>
                 </div>
               </div>
-              
+
               <!-- Rating and Delete Button -->
               <div class="d-flex align-items-center gap-2">
                 <div class="review-rating">
@@ -67,10 +67,10 @@
                     {{ review.rating }}.0
                   </span>
                 </div>
-                <button 
+                <button
                   v-if="canDeleteReview(review)"
-                  @click="confirmDelete(review)" 
-                  class="btn btn-sm btn-outline-danger" 
+                  @click="confirmDelete(review)"
+                  class="btn btn-sm btn-outline-danger"
                   type="button"
                   aria-label="Eliminar reseña"
                   title="Eliminar reseña"
@@ -82,7 +82,7 @@
 
             <!-- Stars Display -->
             <div class="mb-2" role="img" :aria-label="`Calificación: ${review.rating} de 5 estrellas`">
-              <i v-for="i in 5" :key="i" 
+              <i v-for="i in 5" :key="i"
                  :class="i <= review.rating ? 'bi bi-star-fill text-warning' : 'bi bi-star text-muted'"
                  aria-hidden="true">
               </i>
@@ -148,8 +148,9 @@ watch(error, (newError) => {
     if (newError.code === 'feature_disabled') {
       return
     }
-    
-    alert(`Error al cargar reseñas: ${newError.message}${newError.code ? ` Código: ${newError.code}` : ''}`)
+
+    alert('Error al cargar reseñas')
+    //alert(`Error al cargar reseñas: ${newError.message}${newError.code ? ` Código: ${newError.code}` : ''}`)
     dismissError()
   }
 })
@@ -163,7 +164,7 @@ const fetchReviews = async (page = 1) => {
   loading.value = true
   try {
     await reviewsStore.fetchReviewsBySite(props.siteId, { page, per_page: 10 })
-    
+
     // Si está autenticado, obtener IDs de sus reseñas
     if (sessionStore.isAuthenticated) {
       await fetchUserReviewIds()
@@ -195,7 +196,7 @@ const dismissError = () => {
 
 const formatDate = (dateString) => {
   if (!dateString) return 'Fecha no disponible'
-  
+
   // Si la fecha viene en formato DD-MM-YYYY, convertirla a YYYY-MM-DD
   if (dateString.includes('-')) {
     const parts = dateString.split('-')
@@ -204,12 +205,12 @@ const formatDate = (dateString) => {
       dateString = `${year}-${month}-${day}`
     }
   }
-  
+
   const date = new Date(dateString)
   if (isNaN(date.getTime())) {
     return dateString
   }
-  
+
   return date.toLocaleDateString('es-ES', {
     year: 'numeric',
     month: 'long',
@@ -219,14 +220,14 @@ const formatDate = (dateString) => {
 
 const canDeleteReview = (review) => {
   if (!sessionStore.isAuthenticated) return false
-  
+
   // Verificar si el ID de la reseña está en el conjunto de reseñas del usuario
   return userReviewIds.value.has(review.id)
 }
 
 const confirmDelete = async (review) => {
   const confirmMsg = `¿Estás seguro de que quieres eliminar esta reseña?\n\nCalificación: ${review.rating} estrellas\n\nEsta acción no se puede deshacer.`
-  
+
   if (confirm(confirmMsg)) {
     try {
       await reviewsStore.removeReview(props.siteId, review.id)
@@ -234,7 +235,7 @@ const confirmDelete = async (review) => {
       alert('✓ Reseña eliminada exitosamente.')
     } catch (error) {
       console.error('Error al eliminar la reseña:', error)
-      
+
       if (error.response?.status === 403) {
         alert('✗ No tienes permiso para eliminar esta reseña.')
       } else if (error.response?.status === 404) {

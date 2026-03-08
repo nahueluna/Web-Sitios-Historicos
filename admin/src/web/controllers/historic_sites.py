@@ -19,7 +19,7 @@ from src.core.models.historic_site_tags import get_tags_by_site
 from src.core.models.search import get_all_tags
 from flask import Blueprint, render_template, request, jsonify, session
 from src.core.models.historic_sites import delete_histoirc_site, get_historic_site, list_all_historic_sites, list_visible_historic_sites, add_historic_site, edit_historic_site, get_only_historic_site, log_site_edit, set_tags
-from core.models.historic_sites import list_historic_sites_with_filters
+from src.core.models.historic_sites import list_historic_sites_with_filters
 from src.core.models.historic_sites_categorie import delete_category, list_historic_sites_categorie, add_category
 from src.core.models.historic_sites_state import list_states
 from src.core.models.historic_sites_logs import get_logs_per_hs

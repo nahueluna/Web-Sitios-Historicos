@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, flash, abort, jsonify, url_for
 from sqlalchemy.exc import SQLAlchemyError
 
-from core.models.review import get_specific_review, update_review_status, remove_review
+from src.core.models.review import get_specific_review, update_review_status, remove_review
 from src.core.models.review.review import ReviewStatus
 from src.web.decorator import block_admin_maintenance
 

@@ -2,7 +2,7 @@ import datetime
 import os
 from uuid import uuid1
 from flask import current_app
-from os import abort, fstat
+from os import fstat
 from src.web.decorator import block_admin_maintenance
 from src.core.models.auth import get_usuario_by_email
 from src.core.models.auth.user import RolUsuario
@@ -145,7 +145,7 @@ def export_sites(user):
         writer.writerow(spanish_row)
 
     # Nombre como lo solicita el documento
-    timestamp = datetime.now().strftime('%Y%m%d_%H%M')
+    timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M')
     filename = f"sitios_{timestamp}.csv"
 
     # Response recibe el contenido en formato de string (getvalue), el mimetype o tipo de archivo (csv con codificacion utf-8)
@@ -323,8 +323,8 @@ def edit_site(user):
         site.latitude = data["latitude"]
         site.longitude = data["longitude"]
         site.visible = data["visible"]
-        site.conservation_status = data["conservation_status"]
-        site.category = data["category"]
+        site.status_id = data["conservation_status"]
+        site.category_id = data["category"]
 
         set_tags(site.id, data.get("tags", []))
         log_site_edit(site.id, user.id)

@@ -21,5 +21,5 @@ class Image(Base):
             "orden": self.orden,
             "sitio": self.sitio,
             "fecha_creacion": self.fecha_creacion.isoformat(),
-            "url": self.url if self.url else None
+            "url": getattr(self, 'url', None)
         }

@@ -175,6 +175,25 @@ const sites = ref([])
 const loading = ref(true)
 const error = ref(null)
 
+// Espera reactivamente a que el token esté disponible (máx 2s)
+const waitForToken = (timeout = 2000) => {
+  return new Promise((resolve) => {
+    if (sessionStore.accessToken) return resolve(true)
+    const start = Date.now()
+    const unwatch = sessionStore.$subscribe(() => {
+      if (sessionStore.accessToken) {
+        unwatch()
+        resolve(true)
+      } else if (Date.now() - start > timeout) {
+        unwatch()
+        resolve(false)
+      }
+    })
+    // Fallback por si el token nunca llega
+    setTimeout(() => { unwatch(); resolve(false) }, timeout)
+  })
+}
+
 onMounted(async () => {
   try {
     loading.value = true
@@ -182,8 +201,8 @@ onMounted(async () => {
     let response = null
     if (props.requireAuth && props.sectionId === 'favorites') {
 
-      // Retraso para esperar a que se genere el JWT
-      await new Promise(resolve => setTimeout(resolve, 100))
+      // Esperar a que el token JWT esté disponible
+      await waitForToken()
 
        response = await sitesStore.fetchSites({
         favorites: true,
@@ -198,13 +217,11 @@ onMounted(async () => {
     })
     }
 
-    console.log('[Featured] Response received:', response)
     sites.value = response.sites
   } catch (err) {
     console.error('[Featured] Error loading sites:', err)
     error.value = 'Error al cargar los sitios'
   } finally {
-    //await new Promise(resolve => setTimeout(resolve, 3500))   // Retraso para simular tiempos de carga
     loading.value = false
   }
 })

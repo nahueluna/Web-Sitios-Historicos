@@ -14,8 +14,8 @@ const sessionStore = useSessionStore()
 const logout = () => {
   googleLogout();
   api.post('/google/logout')
-    .then((response) => {
-      console.log(response.data.message);
+    .then(() => {
+      // Logout exitoso
     })
     .catch((error) => {
       console.error(error);

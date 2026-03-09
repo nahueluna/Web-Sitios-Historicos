@@ -18,12 +18,12 @@
         v-for="page in visiblePages"
         :key="page"
         class="page-item"
-        :class="{ active: page === currentPage }"
+        :class="{ active: page === currentPage, disabled: page === '...' }"
       >
         <button
           class="page-link"
-          @click="goToPage(page)"
-          :disabled="loading"
+          @click="page !== '...' && goToPage(page)"
+          :disabled="loading || page === '...'"
         >
           {{ page }}
         </button>
@@ -65,7 +65,38 @@ const props = defineProps({
 const emit = defineEmits(['pageChange'])
 
 const visiblePages = computed(() => {
-  return Array.from({ length: props.totalPages }, (_, i) => i + 1)
+  const total = props.totalPages
+  const current = props.currentPage
+
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, i) => i + 1)
+  }
+
+  const pages = []
+
+  // Always show first page
+  pages.push(1)
+
+  if (current > 3) {
+    pages.push('...')
+  }
+
+  // Pages around current
+  const start = Math.max(2, current - 1)
+  const end = Math.min(total - 1, current + 1)
+
+  for (let i = start; i <= end; i++) {
+    pages.push(i)
+  }
+
+  if (current < total - 2) {
+    pages.push('...')
+  }
+
+  // Always show last page
+  pages.push(total)
+
+  return pages
 })
 
 const goToPage = (page) => {

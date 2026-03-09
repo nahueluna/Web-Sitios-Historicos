@@ -63,14 +63,14 @@
               <!-- Carousel -->
               <div v-if="site.images && site.images.length > 0" class="mb-4">
                 <div id="siteCarousel" class="carousel slide" data-bs-ride="carousel"
-                  data-bs-interva="false">
+                  data-bs-interval="false">
 
                   <div class="carousel-indicators">
                     <button
                       v-for="(img, index) in site.images"
                       :key="'ind-' + index"
                       type="button"
-                      data-bs-target="#siteImagesCarousel"
+                      data-bs-target="#siteCarousel"
                       :data-bs-slide-to="index"
                       :class="{ active: index === 0 }"
                       aria-current="true"
@@ -209,15 +209,13 @@ import { ref, onMounted, computed, watchEffect} from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSitesStore } from '@/stores/sitesStore'
 import { useSessionStore } from '@/stores/sessionStore'
-import { useReviewsStore } from '@/stores/reviewsStore'
 import { useFavoritesStore } from '@/stores/favoritesStore'
 import { useLoginModalStore } from '@/stores/LoginModalStore'
+import { useProfileReviewStore } from '@/stores/profileReviewStore'
 import ReviewForm from '@/components/ReviewForm.vue'
 import ReviewsList from '@/components/ReviewsList.vue'
-import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { LMap, LTileLayer, LMarker, LPopup} from "@vue-leaflet/vue-leaflet";
-import api from '@/service/api'
 import { transformReview } from '@/utils/reviewTransformer'
 
 const route = useRoute()
@@ -226,10 +224,10 @@ const sitesStore = useSitesStore()
 const sessionStore = useSessionStore()
 const favoritesStore = useFavoritesStore()
 const loginModalStore = useLoginModalStore()
+const profileReviewStore = useProfileReviewStore()
 const isAuthenticated = ref(sessionStore.isAuthenticated)
 const isFavorite = ref(false)
 const favoriteLoading = ref(false)
-const reviewsStore = useReviewsStore()
 const site = ref(null)
 const user = ref(sessionStore.user)
 const loading = ref(true)
@@ -255,9 +253,9 @@ const checkUserReview = async () => {
   if (!sessionStore.isAuthenticated || !site.value) return
 
   try {
-    const response = await api.get(`/api/reviews/users/${sessionStore.user.id}/reviews`)
-    if (response.data.reviews) {
-      const existingReview = response.data.reviews.find(
+    const reviews = await profileReviewStore.loadAllReviews(sessionStore.user.id)
+    if (reviews) {
+      const existingReview = reviews.find(
         r => r.historic_site?.id === site.value.id
       )
 
@@ -300,8 +298,6 @@ onMounted(async () => {
     }
     loading.value = true
     site.value = await sitesStore.fetchSiteById(site_id)
-    console.log("site: ",site.value)
-    console.log("user: ",user.value)
     if (site.value) {
       await checkUserReview()
       if (isAuthenticated.value) {

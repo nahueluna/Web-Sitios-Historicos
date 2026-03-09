@@ -112,8 +112,8 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useReviewsStore } from '@/stores/reviewsStore'
 import { useSessionStore } from '@/stores/sessionStore'
+import { useProfileReviewStore } from '@/stores/profileReviewStore'
 import PaginationComponent from '@/components/PaginationComponent.vue'
-import api from '@/service/api'
 
 const props = defineProps({
   siteId: {
@@ -128,6 +128,7 @@ const props = defineProps({
 
 const reviewsStore = useReviewsStore()
 const sessionStore = useSessionStore()
+const profileReviewStore = useProfileReviewStore()
 const loading = ref(false)
 const userReviewIds = ref(new Set())
 
@@ -184,9 +185,9 @@ const fetchReviews = async (page = 1) => {
 // Compara cada reseña pública con el Set de IDs del usuario
 const fetchUserReviewIds = async () => {
   try {
-    const response = await api.get(`/api/reviews/users/${sessionStore.user.id}/reviews`)
-    if (response.data.reviews) {
-      userReviewIds.value = new Set(response.data.reviews.map(r => r.id))
+    const reviews = await profileReviewStore.loadAllReviews(sessionStore.user.id)
+    if (reviews) {
+      userReviewIds.value = new Set(reviews.map(r => r.id))
     }
   } catch (error) {
     console.error('Error al cargar IDs de reseñas del usuario:', error)

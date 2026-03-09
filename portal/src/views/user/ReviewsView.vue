@@ -32,7 +32,7 @@ import ReviewComponent from '@/components/ReviewComponent.vue'
 import PaginationComponent from '@/components/PaginationComponent.vue'
 import { useProfileReviewStore } from '@/stores/profileReviewStore'
 import { useSessionStore } from '@/stores/sessionStore'
-import { onMounted, ref, watchEffect } from 'vue'
+import { onMounted, ref } from 'vue'
 
 const sessionStore = useSessionStore()
 const profileReviewStore = useProfileReviewStore()
@@ -69,9 +69,5 @@ const handlePageChange = async (page) => {
 
 onMounted(async () => {
   await loadUserReviews()
-})
-
-watchEffect(async() => {
-  await loadUserReviews() 
 })
 </script>

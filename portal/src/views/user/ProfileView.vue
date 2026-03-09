@@ -104,12 +104,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watchEffect } from 'vue'
-import { RouterLink } from 'vue-router'
+import { ref, onMounted } from 'vue'
 import { useSessionStore } from "@/stores/sessionStore"
 import { useSitesStore } from '@/stores/sitesStore'
 import { useProfileReviewStore } from '@/stores/profileReviewStore'
-import { useFavoritesStore } from '@/stores/profileFavoriteStore'
 import ReviewComponent from '@/components/ReviewComponent.vue'
 import SiteCard from '@/components/SiteCard.vue'
 import GoogleLogout from '@/components/google/GoogleLogoutComponent.vue'
@@ -118,7 +116,6 @@ import GoogleLogout from '@/components/google/GoogleLogoutComponent.vue'
 const sessionStore = useSessionStore()
 const sitesStore = useSitesStore()
 const profileReviewStore = useProfileReviewStore()
-const profileFavoritesStore = useFavoritesStore()
 
 const user = sessionStore.user
 const reviews = ref([])
@@ -135,16 +132,11 @@ async function loadData() {
       limit: 4,
     })
 
-    console.log('[Featured] Response received:', response)
     favorites.value = response.sites
   } catch (err) {
-    console.error('[Featured] Error loading sites:', err)
+    console.error('[ProfileView] Error loading sites:', err)
   }
 }
 
 onMounted(loadData)
-
-watchEffect(() => {
-  loadData()
-})
 </script>

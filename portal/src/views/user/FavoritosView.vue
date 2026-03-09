@@ -30,7 +30,7 @@
 <script setup>
 import SiteCard from '@/components/SiteCard.vue'
 import PaginationComponent from '@/components/PaginationComponent.vue'
-import { onMounted, ref, watchEffect } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useSitesStore } from '@/stores/sitesStore'
 
 const sitesStore = useSitesStore()
@@ -66,9 +66,5 @@ const handlePageChange = async (page) => {
 
 onMounted(async () => {
     await loadFavorites()
-})
-
-watchEffect(async() => {
-  await loadFavorites()
 })
 </script>

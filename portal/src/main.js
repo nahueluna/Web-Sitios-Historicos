@@ -11,8 +11,9 @@ import App from './App.vue'
 import router from './router'
 import * as BootstrapVueNext from 'bootstrap-vue-next'
 
-// Importar CSS
+// Importar CSS y JS de Bootstrap
 import 'bootstrap/dist/css/bootstrap.css'
+import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 import 'bootstrap-vue-next/dist/bootstrap-vue-next.css'
 
 const app = createApp(App)

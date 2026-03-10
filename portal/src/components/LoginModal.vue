@@ -23,23 +23,19 @@
 </template>
 
 <script setup>
-import { ref, watchEffect } from 'vue'
 import { useLoginModalStore } from '@/stores/LoginModalStore'
 import { useSessionStore } from '@/stores/sessionStore'
+import { storeToRefs } from 'pinia'
 import GoogleLogin from '@/components/google/GoogleLoginComponent.vue'
 
 const loginModalStore = useLoginModalStore()
 const sessionStore = useSessionStore()
-const show = ref(loginModalStore.showLoginModal)
+const { showLoginModal: show } = storeToRefs(loginModalStore)
 
 function close() {
   sessionStore.redirect_uri = null
   loginModalStore.closeLoginModal()
 }
-
-watchEffect(() => {
-  show.value = loginModalStore.showLoginModal
-})
 </script>
 
 <style scoped>

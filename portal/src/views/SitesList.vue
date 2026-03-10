@@ -188,8 +188,8 @@
       <div v-else-if="sites.length > 0" class="row g-4">
         <div v-for="site in sites" :key="site.id" class="col-12 col-md-6 col-lg-4">
           <SiteCard :site="site">
-            <span :class="stateConfig(site).classes" class="badge rounded-pill mb-4">
-              <i :class="stateConfig(site).icon"></i>
+            <span :class="getStateConfig(site.state).classes" class="badge rounded-pill mb-4">
+              <i :class="getStateConfig(site.state).icon"></i>
               {{ site.state }}
             </span>
             <TagList :tags="site.tags" />
@@ -233,8 +233,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, reactive, toRaw, watchEffect, nextTick } from 'vue'
+import { ref, onMounted, watch, reactive, toRaw, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
 import { Multiselect } from 'vue-multiselect'
 import 'vue-multiselect/dist/vue-multiselect.css'
 import { CAccordion, CAccordionHeader, CAccordionBody, CAccordionItem, CToast, CToastBody, CToastHeader } from '@coreui/vue'
@@ -245,6 +246,7 @@ import TagList from '@/components/TagList.vue'
 import api from '@/service/api'
 import { useSessionStore } from '@/stores/sessionStore'
 import LeafletMap from '@/components/LeafletMap.vue'
+import { getStateConfig } from '@/utils/stateConfig'
 
 const route = useRoute()
 const router = useRouter()
@@ -485,36 +487,7 @@ const fetchTags = async () => {
 watch(() => route.query, handleQueryChange)
 
 const sessionStore = useSessionStore()
-const isAuthenticated = ref(sessionStore.isAuthenticated)
-
-// Observar cambios en la autenticación
-watchEffect(() => {
-  isAuthenticated.value = sessionStore.isAuthenticated
-})
-
-// Configuración de clase para etiqueta de estado de sitio
-function stateConfig(site) {
-  const configMap = {
-    Bueno: {
-      classes: 'bg-success text-white',
-      icon: 'bi bi-check-circle-fill',
-    },
-    Regular: {
-      classes: 'bg-warning text-dark',
-      icon: 'bi bi-exclamation-triangle-fill',
-    },
-    Malo: {
-      classes: 'bg-danger text-white',
-      icon: 'bi bi-x-circle-fill',
-    },
-  }
-  return (
-    configMap[site.state] || {
-      classes: 'bg-secondary text-white',
-      icon: 'bi bi-question-circle-fill',
-    }
-  )
-}
+const { isAuthenticated } = storeToRefs(sessionStore)
 
 const calculateActiveFilters = () => {
   let count = 0

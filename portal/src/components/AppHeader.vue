@@ -50,19 +50,12 @@
 </template>
 
 <script setup>
-import { ref, watchEffect } from 'vue'
 import { useSessionStore } from '@/stores/sessionStore'
+import { storeToRefs } from 'pinia'
 import GoogleLogin from './google/GoogleLoginComponent.vue'
-import GoogleLogout from './google/GoogleLogoutComponent.vue'
 
 const sessionStore = useSessionStore()
-const isAuthenticated = ref(sessionStore.isAuthenticated)
-const user = ref(sessionStore.user)
-
-watchEffect(() => {
-  isAuthenticated.value = sessionStore.isAuthenticated
-  user.value = sessionStore.user
-})
+const { isAuthenticated, user } = storeToRefs(sessionStore)
 </script>
 
 <style scoped>

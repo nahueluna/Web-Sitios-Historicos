@@ -34,10 +34,10 @@
                 <span class="fw-semibold">Estado de conservación:</span>
 
                 <span
-                  :class="stateConfig(site.state_of_conservation).classes"
+                  :class="getStateConfig(site.state_of_conservation).classes"
                   class="d-inline-flex align-items-center gap-1 px-2 py-1 rounded-pill"
                 >
-                  <i :class="stateConfig(site.state_of_conservation).icon"></i>
+                  <i :class="getStateConfig(site.state_of_conservation).icon"></i>
                   {{ site.state_of_conservation }}
                 </span>
               </div>
@@ -205,8 +205,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watchEffect} from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
 import { useSitesStore } from '@/stores/sitesStore'
 import { useSessionStore } from '@/stores/sessionStore'
 import { useFavoritesStore } from '@/stores/favoritesStore'
@@ -217,6 +218,7 @@ import ReviewsList from '@/components/ReviewsList.vue'
 import "leaflet/dist/leaflet.css";
 import { LMap, LTileLayer, LMarker, LPopup} from "@vue-leaflet/vue-leaflet";
 import { transformReview } from '@/utils/reviewTransformer'
+import { getStateConfig } from '@/utils/stateConfig'
 
 const route = useRoute()
 const router = useRouter()
@@ -225,11 +227,11 @@ const sessionStore = useSessionStore()
 const favoritesStore = useFavoritesStore()
 const loginModalStore = useLoginModalStore()
 const profileReviewStore = useProfileReviewStore()
-const isAuthenticated = ref(sessionStore.isAuthenticated)
+const { isAuthenticated } = storeToRefs(sessionStore)
 const isFavorite = ref(false)
 const favoriteLoading = ref(false)
 const site = ref(null)
-const user = ref(sessionStore.user)
+const user = computed(() => sessionStore.user)
 const loading = ref(true)
 const showReviewForm = ref(false)
 const zoom = ref(12)
@@ -243,11 +245,6 @@ const sortedImages = computed(() => {
   if (!site.value?.images) return [];
   return [...site.value.images].sort((a, b) => a.orden - b.orden);
 });
-
-watchEffect(() => {
-    isAuthenticated.value = sessionStore.isAuthenticated
-    user.value = sessionStore.user
-})
 
 const checkUserReview = async () => {
   if (!sessionStore.isAuthenticated || !site.value) return
@@ -345,31 +342,6 @@ const handleFavorite = async () => {
     console.error("[SiteDetail] Error toggling favorite:", error);
   }
 };
-
-function stateConfig(state) {
-  const configMap = {
-    Bueno: {
-      classes: 'badge bg-success text-white',
-      icon: 'bi bi-check-circle-fill'
-    },
-    Regular: {
-      classes: 'badge bg-warning text-dark',
-      icon: 'bi bi-exclamation-triangle-fill'
-    },
-    Malo: {
-      classes: 'badge bg-danger text-white',
-      icon: 'bi bi-x-circle-fill'
-    }
-  }
-
-  // fallback
-  return (
-    configMap[state] || {
-      classes: 'badge bg-secondary text-white',
-      icon: 'bi bi-question-circle-fill'
-    }
-  )
-}
 </script>
 
 <style scoped>

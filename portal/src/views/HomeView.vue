@@ -62,18 +62,13 @@
 </template>
 
 <script setup>
-import { ref, watchEffect } from 'vue'
 import { useSessionStore } from '@/stores/sessionStore'
+import { storeToRefs } from 'pinia'
 import HeroSearch from '../components/HeroSearch.vue'
 import FeaturedSection from '../components/FeaturedSection.vue'
 
 const sessionStore = useSessionStore()
-const isAuthenticated = ref(sessionStore.isAuthenticated)
-
-// Observar cambios en la autenticación
-watchEffect(() => {
-  isAuthenticated.value = sessionStore.isAuthenticated
-})
+const { isAuthenticated } = storeToRefs(sessionStore)
 </script>
 
 <style scoped>
@@ -88,7 +83,3 @@ watchEffect(() => {
   background-color: #ffffff;
 }
 </style>
-
-<script setup>
-
-</script>

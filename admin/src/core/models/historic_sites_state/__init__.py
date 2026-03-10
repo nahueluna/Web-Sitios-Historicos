@@ -8,7 +8,7 @@ def list_states():
 
 def add_state(state: str):
     state_model = HistoricSitesStates(state=state)
-    db.sesion.add(state_model)
+    db.session.add(state_model)
     db.session.commit()
     return state_model
 

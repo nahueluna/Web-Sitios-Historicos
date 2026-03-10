@@ -1,5 +1,5 @@
 from src.core.models.auth.user import RolUsuario
-from flask import Blueprint, request, session, jsonify
+from flask import Blueprint, request, session, jsonify, current_app
 from src.core.models.auth import crear_usuario, get_usuario_by_email
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
@@ -15,8 +15,11 @@ def register_login():
         if not token:
             return jsonify({"status": "error", "message": "Token de Google no recibido"}), 400
 
-        # Verificar el token
-        idinfo = id_token.verify_oauth2_token(token, google_requests.Request())
+        # Verificar el token con audience para evitar token substitution
+        google_client_id = current_app.config.get("GOOGLE_CLIENT_ID")
+        idinfo = id_token.verify_oauth2_token(
+            token, google_requests.Request(), audience=google_client_id
+        )
         email = idinfo["email"]
         nombre = idinfo.get("given_name")
         apellido = idinfo.get("family_name")

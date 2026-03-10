@@ -7,10 +7,10 @@ from src.web.handlers.auth import role_required
 from flask import request, jsonify
 from sqlalchemy.exc import SQLAlchemyError
 
-from core.models.historic_sites import list_historic_sites_with_filters
+from src.core.models.historic_sites import list_historic_sites_with_filters
 from src.web.controllers.historic_sites import historic_sites_bp
-from web.controllers.helpers.tags import handle_db_error
-from web.controllers.helpers.time import date_is_greater_than
+from src.web.controllers.helpers.tags import handle_db_error
+from src.web.controllers.helpers.time import date_is_greater_than
 from datetime import datetime
 
 

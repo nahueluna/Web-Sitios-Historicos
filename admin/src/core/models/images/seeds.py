@@ -6,7 +6,7 @@ from src.core.database import db
 from src.core.models.historic_sites.historic_sites import HistoricSites
 from src.core.models.images.image import Image
 import os
-from os import abort, fstat
+from os import fstat
 from uuid import uuid1
 
 IMAGES_PER_SITE = 3

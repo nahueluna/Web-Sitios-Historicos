@@ -2,7 +2,7 @@ import datetime
 import os
 from uuid import uuid1
 from flask import current_app
-from os import abort, fstat
+from os import fstat
 from src.web.decorator import block_admin_maintenance
 from src.core.models.auth import get_usuario_by_email
 from src.core.models.auth.user import RolUsuario
@@ -19,7 +19,7 @@ from src.core.models.historic_site_tags import get_tags_by_site
 from src.core.models.search import get_all_tags
 from flask import Blueprint, render_template, request, jsonify, session
 from src.core.models.historic_sites import delete_histoirc_site, get_historic_site, list_all_historic_sites, list_visible_historic_sites, add_historic_site, edit_historic_site, get_only_historic_site, log_site_edit, set_tags
-from core.models.historic_sites import list_historic_sites_with_filters
+from src.core.models.historic_sites import list_historic_sites_with_filters
 from src.core.models.historic_sites_categorie import delete_category, list_historic_sites_categorie, add_category
 from src.core.models.historic_sites_state import list_states
 from src.core.models.historic_sites_logs import get_logs_per_hs
@@ -145,7 +145,7 @@ def export_sites(user):
         writer.writerow(spanish_row)
 
     # Nombre como lo solicita el documento
-    timestamp = datetime.now().strftime('%Y%m%d_%H%M')
+    timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M')
     filename = f"sitios_{timestamp}.csv"
 
     # Response recibe el contenido en formato de string (getvalue), el mimetype o tipo de archivo (csv con codificacion utf-8)
@@ -323,8 +323,8 @@ def edit_site(user):
         site.latitude = data["latitude"]
         site.longitude = data["longitude"]
         site.visible = data["visible"]
-        site.conservation_status = data["conservation_status"]
-        site.category = data["category"]
+        site.status_id = data["conservation_status"]
+        site.category_id = data["category"]
 
         set_tags(site.id, data.get("tags", []))
         log_site_edit(site.id, user.id)

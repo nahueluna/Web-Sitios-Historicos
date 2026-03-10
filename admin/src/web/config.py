@@ -4,6 +4,28 @@ from datetime import timedelta
 
 load_dotenv()
 
+
+# Variables requeridas por entorno (se validan en create_app, no al importar)
+_REQUIRED_VARS = {
+    "base": ["BACKEND_SECRET_KEY", "BACKEND_JWT_SECRET_KEY"],
+    "production": [
+        "DATABASE_URL", "MINIO_SERVER", "MINIO_ACCESS_KEY", "MINIO_SECRET_KEY",
+        "CORS_ALLOWED_ORIGINS", "GOOGLE_CLIENT_ID",
+    ],
+}
+
+
+def validate_env(env_name):
+    """Validate that all required environment variables are set for the given env."""
+    missing = [v for v in _REQUIRED_VARS["base"] if not environ.get(v)]
+    if env_name in _REQUIRED_VARS:
+        missing += [v for v in _REQUIRED_VARS[env_name] if not environ.get(v)]
+    if missing:
+        raise RuntimeError(
+            f"Variables de entorno requeridas no configuradas: {', '.join(missing)}"
+        )
+
+
 class Config:
     TESTING = False
     SECRET_KEY = environ.get("BACKEND_SECRET_KEY")
@@ -14,14 +36,22 @@ class Config:
         "pool_pre_ping": True,
     }
 
-    # Configuración para JWT, configurar secret key en env pls
     JWT_SECRET_KEY = environ.get('BACKEND_JWT_SECRET_KEY')
-    JWT_ALGORITHM = 'HS256'  # Cifrado simetrico, como dice la teoria
-    JWT_TOKEN_LOCATION = ['headers']  # Solo se puede enviar por headers (Authorization: Bearer)
+    JWT_ALGORITHM = 'HS256'
+    JWT_TOKEN_LOCATION = ['headers']
     JWT_HEADER_NAME = 'Authorization'
     JWT_HEADER_TYPE = 'Bearer'
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=7)
+
+    # CORS — orígenes permitidos (separados por coma)
+    CORS_ALLOWED_ORIGINS = environ.get(
+        "CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
+    )
+
+    # Google OAuth
+    GOOGLE_CLIENT_ID = environ.get("GOOGLE_CLIENT_ID")
+
 
 class ProductionConfig(Config):
 
@@ -33,7 +63,8 @@ class ProductionConfig(Config):
     MINIO_BUCKET = "grupo03"
 
     SQLALCHEMY_ENGINES = {
-        'default': environ.get("DATABASE_URL")}
+        'default': environ.get("DATABASE_URL"),
+    }
 
 
 class DevelopmentConfig(Config):
@@ -45,7 +76,7 @@ class DevelopmentConfig(Config):
     DB_SCHEME = environ.get("DB_SCHEME", "postgresql+psycopg2")
 
     # Minio
-    MINIO_SERVER = environ.get("MINIO_SERVER_DEV", "localhost:9000");
+    MINIO_SERVER = environ.get("MINIO_SERVER_DEV", "localhost:9000")
     MINIO_ACCESS_KEY = environ.get("MINIO_ACCESS_KEY_DEV", "minioadmin")
     MINIO_SECRET_KEY = environ.get("MINIO_SECRET_KEY_DEV", "minioadmin")
     MINIO_SECURE = environ.get("MINIO_SECURE_DEV", False)
@@ -55,8 +86,11 @@ class DevelopmentConfig(Config):
         'default': f"{DB_SCHEME}://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
     }
 
+
 class TestingConfig(Config):
     TESTING = True
+    SECRET_KEY = environ.get("BACKEND_SECRET_KEY", "test-secret-key")
+    JWT_SECRET_KEY = environ.get("BACKEND_JWT_SECRET_KEY", "test-jwt-secret-key")
 
 
 config = {

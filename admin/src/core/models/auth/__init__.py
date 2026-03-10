@@ -181,7 +181,7 @@ def assign_role(user: Usuario, role_name: str) -> Usuario | None:
         user.role_id = role.id
 
         db.session.commit()
-        print(f"Rol '{role_name}' asignado exitosamente al usuario '{user.name}' (anterior: {old_role_name})")
+        print(f"Rol '{role_name}' asignado exitosamente al usuario '{user.nombre}' (anterior: {old_role_name})")
         return user
 
 # Gestión de Permisos

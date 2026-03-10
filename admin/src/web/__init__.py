@@ -9,12 +9,11 @@ from src.web.controllers.tags import tags_bp
 from src.web.handlers import error
 from src.web.handlers.auth import is_authenticated, is_system_admin, is_admin, is_editor_or_admin
 from src.web.controllers.user_controller import bp_user
-from src.web.config import config
+from src.web.config import config, validate_env
 from src.core import database
 from src.web.controllers.historic_sites import historic_sites_bp
 from src.web.controllers.historic_sites import render_index
 from src.web.controllers.role_permission import role_bp
-from src.web.controllers.user_controller import bp_user
 from src.web.controllers.google_login import bp_google_auth
 import src.web.controllers.advanced_search
 from src.web.controllers.review import review_bp
@@ -35,6 +34,10 @@ jwt = JWTManager()
 
 def create_app(env='development', static_folder='../../static'):
     load_dotenv()
+
+    # Validar variables de entorno requeridas antes de arrancar
+    if env != 'testing':
+        validate_env(env)
     
     app = Flask(__name__, static_folder=static_folder)
     app.config.from_object(config[env])
@@ -48,12 +51,13 @@ def create_app(env='development', static_folder='../../static'):
     jwt.init_app(app)
 
     ## Necesario para el OAuth2 con Google
+    allowed_origins = [o.strip() for o in app.config["CORS_ALLOWED_ORIGINS"].split(",") if o.strip()]
     CORS(
         app, 
         allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        origins=["http://localhost:5173",  "http://127.0.0.1:5173", "https://admin-grupo03.proyecto2025.linti.unlp.edu.ar", "https://grupo03.proyecto2025.linti.unlp.edu.ar"], 
-        supports_credentials=True)  # URL de tu frontend Vue
+        origins=allowed_origins, 
+        supports_credentials=True)
     app.secret_key = app.config["SECRET_KEY"]
     app.config["SESSION_COOKIE_SAMESITE"] = "None"
     app.config["SESSION_COOKIE_SECURE"] = True

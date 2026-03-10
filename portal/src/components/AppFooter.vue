@@ -10,7 +10,7 @@
         </div>
         <div class="col-md-6 text-md-end">
           <p class="text-muted small mb-0">
-            &copy; 2025 Programa Nacional de Sitios Históricos. Todos los derechos reservados.
+            &copy; {{ new Date().getFullYear() }} Programa Nacional de Sitios Históricos. Todos los derechos reservados.
           </p>
         </div>
       </div>

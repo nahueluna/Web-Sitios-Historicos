@@ -14,8 +14,6 @@ api.interceptors.request.use(
     const token = useSessionStore().accessToken;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-    } else {
-      console.log("No token available for request");
     }
     return config;
   },
@@ -33,7 +31,6 @@ api.interceptors.response.use(
     if (error.response?.status === 401){
       const sessionStore = useSessionStore();
       if (sessionStore.user == null) {
-        console.log("User not logged in, redirecting to login");
         const loginModalStore = useLoginModalStore();
         loginModalStore.openLoginModal();
         return Promise.reject(error);
@@ -46,7 +43,6 @@ api.interceptors.response.use(
           const newToken = await sessionStore.refreshToken();
 
           if (newToken) {
-            console.log("New token obtained, retrying request");
             originalRequest.headers.Authorization = `Bearer ${newToken}`;
             return api(originalRequest);
           }

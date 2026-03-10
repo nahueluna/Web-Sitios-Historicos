@@ -21,8 +21,6 @@ export const useSitesStore = defineStore('sites', {
           per_page: params.per_page || params.limit || 25,
         };
 
-        console.log('Fetching sites with params:', queryParams);
-
         if (params.search) {
           const searchValue = params.search.trim();
           queryParams.name = searchValue;
@@ -44,7 +42,6 @@ export const useSitesStore = defineStore('sites', {
             return qs.stringify(params, { arrayFormat: 'comma' });
           }
         });
-        console.log('Fetched sites response:', response.data);
         const { data, meta } = response.data;
 
         const sites = data.map(site => ({

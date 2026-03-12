@@ -60,7 +60,7 @@ class ProductionConfig(Config):
     MINIO_ACCESS_KEY = environ.get("MINIO_ACCESS_KEY")
     MINIO_SECRET_KEY = environ.get("MINIO_SECRET_KEY")
     MINIO_SECURE = True
-    MINIO_BUCKET = "grupo03"
+    MINIO_BUCKET = environ.get("MINIO_BUCKET_NAME", "grupo03")
 
     # Render provee DATABASE_URL con esquema postgres:// pero SQLAlchemy 2
     # requiere postgresql://. Se corrige automáticamente.
@@ -85,8 +85,8 @@ class DevelopmentConfig(Config):
     MINIO_SERVER = environ.get("MINIO_SERVER_DEV", "localhost:9000")
     MINIO_ACCESS_KEY = environ.get("MINIO_ACCESS_KEY_DEV", "minioadmin")
     MINIO_SECRET_KEY = environ.get("MINIO_SECRET_KEY_DEV", "minioadmin")
-    MINIO_SECURE = environ.get("MINIO_SECURE_DEV", False)
-    MINIO_BUCKET = "grupo03"
+    MINIO_SECURE = str(environ.get("MINIO_SECURE_DEV", "false")).lower() == "true"
+    MINIO_BUCKET = environ.get("MINIO_BUCKET_NAME_DEV", "grupo03")
 
     SQLALCHEMY_ENGINES = {
         'default': f"{DB_SCHEME}://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"

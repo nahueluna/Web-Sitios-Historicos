@@ -62,8 +62,14 @@ class ProductionConfig(Config):
     MINIO_SECURE = True
     MINIO_BUCKET = "grupo03"
 
+    # Render provee DATABASE_URL con esquema postgres:// pero SQLAlchemy 2
+    # requiere postgresql://. Se corrige automáticamente.
+    _db_url = environ.get("DATABASE_URL", "")
+    if _db_url.startswith("postgres://"):
+        _db_url = _db_url.replace("postgres://", "postgresql://", 1)
+
     SQLALCHEMY_ENGINES = {
-        'default': environ.get("DATABASE_URL"),
+        'default': _db_url,
     }
 
 

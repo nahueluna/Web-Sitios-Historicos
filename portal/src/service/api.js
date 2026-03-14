@@ -28,18 +28,16 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401){
+    if (error.response?.status === 401) {
       const sessionStore = useSessionStore();
       if (sessionStore.user == null) {
         const loginModalStore = useLoginModalStore();
         loginModalStore.openLoginModal();
         return Promise.reject(error);
-      }
-      else if ( !originalRequest._retry) {
+      } else if (!originalRequest._retry) {
         originalRequest._retry = true;
 
         try {
-
           const newToken = await sessionStore.refreshToken();
 
           if (newToken) {
@@ -48,7 +46,6 @@ api.interceptors.response.use(
           }
         } catch (refreshError) {
           console.error("Failed to refresh token:", refreshError);
-          const sessionStore = useSessionStore();
           sessionStore.logout();
         }
       }

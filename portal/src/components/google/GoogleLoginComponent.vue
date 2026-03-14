@@ -10,12 +10,13 @@ const callback = async (response) => {
     const googleResponse = await api.post('/google/auth', { credential: token })
 
     const user = googleResponse.data.user
-    sessionStore.login(user)
 
-    // Obtener tokens JWT
+    // Obtener tokens JWT antes de marcar como autenticado
     const jwtResponse = await api.post("/api/auth", { email: user.email })
-    // Almacenar los tokens en tu store de sesión
     sessionStore.setTokens(jwtResponse.data.access_token, jwtResponse.data.refresh_token)
+
+    // Recién ahora marcar como autenticado y redirigir
+    sessionStore.login(user)
 
   } catch (error) {
     console.error("Error durante el login:", error)

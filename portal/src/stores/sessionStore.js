@@ -10,7 +10,6 @@ export const useSessionStore = defineStore('session', {
     redirect_uri: null,
     accessToken: null,
     _refreshToken: null,
-    isLoading: false, // Para controlar estados de carga
   }),
 
   getters: {
@@ -41,7 +40,6 @@ export const useSessionStore = defineStore('session', {
       this.user = null;
       this.accessToken = null;
       this._refreshToken = null;
-      this.isLoading = false;
       localStorage.removeItem('user');
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
@@ -64,6 +62,7 @@ export const useSessionStore = defineStore('session', {
       const newAccessToken = response.data.access_token;
       this.accessToken = newAccessToken;
       localStorage.setItem('accessToken', newAccessToken);
+      return newAccessToken;
     },
 
     // Método para restaurar sesión completa

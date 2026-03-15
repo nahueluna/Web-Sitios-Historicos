@@ -154,7 +154,6 @@ watch(error, (newError) => {
       alert('Error al cargar reseñas')
     }
 
-    //alert(`Error al cargar reseñas: ${newError.message}${newError.code ? ` Código: ${newError.code}` : ''}`)
     dismissError()
   }
 })

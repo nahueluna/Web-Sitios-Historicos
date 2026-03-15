@@ -67,11 +67,7 @@ export const useReviewsStore = defineStore('reviews', {
           insertedAt: review.inserted_at,
         }));
 
-        if (queryParams.page > 1) {
-          this.siteReviews = [...this.siteReviews, ...transformedReviews];
-        } else {
-          this.siteReviews = transformedReviews;
-        }
+        this.siteReviews = transformedReviews;
         this.siteReviewsMeta = meta;
 
         return {

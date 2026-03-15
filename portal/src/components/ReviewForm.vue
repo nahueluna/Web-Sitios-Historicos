@@ -172,13 +172,9 @@ const submitReview = async () => {
     } else if (error.response?.status === 409) {
       alert('✗ Ya has enviado una reseña para este sitio. Puedes editarla desde "Mis Reseñas". Si aún no es visible, debes esperar que un administrador la apruebe')
     }
-    /*else if (error.response?.data?.error?.message) {
-      alert('✗ ' + error.response.data.error.message)
-    }*/
     else {
       alert('✗ Error al ' + (isEditMode.value ? 'actualizar' : 'enviar') + ' la reseña. Por favor, intenta nuevamente.')
     }
-    emit('reviewAdded')
   } finally {
     loading.value = false
   }

@@ -1,5 +1,5 @@
 <template>
-  <nav aria-label="Paginación de reseñas" class="d-flex justify-content-center mt-4">
+  <nav v-if="totalPages > 1" aria-label="Paginación de reseñas" class="d-flex justify-content-center mt-4">
     <ul class="pagination">
       <!-- Botón Anterior -->
       <li class="page-item" :class="{ disabled: currentPage === 1 || loading }">

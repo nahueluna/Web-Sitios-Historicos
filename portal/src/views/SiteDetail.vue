@@ -62,12 +62,11 @@
 
               <!-- Carousel -->
               <div v-if="site.images && site.images.length > 0" class="mb-4">
-                <div id="siteCarousel" class="carousel slide" data-bs-ride="carousel"
-                  data-bs-interval="false">
+                <div id="siteCarousel" class="carousel slide">
 
                   <div class="carousel-indicators">
                     <button
-                      v-for="(img, index) in site.images"
+                      v-for="(img, index) in sortedImages"
                       :key="'ind-' + index"
                       type="button"
                       data-bs-target="#siteCarousel"
@@ -205,7 +204,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useSitesStore } from '@/stores/sitesStore'
@@ -219,6 +218,7 @@ import "leaflet/dist/leaflet.css";
 import { LMap, LTileLayer, LMarker, LPopup} from "@vue-leaflet/vue-leaflet";
 import { transformReview } from '@/utils/reviewTransformer'
 import { getStateConfig } from '@/utils/stateConfig'
+import { Carousel } from 'bootstrap'
 
 const route = useRoute()
 const router = useRouter()
@@ -229,13 +229,10 @@ const loginModalStore = useLoginModalStore()
 const profileReviewStore = useProfileReviewStore()
 const { isAuthenticated } = storeToRefs(sessionStore)
 const isFavorite = ref(false)
-const favoriteLoading = ref(false)
 const site = ref(null)
-const user = computed(() => sessionStore.user)
 const loading = ref(true)
 const showReviewForm = ref(false)
 const zoom = ref(12)
-const center = ref([0, 0])
 const userReview = ref(null)
 const editingReview = ref(null)
 const refreshTrigger = ref(0)
@@ -245,6 +242,27 @@ const sortedImages = computed(() => {
   if (!site.value?.images) return [];
   return [...site.value.images].sort((a, b) => a.orden - b.orden);
 });
+
+// Inicialización manual del carousel de Bootstrap tras renderizado dinámico
+let carouselInstance = null
+
+watch(site, async (newSite) => {
+  carouselInstance?.dispose()
+  carouselInstance = null
+
+  if (newSite?.images?.length > 0) {
+    await nextTick()
+    const el = document.getElementById('siteCarousel')
+    if (el) {
+      carouselInstance = new Carousel(el, { interval: false })
+    }
+  }
+})
+
+onBeforeUnmount(() => {
+  carouselInstance?.dispose()
+  carouselInstance = null
+})
 
 const checkUserReview = async () => {
   if (!sessionStore.isAuthenticated || !site.value) return
@@ -329,6 +347,12 @@ const onReviewAdded = async () => {
 
 const handleFavorite = async () => {
   if (!site.value) return;
+
+  if (!sessionStore.isAuthenticated) {
+    loginModalStore.openLoginModal();
+    sessionStore.redirect_uri = `/sites/${route.params.site_id}`;
+    return;
+  }
 
   try {
     if (isFavorite.value) {

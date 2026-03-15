@@ -8,10 +8,6 @@
         <p v-if="description" class="text-muted mb-0">{{ description }}</p>
       </div>
 
-      <div v-if="!loading && sites &&  sites.length === 0" class="alert alert-info">
-        <i class="bi bi-info-circle me-2"></i>
-        Actualmente no hay sitios disponibles en esta sección.
-      </div>
       <!-- d-none d-md-flex: oculto en móvil, flex en tablet+, align-items-center: centra verticalmente -->
       <router-link
         v-if="!loading && sites &&  sites.length > 0"
@@ -69,7 +65,7 @@
         none: ninguno
       -->
       <div class="d-md-none">
-        <div :id="`carousel-${sectionId}`" class="carousel slide" data-bs-ride="false">
+        <div :id="`carousel-${sectionId}`" class="carousel slide">
           <div class="carousel-inner">
             <div
               v-for="(site, index) in sites"
@@ -130,9 +126,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { useSitesStore } from '@/stores/sitesStore'
 import { useSessionStore } from '@/stores/sessionStore'
+import { Carousel } from 'bootstrap'
 import SiteCard from './SiteCard.vue'
 
 const props = defineProps({
@@ -175,6 +172,27 @@ const sites = ref([])
 const loading = ref(true)
 const error = ref(null)
 
+// Inicialización manual del carousel móvil de Bootstrap
+let carouselInstance = null
+
+watch(sites, async (newSites) => {
+  carouselInstance?.dispose()
+  carouselInstance = null
+
+  if (newSites?.length > 0) {
+    await nextTick()
+    const el = document.getElementById(`carousel-${props.sectionId}`)
+    if (el) {
+      carouselInstance = new Carousel(el, { interval: false })
+    }
+  }
+})
+
+onBeforeUnmount(() => {
+  carouselInstance?.dispose()
+  carouselInstance = null
+})
+
 // Espera reactivamente a que el token esté disponible (máx 2s)
 const waitForToken = (timeout = 2000) => {
   return new Promise((resolve) => {
@@ -207,12 +225,14 @@ onMounted(async () => {
        response = await sitesStore.fetchSites({
         favorites: true,
         order_by: props.orderBy,
+        order_dir: props.orderDir,
         limit: 6,
       })
     }
     else {
       response = await sitesStore.fetchSites({
       order_by: props.orderBy,
+      order_dir: props.orderDir,
       limit: 6,
     })
     }

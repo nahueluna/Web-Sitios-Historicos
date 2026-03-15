@@ -197,12 +197,14 @@
         </div>
 
         <!-- Pagination -->
-        <PaginationComponent
-          :current-page="currentPage"
-          :total-pages="totalPages"
-          :loading="loading"
-          @page-change="handlePageChange"
-        />
+        <div class="col-12">
+          <PaginationComponent
+            :current-page="currentPage"
+            :total-pages="totalPages"
+            :loading="loading"
+            @page-change="handlePageChange"
+          />
+        </div>
       </div>
 
       <!-- Empty -->
@@ -243,7 +245,6 @@ import { useSitesStore } from '@/stores/sitesStore'
 import SiteCard from '../components/SiteCard.vue'
 import PaginationComponent from '@/components/PaginationComponent.vue'
 import TagList from '@/components/TagList.vue'
-import api from '@/service/api'
 import { useSessionStore } from '@/stores/sessionStore'
 import LeafletMap from '@/components/LeafletMap.vue'
 import { getStateConfig } from '@/utils/stateConfig'
@@ -336,7 +337,7 @@ const applyFilters = async () => {
 const clearFilters = () => {
   filterForm.search = ''
   filterForm.orderBy = 'registration_date'
-  filterForm.orderDir = undefined
+  filterForm.orderDir = 'desc'
   filterForm.citySearch = ''
   filterForm.province = undefined
   filterForm.selectedTags = []
@@ -444,7 +445,7 @@ const handleQueryChange = () => {
 onMounted(async () => {
   filterForm.search = route.query.search || ''
   filterForm.orderBy = route.query.order_by || 'registration_date'
-  filterForm.orderDir = route.query.order_dir || undefined
+  filterForm.orderDir = route.query.order_dir || 'desc'
   filterForm.citySearch = route.query.city || ''
   filterForm.province = route.query.province || undefined
   filterForm.favorites = route.query.favorites === 'true'
@@ -477,11 +478,8 @@ onMounted(async () => {
 })
 
 const fetchTags = async () => {
-  const response = await api.get('/api/tags')
-  tags.value = response.data.map((tag) => ({
-    id: tag.id,
-    name: tag.name,
-  }))
+  const allTags = await sitesStore.fetchAllTags()
+  tags.value = allTags
 }
 
 watch(() => route.query, handleQueryChange)
@@ -525,14 +523,6 @@ const renderMap = () => {
   overflow: hidden;
   z-index: 1;
 }
-
-/* Asegurar que el mapa no se superponga */
-/*
-.map-container :deep(#map) {
-  position: relative !important;
-  width: 100%;
-  height: 600px !important;
-}*/
 
 .filters-active :deep(.accordion-header) {
   background-color: #e7f3ff;

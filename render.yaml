@@ -32,6 +32,8 @@ services:
         sync: false
       - key: MINIO_BUCKET_NAME
         sync: false
+      - key: MINIO_PUBLIC_URL
+        sync: false
 
 databases:
   - name: sitios-historicos-db

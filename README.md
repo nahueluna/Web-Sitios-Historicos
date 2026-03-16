@@ -7,7 +7,15 @@ Sistema desarrollado para la asignatura **Proyecto de Software** de la Licenciat
 ## Demo
 
 - **Backend (API + Admin):** https://sitios-historicos-api.onrender.com/
-- **Frontend (Portal):** Aun no disponible.
+- **Frontend (Portal):** https://web-sitios-historicos.vercel.app/
+
+### Usuarios de prueba (demo)
+
+| Rol | Email | Contraseña |
+|---|---|---|
+| Admin | `admin@example.com` | `admin123` |
+| Editor | `editor@example.com` | `editor123` |
+| Público | `user@example.com` | `user123` |
 
 ## Arquitectura
 

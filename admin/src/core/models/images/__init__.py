@@ -9,14 +9,17 @@ class ErrorAlGuardar(Exception):
     pass
 
 def get_bucket_url():
+    # Si hay una URL pública configurada (ej. R2.dev), usarla directamente.
+    # La URL del S3 API requiere autenticación y no sirve para <img src="">.
+    public_url = current_app.config.get("MINIO_PUBLIC_URL")
+    if public_url:
+        return public_url.rstrip("/")
+
     server = current_app.config["MINIO_SERVER"]
     secure = current_app.config["MINIO_SECURE"]
     bucket = current_app.config["MINIO_BUCKET"]
-    if secure:
-        secure = "s"
-    else:
-        secure = ""
-    return f"http{secure}://{server}/{bucket}"
+    protocol = "https" if secure else "http"
+    return f"{protocol}://{server}/{bucket}"
 
 
 def guardar_imagenes(nombres, titulos, descripciones, sitio):

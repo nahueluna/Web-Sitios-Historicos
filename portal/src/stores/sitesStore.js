@@ -2,10 +2,6 @@ import { defineStore } from "pinia";
 import api from "@/service/api";
 import qs from 'qs'
 
-function generateSlug(name) {
-  return name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
-}
-
 export const useSitesStore = defineStore('sites', {
   state: () => ({
     sites: [],
@@ -47,7 +43,6 @@ export const useSitesStore = defineStore('sites', {
         const sites = data.map(site => ({
           id: site.id,
           name: site.name,
-          slug: generateSlug(site.name),
           description: site.description,
           short_description: site.short_description,
           city: site.city,
@@ -57,7 +52,7 @@ export const useSitesStore = defineStore('sites', {
           tags: site.tags,
           state: site.state_of_conservation,
           coverImage: site.thumbnail_url || '/placeholder.svg',
-          rating: null,
+          rating: site.rating || null,
         }));
 
         // Guardar los sites en el estado del store

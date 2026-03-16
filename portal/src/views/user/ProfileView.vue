@@ -104,7 +104,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useSessionStore } from "@/stores/sessionStore"
 import { useSitesStore } from '@/stores/sitesStore'
 import { useProfileReviewStore } from '@/stores/profileReviewStore'
@@ -117,13 +117,13 @@ const sessionStore = useSessionStore()
 const sitesStore = useSitesStore()
 const profileReviewStore = useProfileReviewStore()
 
-const user = sessionStore.user
+const user = computed(() => sessionStore.user)
 const reviews = ref([])
 const favorites = ref([])
 
 async function loadData() {
   // Load reviews
-  reviews.value = await profileReviewStore.loadRecentReviews(user.id)
+  reviews.value = await profileReviewStore.loadRecentReviews(user.value.id)
 
   // Load favorite sites
   try {
